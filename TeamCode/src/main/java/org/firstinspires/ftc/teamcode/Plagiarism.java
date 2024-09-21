@@ -79,10 +79,10 @@ public class Plagiarism extends LinearOpMode {
 
 		// Initialize the hardware variables. Note that the strings used here must correspond
 		// to the names assigned during the robot configuration step on the DS or RC devices.
-		leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_front_drive");
-		leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
-		rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
-		rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+		leftFrontDrive  = hardwareMap.get(DcMotor.class, "leftFront");
+		leftBackDrive  = hardwareMap.get(DcMotor.class, "leftBack");
+		rightFrontDrive = hardwareMap.get(DcMotor.class, "rightFront");
+		rightBackDrive = hardwareMap.get(DcMotor.class, "rightBack");
 
 		// ########################################################################################
 		// !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -118,7 +118,7 @@ public class Plagiarism extends LinearOpMode {
 			// Combine the joystick requests for each axis-motion to determine each wheel's power.
 			// Set up a variable for each drive wheel to save the power level for telemetry.
 			double leftFrontPower  = axial + lateral + yaw;
-			double rightFrontPower = axial - lateral - yaw;
+			double rightFrontPower = axial - lateral - yaw * 0.8;
 			double leftBackPower   = axial - lateral + yaw;
 			double rightBackPower  = axial + lateral - yaw;
 
