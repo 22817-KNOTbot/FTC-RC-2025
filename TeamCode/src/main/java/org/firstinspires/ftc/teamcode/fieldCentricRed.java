@@ -10,8 +10,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
 
-@TeleOp(name="Field Centric Teleop: Blue", group="Field Centric")
-public class fieldCentricBlue extends LinearOpMode {
+@TeleOp(name="Field Centric Teleop: Red", group="Field Centric")
+public class fieldCentricRed extends LinearOpMode {
 
 	public DcMotor frontLeftDrive;
 	public DcMotor backLeftDrive;
@@ -73,7 +73,7 @@ public class fieldCentricBlue extends LinearOpMode {
 			if (!automationHandler.running()) {  
 				if (gamepad1.right_bumper) {
 					automationName = "Intake";
-					automationHandler.intake(Automations.Alliance.BLUE, true);
+					automationHandler.intake(Automations.Alliance.RED, true);
 				} else if (gamepad1.right_trigger > 0.9) {
 					automationName = "Ascend";
 					automationHandler.ascend();
