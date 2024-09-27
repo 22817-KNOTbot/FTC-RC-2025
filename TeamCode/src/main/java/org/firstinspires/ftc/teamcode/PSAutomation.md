@@ -2,7 +2,7 @@
 
 Rotate dropdown arm motor _ deg
 
-Start intake motor
+Start intake motor TODO: CHange to continuous servo
 
 Stop motor when color-distance sensor detects:
  1. Proximity (<2cm)
@@ -13,6 +13,8 @@ Rotate dropdown arm motor -_ deg
 
 ## Transfer
 
+Read motor encoders to ensure slide in correct position
+Set servos of differential wrist (research/testing needed)
 TODO: Everything
 
 # Deposit sample

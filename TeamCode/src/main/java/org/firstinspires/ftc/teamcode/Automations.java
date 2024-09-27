@@ -1,18 +1,16 @@
 package org.firstinspires.ftc.teamcode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.CRServo;
 
 
 public class Automations {
 	private static boolean automationRunning = false;
-	private HardwareMap hardwareMap;
-
-	public Automations(HardwareMap hardwareMap_input) {
-		hardwareMap = hardwareMap_input;
-	}
 
 	public enum Alliance {
 		RED, BLUE
@@ -26,68 +24,89 @@ public class Automations {
 		return automationRunning;
 	}
 
-	public void intake(Alliance alliance, boolean yellowAllowed) {
+	public void setRunning(boolean running) {
+		automationRunning = running;
+	}
+
+	public void wristMove(Servo leftServo, Servo rightServo, int deg) {
+		leftServo.setDirection(Servo.Direction.REVERSE);
+
+		leftServo.setPosition(deg/300);
+		rightServo.setPosition(deg/300);
+	}
+
+	/*
+	public void wristRotate(int deg) {
+		Servo wristLeftServo = hardwareMap.get(Servo.class, "wristLeftServo");
+		Servo wristRightServo = hardwareMap.get(Servo.class, "wristRightServo");
+		wristLeftServo.setDirection(Servo.Direction.FORWARD);
+
+		wristLeftServo.setPosition(deg/300);
+		wristRightServo.setPosition(deg/300);
+	}
+	*/
+
+	public void intake(HardwareMap hardwareMap, Alliance alliance, boolean yellowAllowed) {
 		automationRunning = true;
 		// Hardware initializing
-		DcMotor dropArmMotor = hardwareMap.get(DcMotor.class, "dropArmMotor");
-		dropArmMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		dropArmMotor.setPower(1);
-		int initialRotation = dropArmMotor.getCurrentPosition();
-		double ticksPerRotation = dropArmMotor.getMotorType().getTicksPerRev();
-		
-		DcMotor scoopMotor = hardwareMap.get(DcMotor.class, "scoopMotor");
-		scoopMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-		// scoopMotor.setDirection(DcMotor.Direction.REVERSE);
-
+		Servo dropArmServo = hardwareMap.get(Servo.class, "dropArmServo");
+		CRServo scoopServo = hardwareMap.get(CRServo.class, "scoopServo");
+		scoopServo.setDirection(DcMotor.Direction.FORWARD);
 		ColorRangeSensor colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
 
-		// Rotate dropdown arm motor _ deg
-		dropArmMotor.setTargetPosition((int)Math.round(initialRotation + ticksPerRotation*(45/360)));
-		
-		// Start intake motor
-		scoopMotor.setPower(1);
-		colourRangeSensor.enableLed(true);
+		// Rotate dropdown arm motor to base deg
+		dropArmServo.setPosition(0);
 		
 		boolean samplePickedUp = false;
 		while (!samplePickedUp) {
+			// Start intake motor
+			scoopServo.setPower(1);
 			// Stop motor when color-distance sensor detects:
 			//  1. Proximity (<2cm)
-			while (colourRangeSensor.getDistance(DistanceUnit.MM) > 2) {}
+			while (colourRangeSensor.getDistance(DistanceUnit.MM) > 50) {}
 			//  2. Colour = yellow/our alliance
-			if (!(yellowAllowed ? (
-				colourRangeSensor.red()>200 &&
-				colourRangeSensor.green()>200 &&
-				colourRangeSensor.blue()<100
+			double red = colourRangeSensor.red();
+			double green = colourRangeSensor.green();
+			double blue = colourRangeSensor.blue();
+
+			if ((yellowAllowed ? (
+				(red / blue > 2.5) && (green / blue > 3)
 			) : false) || (alliance == Alliance.RED ? (
-				colourRangeSensor.red()>200 &&
-				colourRangeSensor.green()<100 &&
-				colourRangeSensor.blue()<100
+				(red / green > 1.6) && (red / blue > 2)
 			) : (
-				colourRangeSensor.red()<100 &&
-				colourRangeSensor.green()<100 &&
-				colourRangeSensor.blue()>200
+				(blue / red > 3.5) && (blue / green > 1.2)
 			))) {
-			//   - if other alliance: reverse intake motor until proximity > 2cm
-				while(colourRangeSensor.getDistance(DistanceUnit.MM) < 2) {
-					scoopMotor.setPower(-1);
-				}
-				scoopMotor.setPower(0);
+				scoopServo.setPower(0.5);
+				samplePickedUp = true;
+			} else {
+				//   - if other alliance: reverse intake motor until proximity > 2cm
+				scoopServo.setPower(0);
+				while(colourRangeSensor.getDistance(DistanceUnit.MM) < 50) {}
 			}
 		}
-
-		// Rotate dropdown arm motor -_ deg
-		samplePickedUp = true;
-		scoopMotor.setPower(0);
-		colourRangeSensor.enableLed(false);
-		dropArmMotor.setTargetPosition(initialRotation);
 		
+		// Rotate dropdown arm motor -_ deg
+		dropArmServo.setPosition(90/360);
+
 		// # Transfer
+		
+		Servo wristLeftServo = hardwareMap.get(Servo.class, "wristLeftServo");
+		Servo wristRightServo = hardwareMap.get(Servo.class, "wristRightServo");
+		Servo clawServo = hardwareMap.get(Servo.class, "clawServo");
+		clawServo.scaleRange(0, 1); // TODO: Find and change this to correct value
+
+		// wristMove range: 60-240
+		wristMove(wristLeftServo, wristRightServo, 240);
+		clawServo.setPosition(1);
+		wristMove(wristLeftServo, wristRightServo, 60);
+		
+
 		// TODO: Everything
 
 		automationRunning = false;
 	}
 
-	public void depositSample(Basket basket) {
+	public void depositSample(HardwareMap hardwareMap, Basket basket) {
 		automationRunning = true;
 
 		// Extend linear slide
@@ -98,7 +117,7 @@ public class Automations {
 		automationRunning = false;
 	}
 
-	public void grabSpecimen() {
+	public void grabSpecimen(HardwareMap hardwareMap) {
 		automationRunning = true;
 
 		// TODO: Everything
@@ -106,7 +125,7 @@ public class Automations {
 		automationRunning = false;
 	}
 
-	public void hangSpecimen() {
+	public void hangSpecimen(HardwareMap hardwareMap) {
 		automationRunning = true;
 
 		// TODO: Everything
@@ -114,7 +133,7 @@ public class Automations {
 		automationRunning = false;
 	}
 	
-	public void ascend() {
+	public void ascend(HardwareMap hardwareMap) {
 		automationRunning = true;
 
 		// Extend linear slides
@@ -126,7 +145,7 @@ public class Automations {
 		automationRunning = false;
 	}
 
-	public void lowerSlides() {
+	public void lowerSlides(HardwareMap hardwareMap) {
 		automationRunning = true;
 		
 		DcMotor slideMotor1 = hardwareMap.get(DcMotor.class, "motorName1");

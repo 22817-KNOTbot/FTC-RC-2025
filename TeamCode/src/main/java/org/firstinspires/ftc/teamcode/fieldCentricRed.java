@@ -18,21 +18,19 @@ public class fieldCentricRed extends LinearOpMode {
 	public DcMotor frontRightDrive;
 	public DcMotor backRightDrive;
 	private String automationName;
-	private Automations automationHandler = new Automations(hardwareMap);
+	private Automations automationHandler = new Automations();
 
 	
 	IMU imu;
 
 	@Override
 	public void runOpMode() throws InterruptedException {        
-		//declare motors
-		//match ID's to config
-		DcMotor frontLeftDrive  = hardwareMap.get(DcMotor.class, "leftFront");
-		DcMotor backLeftDrive  = hardwareMap.get(DcMotor.class, "leftBack");
-		DcMotor frontRightDrive  = hardwareMap.get(DcMotor.class, "rightFront");
-		DcMotor backRightDrive  = hardwareMap.get(DcMotor.class, "rightBack");
+		automationHandler.setRunning(false);
+		DcMotor frontLeftDrive = hardwareMap.get(DcMotor.class, "leftFront");
+		DcMotor backLeftDrive = hardwareMap.get(DcMotor.class, "leftBack");
+		DcMotor frontRightDrive = hardwareMap.get(DcMotor.class, "rightFront");
+		DcMotor backRightDrive = hardwareMap.get(DcMotor.class, "rightBack");
 
-		//reverse left motors (depends on robot)
 		frontLeftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
 		backLeftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
 		
@@ -40,31 +38,28 @@ public class fieldCentricRed extends LinearOpMode {
 		IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
 			RevHubOrientationOnRobot.LogoFacingDirection.UP, //depends on robot (control hub configuration)
 			RevHubOrientationOnRobot.UsbFacingDirection.FORWARD)); //depends on robot (control hub configuration)
-		imu.initialize(parameters); //init parameters
+		imu.initialize(parameters);
 
 		waitForStart();
 
 		while (opModeIsActive()) {
 			double y = -gamepad1.left_stick_y;
-			double x = -gamepad1.left_stick_y;
-			double rx = -gamepad1.left_stick_y;
+			double x = gamepad1.left_stick_x;
+			double rx = gamepad1.right_stick_x;
 
 			double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-			//rotate by robot's rotation to maintain field-centric drive (90 degrees)
 			double rotX = x * Math.cos(-heading) - y * Math.sin(-heading);
 			double rotY = y * Math.sin(-heading) + y * Math.cos(-heading);
 			
-			rotX *= 1.1; // Counteract imperfect strafing
+			rotX *= 1.1;
 			
-			//basic mecanum code for motor power
 			double denominator = Math.max(Math.abs(rotX) + Math.abs(rotY) + Math.abs(rx), 1);
 			double frontLeftPower = (rotY + rotX + rx) / denominator;
 			double backLeftPower = (rotY - rotX + rx) / denominator;
 			double frontRightPower = (rotY - rotX - rx) / denominator;
 			double backRightPower = (rotY + rotX - rx) / denominator;
 
-			//set motor power to motor power variables
 			frontLeftDrive.setPower(frontLeftPower);
 			backLeftDrive.setPower(backLeftPower);
 			frontRightDrive.setPower(frontRightPower);
@@ -73,26 +68,27 @@ public class fieldCentricRed extends LinearOpMode {
 			if (!automationHandler.running()) {  
 				if (gamepad1.right_bumper) {
 					automationName = "Intake";
-					automationHandler.intake(Automations.Alliance.RED, true);
+					automationHandler.intake(hardwareMap, Automations.Alliance.RED, true);
 				} else if (gamepad1.right_trigger > 0.9) {
 					automationName = "Ascend";
-					automationHandler.ascend();
+					automationHandler.ascend(hardwareMap);
 				} else if (gamepad1.a) {
 					automationName = "Hang specimen";
-					automationHandler.hangSpecimen();
+					automationHandler.hangSpecimen(hardwareMap);
 				} else if (gamepad1.b) {
 					automationName = "Deposit sample - High";
-					automationHandler.depositSample(Automations.Basket.HIGH);
+					automationHandler.depositSample(hardwareMap, Automations.Basket.HIGH);
 				} else if (gamepad1.x) {
 					automationName = "Lower slides";
-					automationHandler.lowerSlides();
+					automationHandler.lowerSlides(hardwareMap);
 				}
 
 				if (gamepad2.start) {
 					imu.resetYaw();
 				}
 			}
-
+			
+			telemetry.addData("Automation", automationHandler.running());
 			telemetry.addData("Automation", automationHandler.running() ? automationName : "None");
 			telemetry.update();
 		}
