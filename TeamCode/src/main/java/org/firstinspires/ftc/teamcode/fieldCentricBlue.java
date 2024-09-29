@@ -20,14 +20,12 @@ public class fieldCentricBlue extends LinearOpMode {
 	public DcMotor frontRightDrive;
 	public DcMotor backRightDrive;
 	private String automationName;
-	private Automations automationHandler = new Automations(hardwareMap, DEBUG, telemetry);
-	
+	private Automations automationHandler = new Automations(hardwareMap, DEBUG, telemetry);	
 	
 	IMU imu;
 	
 	@Override
 	public void runOpMode() {        
-		automationHandler.setRunning(false);
 		DcMotor frontLeftDrive = hardwareMap.get(DcMotor.class, "leftFront");
 		DcMotor backLeftDrive = hardwareMap.get(DcMotor.class, "leftBack");
 		DcMotor frontRightDrive = hardwareMap.get(DcMotor.class, "rightFront");
@@ -67,31 +65,52 @@ public class fieldCentricBlue extends LinearOpMode {
 			frontRightDrive.setPower(frontRightPower);
 			backRightDrive.setPower(backRightPower);
 
-			if (!automationHandler.running()) {  
-				if (gamepad1.right_bumper) {
-					automationName = "Intake";
-					automationHandler.intake(Automations.Alliance.BLUE, true);
-				} else if (gamepad1.right_trigger > 0.9) {
-					automationName = "Ascend";
-					automationHandler.ascend();
-				} else if (gamepad1.a) {
-					automationName = "Hang specimen";
-					automationHandler.hangSpecimen();
-				} else if (gamepad1.b) {
-					automationName = "Deposit sample - High";
-					automationHandler.depositSample(Automations.Basket.HIGH);
-				} else if (gamepad1.x) {
-					automationName = "Lower slides";
-					automationHandler.lowerSlides();
-				}
-
-				if (gamepad2.start) {
-					imu.resetYaw();
-				}
+			switch (automationHandler.automationState) {
+				case ABORT:
+					automationName = "ABORTING";
+					automationHandler.abort();
+					break;
+				case IDLE:
+					if (gamepad1.right_bumper) {
+						automationName = "Intake";
+						automationHandler.intakeInit();
+					} else if (gamepad1.right_trigger > 0.9) {
+						automationName = "Ascend";
+						automationHandler.ascend();
+					} else if (gamepad1.a) {
+						automationName = "Hang specimen";
+						automationHandler.hangSpecimen();
+					} else if (gamepad1.b) {
+						automationName = "Deposit sample - High";
+						automationHandler.depositSample(Automations.Basket.HIGH);
+					} else if (gamepad1.x) {
+						automationName = "Lower slides";
+						automationHandler.lowerSlides();
+					}
+					break;
+				case INTAKE_WAIT:
+					automationHandler.intakeWait();
+					break;
+				case INTAKE_FILLED:
+					automationHandler.intakeFilled(Automations.Alliance.BLUE, true);
+					break;
+				case INTAKE_DUMPING:
+					automationHandler.intakeDumping();
+					break;
+				case TRANSFER:
+					automationHandler.transfer();
+					break;
 			}
 
-			telemetry.addData("Automation", automationHandler.running());
-			telemetry.addData("Automation name", automationHandler.running() ? automationName : "None");
+			if (gamepad2.back) {
+				automationHandler.automationState = automationHandler.State.ABORT;
+			}
+			if (gamepad2.start) {
+				imu.resetYaw();
+			}
+
+			telemetry.addData("Automation", automationHandler.automationState != Automations.State.IDLE);
+			telemetry.addData("Automation name", automationHandler.automationState != Automations.State.IDLE ? automationName : "None");
 			telemetry.update();
 		}
 	}
