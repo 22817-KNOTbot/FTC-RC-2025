@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.testing;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 
 @Config
 @TeleOp(name="Color testing", group="Debug")
-public class Test2 extends LinearOpMode {
+public class ColourTesting extends LinearOpMode {
     public static double COLOUR_THRESHOLD_1 = 2.5;
     public static double COLOUR_THRESHOLD_2 = 3;
     public static double COLOUR_THRESHOLD_3 = 1.6;

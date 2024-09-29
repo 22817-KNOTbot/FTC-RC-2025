@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.testing;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -8,12 +8,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
 @TeleOp(name="Servo testing", group="Debug")
-public class Test extends LinearOpMode {
+public class ServoTesting extends LinearOpMode {
 	public static double POSITION = 0;
 
 	@Override
 	public void runOpMode() {
-		Servo dropArmServo = hardwareMap.get(Servo.class, "dropArmServo");
+		Servo dropArmServo = hardwareMap.get(Servo.class, "testServo");
 
 		waitForStart();
 

@@ -8,9 +8,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
 
-
 public class Automations {
 	private static boolean automationRunning = false;
+	private HardwareMap hardwareMap;
+	private boolean DEBUG = false;
+	private Telemetry telemetry;
 
 	public enum Alliance {
 		RED, BLUE
@@ -20,12 +22,22 @@ public class Automations {
 		LOW, HIGH
 	}
 
-	public boolean running() {
-		return automationRunning;
+	public Automations(HardwareMap hardwareMap) {
+		this.hardwareMap = hardwareMap;
 	}
 
-	public void setRunning(boolean running) {
-		automationRunning = running;
+	public Automations(HardwareMap hardwareMap, boolean DEBUG, Telemetry telemetry) {
+		this.hardwareMap = hardwareMap;
+		this.DEBUG = DEBUG;
+		this.telemetry = telemetry;
+	}
+
+	public boolean running() {
+		return Automations.automationRunning;
+	}
+
+	public void setRunning(boolean automationRunning) {
+		Automations.automationRunning = automationRunning;
 	}
 
 	public void wristMove(Servo leftServo, Servo rightServo, int deg) {
@@ -33,23 +45,29 @@ public class Automations {
 
 		leftServo.setPosition(deg/300);
 		rightServo.setPosition(deg/300);
+
+		if (DEBUG) {
+			telemetry.addData("Wrist", "%.2f|.2f", leftServo.getPosition(), rightServo.getPosition());
+			telemetry.update();
+		}
 	}
 
-	/*
 	public void wristRotate(int deg) {
 		Servo wristLeftServo = hardwareMap.get(Servo.class, "wristLeftServo");
 		Servo wristRightServo = hardwareMap.get(Servo.class, "wristRightServo");
 		wristLeftServo.setDirection(Servo.Direction.FORWARD);
+		wristLeftServo.setDirection(Servo.Direction.REVERSE);
 
 		wristLeftServo.setPosition(deg/300);
 		wristRightServo.setPosition(deg/300);
 	}
-	*/
 
-	public void intake(HardwareMap hardwareMap, Alliance alliance, boolean yellowAllowed) {
+	public void intake(Alliance alliance, boolean yellowAllowed) {
 		automationRunning = true;
 		// Hardware initializing
 		Servo dropArmServo = hardwareMap.get(Servo.class, "dropArmServo");
+		dropArmServo.setDirection(Servo.Direction.REVERSE);
+		dropArmServo.scaleRange(0, 90/360);
 		CRServo scoopServo = hardwareMap.get(CRServo.class, "scoopServo");
 		scoopServo.setDirection(DcMotor.Direction.FORWARD);
 		ColorRangeSensor colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
@@ -63,11 +81,20 @@ public class Automations {
 			scoopServo.setPower(1);
 			// Stop motor when color-distance sensor detects:
 			//  1. Proximity (<2cm)
-			while (colourRangeSensor.getDistance(DistanceUnit.MM) > 50) {}
+			while (colourRangeSensor.getDistance(DistanceUnit.MM) > 50) {
+				if (DEBUG) {
+					telemetry.addData("Distance", colourRangeSensor.getDistance(DistanceUnit.MM));
+					telemetry.update();
+				}
+			}
 			//  2. Colour = yellow/our alliance
-			double red = colourRangeSensor.red();
-			double green = colourRangeSensor.green();
-			double blue = colourRangeSensor.blue();
+			int red = colourRangeSensor.red();
+			int green = colourRangeSensor.green();
+			int blue = colourRangeSensor.blue();
+			if (DEBUG) {
+				telemetry.addData("Color", "%d|%d|%d", red, green, blue);
+				telemetry.update();
+			}
 
 			if ((yellowAllowed ? (
 				(red / blue > 2.5) && (green / blue > 3)
@@ -81,15 +108,21 @@ public class Automations {
 			} else {
 				//   - if other alliance: reverse intake motor until proximity > 2cm
 				scoopServo.setPower(0);
-				while(colourRangeSensor.getDistance(DistanceUnit.MM) < 50) {}
+				while(colourRangeSensor.getDistance(DistanceUnit.MM) < 50) {
+					if (DEBUG) {
+						telemetry.addData("Distance", colourRangeSensor.getDistance(DistanceUnit.MM));
+						telemetry.update();
+					}	
+				}
 			}
 		}
 		
 		// Rotate dropdown arm motor -_ deg
-		dropArmServo.setPosition(90/360);
+		dropArmServo.setPosition(1);
 
 		// # Transfer
-		
+		/*
+
 		Servo wristLeftServo = hardwareMap.get(Servo.class, "wristLeftServo");
 		Servo wristRightServo = hardwareMap.get(Servo.class, "wristRightServo");
 		Servo clawServo = hardwareMap.get(Servo.class, "clawServo");
@@ -99,14 +132,14 @@ public class Automations {
 		wristMove(wristLeftServo, wristRightServo, 240);
 		clawServo.setPosition(1);
 		wristMove(wristLeftServo, wristRightServo, 60);
-		
+		*/
 
 		// TODO: Everything
 
 		automationRunning = false;
 	}
 
-	public void depositSample(HardwareMap hardwareMap, Basket basket) {
+	public void depositSample(Basket basket) {
 		automationRunning = true;
 
 		// Extend linear slide
@@ -117,7 +150,7 @@ public class Automations {
 		automationRunning = false;
 	}
 
-	public void grabSpecimen(HardwareMap hardwareMap) {
+	public void grabSpecimen() {
 		automationRunning = true;
 
 		// TODO: Everything
@@ -125,7 +158,7 @@ public class Automations {
 		automationRunning = false;
 	}
 
-	public void hangSpecimen(HardwareMap hardwareMap) {
+	public void hangSpecimen() {
 		automationRunning = true;
 
 		// TODO: Everything
@@ -133,7 +166,7 @@ public class Automations {
 		automationRunning = false;
 	}
 	
-	public void ascend(HardwareMap hardwareMap) {
+	public void ascend() {
 		automationRunning = true;
 
 		// Extend linear slides
@@ -145,7 +178,7 @@ public class Automations {
 		automationRunning = false;
 	}
 
-	public void lowerSlides(HardwareMap hardwareMap) {
+	public void lowerSlides() {
 		automationRunning = true;
 		
 		DcMotor slideMotor1 = hardwareMap.get(DcMotor.class, "motorName1");

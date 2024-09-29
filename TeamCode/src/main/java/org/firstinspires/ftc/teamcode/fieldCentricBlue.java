@@ -7,18 +7,20 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import com.acmerobotics.dashboard.config.Config;
 
 import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
 
+@Config
 @TeleOp(name="Field Centric Teleop: Blue", group="Field Centric")
 public class fieldCentricBlue extends LinearOpMode {
-
+	private static boolean DEBUG = false;
 	public DcMotor frontLeftDrive;
 	public DcMotor backLeftDrive;
 	public DcMotor frontRightDrive;
 	public DcMotor backRightDrive;
 	private String automationName;
-	private Automations automationHandler = new Automations();
+	private Automations automationHandler = new Automations(hardwareMap, DEBUG, telemetry);
 	
 	
 	IMU imu;
@@ -68,19 +70,19 @@ public class fieldCentricBlue extends LinearOpMode {
 			if (!automationHandler.running()) {  
 				if (gamepad1.right_bumper) {
 					automationName = "Intake";
-					automationHandler.intake(hardwareMap, Automations.Alliance.BLUE, true);
+					automationHandler.intake(Automations.Alliance.BLUE, true);
 				} else if (gamepad1.right_trigger > 0.9) {
 					automationName = "Ascend";
-					automationHandler.ascend(hardwareMap);
+					automationHandler.ascend();
 				} else if (gamepad1.a) {
 					automationName = "Hang specimen";
-					automationHandler.hangSpecimen(hardwareMap);
+					automationHandler.hangSpecimen();
 				} else if (gamepad1.b) {
 					automationName = "Deposit sample - High";
-					automationHandler.depositSample(hardwareMap, Automations.Basket.HIGH);
+					automationHandler.depositSample(Automations.Basket.HIGH);
 				} else if (gamepad1.x) {
 					automationName = "Lower slides";
-					automationHandler.lowerSlides(hardwareMap);
+					automationHandler.lowerSlides();
 				}
 
 				if (gamepad2.start) {

@@ -7,27 +7,22 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import com.acmerobotics.dashboard.config.Config;
 
 import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
 
-@Config
-@TeleOp(name="Field Centric Teleop: Red", group="Field Centric")
-public class fieldCentricRed extends LinearOpMode {
-	private static boolean DEBUG = false;
+@TeleOp(name="Tetrix: Field Centric Teleop", group="Tetrix")
+public class fieldCentricTetrix extends LinearOpMode {
+
 	public DcMotor frontLeftDrive;
 	public DcMotor backLeftDrive;
 	public DcMotor frontRightDrive;
 	public DcMotor backRightDrive;
-	private String automationName;
-	private Automations automationHandler = new Automations(hardwareMap, DEBUG, telemetry);
-
+	private String automationName;	
 	
 	IMU imu;
-
+	
 	@Override
-	public void runOpMode() throws InterruptedException {        
-		automationHandler.setRunning(false);
+	public void runOpMode() {        
 		DcMotor frontLeftDrive = hardwareMap.get(DcMotor.class, "leftFront");
 		DcMotor backLeftDrive = hardwareMap.get(DcMotor.class, "leftBack");
 		DcMotor frontRightDrive = hardwareMap.get(DcMotor.class, "rightFront");
@@ -66,32 +61,15 @@ public class fieldCentricRed extends LinearOpMode {
 			backLeftDrive.setPower(backLeftPower);
 			frontRightDrive.setPower(frontRightPower);
 			backRightDrive.setPower(backRightPower);
-
-			if (!automationHandler.running()) {  
-				if (gamepad1.right_bumper) {
-					automationName = "Intake";
-					automationHandler.intake(Automations.Alliance.RED, true);
-				} else if (gamepad1.right_trigger > 0.9) {
-					automationName = "Ascend";
-					automationHandler.ascend();
-				} else if (gamepad1.a) {
-					automationName = "Hang specimen";
-					automationHandler.hangSpecimen();
-				} else if (gamepad1.b) {
-					automationName = "Deposit sample - High";
-					automationHandler.depositSample(Automations.Basket.HIGH);
-				} else if (gamepad1.x) {
-					automationName = "Lower slides";
-					automationHandler.lowerSlides();
-				}
-
-				if (gamepad2.start) {
-					imu.resetYaw();
-				}
-			}
 			
-			telemetry.addData("Automation", automationHandler.running());
-			telemetry.addData("Automation", automationHandler.running() ? automationName : "None");
+			if (gamepad2.start) {
+				imu.resetYaw();
+			}	
+			
+			telemetry.addData("frontLeftPower", frontLeftPower);
+			telemetry.addData("frontRightPower", frontRightPower);
+			telemetry.addData("backLeftPower", backLeftPower);
+			telemetry.addData("backRightPower", backRightPower);
 			telemetry.update();
 		}
 	}
