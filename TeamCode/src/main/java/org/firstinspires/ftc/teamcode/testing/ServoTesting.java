@@ -10,10 +10,11 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp(name="Servo testing", group="Debug")
 public class ServoTesting extends LinearOpMode {
 	public static double POSITION = 0;
+	public static String SERVONAME = "testServo"; 
 
 	@Override
 	public void runOpMode() {
-		Servo dropArmServo = hardwareMap.get(Servo.class, "testServo");
+		Servo dropArmServo = hardwareMap.get(Servo.class, SERVONAME);
 
 		waitForStart();
 

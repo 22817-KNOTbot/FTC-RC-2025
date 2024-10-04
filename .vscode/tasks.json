@@ -4,11 +4,20 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Connect to control hub",
+            "type": "shell",
+            "command": "adb connect 192.168.43.1:5555",
+            "problemMatcher": []
+        },
+        {
             "type": "gradle",
-            "id": "installDebugSoftware",
+            "id": "${cwd}installDebugSoftware",
             "script": "installDebug",
             "description": "Installs the Debug build.",
-            "group": "install",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "project": "Software",
             "buildFile": "${cwd}\\build.gradle",
             "rootProject": "Software",
@@ -19,7 +28,7 @@
             "problemMatcher": [
                 "$gradle"
             ],
-            "label": "Send to robot"
+            "label": "gradle: installDebug"
         }
     ]
 }
