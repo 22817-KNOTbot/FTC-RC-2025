@@ -1,37 +1,47 @@
 package org.firstinspires.ftc.teamcode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.dashboard.FtcDashboard;
 
 public class Automations {
-	public static State automationState = State.IDLE;
+	public static State automationState;
 	private HardwareMap hardwareMap;
 	private boolean DEBUG = false;
-	private Telemetry telemetry;
+	private ElapsedTime servoTime;
+	private TelemetryPacket telemetryPacket;
+	private FtcDashboard dashboard;
 
 	// Hardware mapping
-	Servo wristLeftServo;
-	Servo wristRightServo;
-	Servo dropArmServo;
-	CRServo scoopServo;
-	ColorRangeSensor colourRangeSensor;
-	Servo clawServo;
-	// DcMotor slideMotor1;
-	// DcMotor slideMotor2;
+	private Servo wristLeftServo;
+	private Servo wristRightServo;
+	private Servo dropArmServo1;
+	private Servo dropArmServo2;
+	private CRServo scoopServo;
+	private ColorRangeSensor colourRangeSensor;
+	private Servo clawServo;
+	private DcMotor slideMotor1;
+	private DcMotor slideMotor2;
 
-	// https://gm0.org/en/latest/docs/software/concepts/finite-state-machines.html
 	public enum State {
 		ABORT,
 		IDLE,
 		INTAKE_WAIT,
 		INTAKE_FILLED,
 		INTAKE_DUMPING,
-		TRANSFER
+		TRANSFER,
+		TRANSFER_WAIT,
+		DEPOSIT_EXTENDING,
+		DEPOSIT_EXTENDED,
+		ASCEND_LOW_EXTENDING,
+		ASCEND_LOW_EXTENDED,
+		ASCEND_LOW_RETRACTING,
 	}
 
 	public enum Alliance {
@@ -40,57 +50,78 @@ public class Automations {
 	}
 
 	public enum Basket {
-		LOW, 
+		LOW,
 		HIGH
 	}
 
 	public Automations(HardwareMap hardwareMap) {
-		this(hardwareMap, false, null);
+		this(hardwareMap, false);
 	}
 
-	public Automations(HardwareMap hardwareMap, boolean DEBUG, Telemetry telemetry) {
-		this.hardwareMap = hardwareMap;
+	public Automations(HardwareMap inputHardwareMap, boolean DEBUG) {
+		Automations.automationState = State.IDLE;
+		this.hardwareMap = inputHardwareMap;
 		this.DEBUG = DEBUG;
-		this.telemetry = telemetry;
+		this.servoTime = new ElapsedTime();
+		this.telemetryPacket = new TelemetryPacket();
+		this.dashboard = FtcDashboard.getInstance();
 
-		wristLeftServo = hardwareMap.get(Servo.class, "wristLeftServo");
-		wristRightServo = hardwareMap.get(Servo.class, "wristRightServo");
-		dropArmServo = hardwareMap.get(Servo.class, "dropArmServo");
-		scoopServo = hardwareMap.get(CRServo.class, "scoopServo");
-		colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
+		// wristLeftServo = inputHardwareMap.get(Servo.class, "wristLeftServo");
+		// wristRightServo = inputHardwareMap.get(Servo.class, "wristRightServo");
+		dropArmServo1 = inputHardwareMap.get(Servo.class, "dropArmServoLeft");
+		dropArmServo2 = inputHardwareMap.get(Servo.class, "dropArmServoRight");
+		dropArmServo1.setDirection(Servo.Direction.REVERSE);
+		dropArmServo2.setDirection(Servo.Direction.FORWARD);
+		dropArmServo1.scaleRange(0, 0.55);
+		dropArmServo2.scaleRange(0, 0.55);
+		scoopServo = inputHardwareMap.get(CRServo.class, "scoopServo");
+		scoopServo.setDirection(DcMotor.Direction.REVERSE);
+		colourRangeSensor = inputHardwareMap.get(ColorRangeSensor.class, "colorSensor");
 		clawServo = hardwareMap.get(Servo.class, "clawServo");
-		// slideMotor1 = hardwareMap.get(DcMotor.class, "motorName1");
-		// slideMotor2 = hardwareMap.get(DcMotor.class, "motorName2");
+		clawServo.scaleRange(0.16, 0.3);
+		slideMotor1 = hardwareMap.get(DcMotor.class, "slideMotorRight");
+		slideMotor2 = hardwareMap.get(DcMotor.class, "slideMotorLeft");
+		slideMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		slideMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		slideMotor1.setTargetPosition(0);
+		slideMotor2.setTargetPosition(0);
+		slideMotor1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		slideMotor2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		slideMotor1.setPower(1);
+		slideMotor2.setPower(1);
+	}
+
+	public void updateDashboardTelemetry() {
+		dashboard.sendTelemetryPacket(telemetryPacket);
 	}
 
 	public void abort() {
-		// This was created if proper abort code is needed
-		// Currently does nothing and just stops automations
+		scoopServo.setPower(0);
+
 		automationState = State.IDLE;
 	}
 
 	public void intakeInit() {
-		// Hardware initializing
-		dropArmServo.setDirection(Servo.Direction.REVERSE);
-		dropArmServo.scaleRange(0, 90/360);
-		scoopServo.setDirection(DcMotor.Direction.FORWARD);
-
-		// Rotate dropdown arm motor to base deg
-		dropArmServo.setPosition(0);
+		// Lower dropdown arm
+		dropArmServo1.setPosition(0);
+		dropArmServo2.setPosition(0);
+		if (DEBUG) {
+			telemetryPacket.put("DropArmL", dropArmServo1.getPosition());
+			telemetryPacket.put("DropArmR", dropArmServo2.getPosition());
+		}
 		// Start intake motor
-		scoopServo.setPower(1);
+		scoopServo.setPower(0.5);
 
 		automationState = State.INTAKE_WAIT;
 	}
 	
 	public void intakeWait() {
-		// Do nothing until distance <50mm
-		if (colourRangeSensor.getDistance(DistanceUnit.MM) < 50) {
+		// Do nothing until distance <10mm
+		if (colourRangeSensor.getDistance(DistanceUnit.MM) < 10) {
 			automationState = State.INTAKE_FILLED;
-		}
+		}	
 		if (DEBUG) {
-			telemetry.addData("Distance", colourRangeSensor.getDistance(DistanceUnit.MM));
-			telemetry.update();
+			telemetryPacket.put("Distance", colourRangeSensor.getDistance(DistanceUnit.MM));
 		}
 	}
 
@@ -100,8 +131,7 @@ public class Automations {
 		int green = colourRangeSensor.green();
 		int blue = colourRangeSensor.blue();
 		if (DEBUG) {
-			telemetry.addData("Color", "%d|%d|%d", red, green, blue);
-			telemetry.update();
+			telemetryPacket.put("Color", String.format("%d|%d|%d", red, green, blue));
 		}
 
 		if ((yellowAllowed ? (
@@ -115,7 +145,7 @@ public class Automations {
 			(blue / red > 3.5) && (blue / green > 1.2)
 		))) {
 			// If our alliance, transfer
-			scoopServo.setPower(0.5);
+			scoopServo.setPower(0);
 			automationState = State.TRANSFER;
 		} else {
 			// If other alliance, dump
@@ -125,91 +155,119 @@ public class Automations {
 
 	public void intakeDumping() {
 		// reverse intake motor until proximity > 50mm
-		scoopServo.setPower(0);
+		scoopServo.setPower(-0.5);
 		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 50) {
+			scoopServo.setPower(0.5);
 			automationState = State.INTAKE_WAIT;
 		}
 		if (DEBUG) {
-			telemetry.addData("Distance", colourRangeSensor.getDistance(DistanceUnit.MM));
-			telemetry.update();
+			telemetryPacket.put("Distance", colourRangeSensor.getDistance(DistanceUnit.MM));
 		}
 
 	}
 
-	public void transfer() {
+	public void transferInit() {
 		
 		// Rotate dropdown arm motor -_ deg
-		dropArmServo.setPosition(1);
+		dropArmServo1.setPosition(1);
+		dropArmServo2.setPosition(1);
+		servoTime.reset();
 
 		// # Transfer
-		/*
-
-		clawServo.scaleRange(0, 1); // TODO: Find and change this to correct value
-
 		// wristMove range: 60-240
-		wristMove(wristLeftServo, wristRightServo, 240);
-		clawServo.setPosition(1);
-		wristMove(wristLeftServo, wristRightServo, 60);
-		*/
-
-		// TODO: Everything
+		clawServo.setPosition(0);
+		// wristRotate(-180);
+		// wristMove(240);
+		
+		automationState = State.TRANSFER_WAIT;
 	}
 
-	public void depositSample(Basket basket) {
-		// automationRunning = true;
-
-		// Extend linear slide
+	public void transferWait() {
+		if (servoTime.time() < 2) {return;}
+		clawServo.setPosition(1);
+		// wristMove(60);
+		// automationState = State.IDLE;
 		
-		// TODO: Everything
-		// TODO: Find out what deposit system will be
+		automationState = State.IDLE;
+	}
+
+	public void depositInit(Basket basket) {
+		// Extend linear slide
+		setSlidePosition(basket == Basket.HIGH ? 4200 : 2000);
+		// TODO: uncomment after wrist added
+		// wristRotate(180);
+
+		automationState = State.DEPOSIT_EXTENDING;
+	}
+
+	public void depositExtending() {
+		if (!slideMotor1.isBusy()) {
+			automationState = State.DEPOSIT_EXTENDED;
+		}
+	}
+
+	public void depositSample() {
+		clawServo.setPosition(0);
+		
 		automationState = State.IDLE;
 	}
 
 	public void grabSpecimen() {
-		// automationRunning = true;
-
 		// TODO: Everything
 		// TODO: Find out what system it will be
 		automationState = State.IDLE;
 	}
 
 	public void hangSpecimen() {
-		// automationRunning = true;
-
 		// TODO: Everything
 		// TODO: Find out what system it will be
 		automationState = State.IDLE;
 	}
 	
-	public void ascend() {
-		// automationRunning = true;
-
-		// Extend linear slides
-		
-		// TODO: Everything
-		// TODO: Find out what system it will be
-		automationState = State.IDLE;
+	public void ascendInit() {
+		automationState = State.ASCEND_LOW_EXTENDING;
+	}
+	
+	public void ascendLowExtending() {
+		// Extend linear slides		
+		setSlidePosition(2200);
+		if (!slideMotor1.isBusy() && !slideMotor2.isBusy()) {
+			automationState = State.ASCEND_LOW_EXTENDED;
+		}
 	}
 
-	public void lowerSlides() {
-		slideMotor1.setDirection(DcMotor.Direction.FORWARD);
-		slideMotor2.setDirection(DcMotor.Direction.FORWARD);
-
-		slideMotor1.setPower(-1);
-		slideMotor2.setPower(-1);		
-		
-		automationState = State.IDLE;
+	public void ascendLowRetract() {
+		setSlidePosition(0);
+		if (!slideMotor1.isBusy() && !slideMotor2.isBusy()) {
+			// TODO: Change state and put proper code
+			// automationState = State.ASCEND_HIGH_EXTENDING;
+			automationState = State.IDLE;
+		}
 	}
 
-	public void wristMove(Servo leftServo, Servo rightServo, int deg) {
-		leftServo.setDirection(Servo.Direction.REVERSE);
+	// Util functions
 
-		leftServo.setPosition(deg/300);
-		rightServo.setPosition(deg/300);
+	public void setSlidePosition(int targetPos) {
+		slideMotor1.setTargetPosition(targetPos);
+		slideMotor2.setTargetPosition(-targetPos);
+
+		slideMotor1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		slideMotor2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
 		if (DEBUG) {
-			telemetry.addData("Wrist", "%.2f|.2f", leftServo.getPosition(), rightServo.getPosition());
-			telemetry.update();
+			telemetryPacket.put("Slide 1", slideMotor1.getCurrentPosition());
+			telemetryPacket.put("Slide 2", slideMotor2.getCurrentPosition());
+		}
+	}
+
+	public void wristMove(int deg) {
+		wristLeftServo.setDirection(Servo.Direction.REVERSE);
+
+		wristLeftServo.setPosition(deg/300);
+		wristRightServo.setPosition(deg/300);
+
+		if (DEBUG) {
+			telemetryPacket.put("Wrist", String.format("%.2f|.2f", wristLeftServo.getPosition(), wristRightServo.getPosition()));
 		}
 	}
 

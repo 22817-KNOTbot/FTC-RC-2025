@@ -20,12 +20,14 @@ public class SlideTesting extends LinearOpMode {
 		motor2.setPower(1);
 		motor.setTargetPosition(0);
 		motor2.setTargetPosition(0);
+		motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		motor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		motor2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		waitForStart();
 
 		while (opModeIsActive()) {
-			int target = gamepad1.left_trigger * max_position;
+			int target = (int) (gamepad1.left_trigger * max_position);
 			motor.setTargetPosition(target);
 			motor2.setTargetPosition(-target);
 

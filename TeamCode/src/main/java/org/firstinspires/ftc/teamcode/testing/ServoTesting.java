@@ -20,6 +20,8 @@ public class ServoTesting extends LinearOpMode {
 
 		while (opModeIsActive()) {
 			dropArmServo.setPosition(POSITION/300);
+			// 250-210
+			// open close
 
 			telemetry.addData("Position", POSITION/300);
 			telemetry.update();

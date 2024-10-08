@@ -14,31 +14,39 @@ import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
 @Config
 @TeleOp(name="Field Centric Teleop: Red", group="Field Centric")
 public class fieldCentricRed extends LinearOpMode {
-	private static boolean DEBUG = false;
+	public static boolean DEBUG = false;
 	public DcMotor frontLeftDrive;
 	public DcMotor backLeftDrive;
 	public DcMotor frontRightDrive;
 	public DcMotor backRightDrive;
 	private String automationName;
-	private Automations automationHandler = new Automations(hardwareMap, DEBUG, telemetry);	
+	private Automations automationHandler; 
+	private Automations.Basket targetBasket;
 	
 	IMU imu;
 	
 	@Override
 	public void runOpMode() {        
-		DcMotor frontLeftDrive = hardwareMap.get(DcMotor.class, "leftFront");
-		DcMotor backLeftDrive = hardwareMap.get(DcMotor.class, "leftBack");
-		DcMotor frontRightDrive = hardwareMap.get(DcMotor.class, "rightFront");
-		DcMotor backRightDrive = hardwareMap.get(DcMotor.class, "rightBack");
+		automationHandler = new Automations(hardwareMap, DEBUG);
+		targetBasket = Automations.Basket.HIGH;
+
+		frontLeftDrive = hardwareMap.get(DcMotor.class, "leftFront");
+		backLeftDrive = hardwareMap.get(DcMotor.class, "leftBack");
+		frontRightDrive = hardwareMap.get(DcMotor.class, "rightFront");
+		backRightDrive = hardwareMap.get(DcMotor.class, "rightBack");
 
 		frontLeftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
 		backLeftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+		backRightDrive.setDirection(DcMotorSimple.Direction.REVERSE);
 		
 		IMU imu = hardwareMap.get(IMU.class, "imu");
 		IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-			RevHubOrientationOnRobot.LogoFacingDirection.UP,
+			RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
 			RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
 		imu.initialize(parameters);
+		imu.resetYaw();
+
+		// ThreeDeadWheelLocalizer localizer = new ThreeDeadWheelLocalizer(hardwareMap, (double) 70/105);
 
 		waitForStart();
 
@@ -48,9 +56,11 @@ public class fieldCentricRed extends LinearOpMode {
 			double rx = gamepad1.right_stick_x;
 
 			double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+			// Twist2dDual<Time> twist = localizer.update();
+			// heading = twist.value().heading;
 
 			double rotX = x * Math.cos(-heading) - y * Math.sin(-heading);
-			double rotY = y * Math.sin(-heading) + y * Math.cos(-heading);
+			double rotY = x * Math.sin(-heading) + y * Math.cos(-heading);
 			
 			rotX *= 1.1;
 			
@@ -65,7 +75,7 @@ public class fieldCentricRed extends LinearOpMode {
 			frontRightDrive.setPower(frontRightPower);
 			backRightDrive.setPower(backRightPower);
 
-			switch (automationHandler.automationState) {
+			switch (Automations.automationState) {
 				case ABORT:
 					automationName = "ABORTING";
 					automationHandler.abort();
@@ -76,16 +86,16 @@ public class fieldCentricRed extends LinearOpMode {
 						automationHandler.intakeInit();
 					} else if (gamepad1.right_trigger > 0.9) {
 						automationName = "Ascend";
-						automationHandler.ascend();
+						automationHandler.ascendInit();
 					} else if (gamepad1.a) {
 						automationName = "Hang specimen";
 						automationHandler.hangSpecimen();
 					} else if (gamepad1.b) {
-						automationName = "Deposit sample - High";
-						automationHandler.depositSample(Automations.Basket.HIGH);
+						automationName = "Deposit sample";
+						automationHandler.depositInit(targetBasket);
 					} else if (gamepad1.x) {
 						automationName = "Lower slides";
-						automationHandler.lowerSlides();
+						automationHandler.setSlidePosition(0);
 					}
 					break;
 				case INTAKE_WAIT:
@@ -98,19 +108,42 @@ public class fieldCentricRed extends LinearOpMode {
 					automationHandler.intakeDumping();
 					break;
 				case TRANSFER:
-					automationHandler.transfer();
+					automationHandler.transferInit();
 					break;
+				case TRANSFER_WAIT:
+					automationHandler.transferWait();
+					break;
+				case DEPOSIT_EXTENDING:
+					automationHandler.depositExtending();
+					break;
+				case DEPOSIT_EXTENDED:
+					if (gamepad1.b) {
+						automationHandler.depositSample();
+					}
+					break;
+				case ASCEND_LOW_EXTENDED:
+					if (gamepad1.right_trigger > 0.9) {
+						automationHandler.ascendLowRetract();
+					}
 			}
 
 			if (gamepad2.back) {
-				automationHandler.automationState = automationHandler.State.ABORT;
-			}
-			if (gamepad2.start) {
+				Automations.automationState = Automations.State.ABORT;
+			} else if (gamepad2.start) {
 				imu.resetYaw();
+			} else if (gamepad2.a) {
+				targetBasket = targetBasket == Automations.Basket.HIGH ? Automations.Basket.LOW : Automations.Basket.HIGH;
 			}
 
-			telemetry.addData("Automation", automationHandler.automationState != Automations.State.IDLE);
-			telemetry.addData("Automation name", automationHandler.automationState != Automations.State.IDLE ? automationName : "None");
+			telemetry.addData("State", Automations.automationState);
+			if (DEBUG) {
+				telemetry.addData("Heading", Math.toDegrees(heading));
+				telemetry.addData("frontLeftPower", frontLeftPower);
+				telemetry.addData("frontRightPower", frontRightPower);
+				telemetry.addData("backLeftPower", backLeftPower);
+				telemetry.addData("backRightPower", backRightPower);
+				automationHandler.updateDashboardTelemetry();
+			}
 			telemetry.update();
 		}
 	}
