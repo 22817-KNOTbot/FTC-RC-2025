@@ -26,8 +26,8 @@ public class Automations {
 	private CRServo scoopServo;
 	private ColorRangeSensor colourRangeSensor;
 	private Servo clawServo;
-	private DcMotor slideMotor1;
-	private DcMotor slideMotor2;
+	public DcMotor slideMotor1;
+	public DcMotor slideMotor2;
 
 	public enum State {
 		ABORT,
@@ -72,13 +72,14 @@ public class Automations {
 		dropArmServo2 = inputHardwareMap.get(Servo.class, "dropArmServoRight");
 		dropArmServo1.setDirection(Servo.Direction.REVERSE);
 		dropArmServo2.setDirection(Servo.Direction.FORWARD);
-		dropArmServo1.scaleRange(0, 0.55);
+		dropArmServo1.scaleRange(0.45, 1);
 		dropArmServo2.scaleRange(0, 0.55);
 		scoopServo = inputHardwareMap.get(CRServo.class, "scoopServo");
 		scoopServo.setDirection(DcMotor.Direction.REVERSE);
 		colourRangeSensor = inputHardwareMap.get(ColorRangeSensor.class, "colorSensor");
 		clawServo = hardwareMap.get(Servo.class, "clawServo");
-		clawServo.scaleRange(0.16, 0.3);
+		clawServo.setDirection(Servo.Direction.REVERSE);
+		clawServo.scaleRange(0.7, 0.85);
 		slideMotor1 = hardwareMap.get(DcMotor.class, "slideMotorRight");
 		slideMotor2 = hardwareMap.get(DcMotor.class, "slideMotorLeft");
 		slideMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -87,8 +88,6 @@ public class Automations {
 		slideMotor2.setTargetPosition(0);
 		slideMotor1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		slideMotor2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		slideMotor1.setPower(1);
-		slideMotor2.setPower(1);
 	}
 
 	public void updateDashboardTelemetry() {
@@ -97,6 +96,8 @@ public class Automations {
 
 	public void abort() {
 		scoopServo.setPower(0);
+		slideMotor1.setPower(0);
+		slideMotor2.setPower(0);
 
 		automationState = State.IDLE;
 	}
@@ -214,13 +215,13 @@ public class Automations {
 
 	public void grabSpecimen() {
 		// TODO: Everything
-		// TODO: Find out what system it will be
+		// Find out what system it will be
 		automationState = State.IDLE;
 	}
 
 	public void hangSpecimen() {
 		// TODO: Everything
-		// TODO: Find out what system it will be
+		// Find out what system it will be
 		automationState = State.IDLE;
 	}
 	
@@ -231,23 +232,22 @@ public class Automations {
 	public void ascendLowExtending() {
 		// Extend linear slides		
 		setSlidePosition(2200);
-		if (!slideMotor1.isBusy() && !slideMotor2.isBusy()) {
-			automationState = State.ASCEND_LOW_EXTENDED;
-		}
+	
+		automationState = State.ASCEND_LOW_EXTENDED;
 	}
 
 	public void ascendLowRetract() {
 		setSlidePosition(0);
-		if (!slideMotor1.isBusy() && !slideMotor2.isBusy()) {
-			// TODO: Change state and put proper code
-			// automationState = State.ASCEND_HIGH_EXTENDING;
-			automationState = State.IDLE;
-		}
+	
+		// TODO: Change state and put proper code
+		// automationState = State.ASCEND_HIGH_EXTENDING;
+		automationState = State.IDLE;
 	}
 
 	// Util functions
-
 	public void setSlidePosition(int targetPos) {
+		slideMotor1.setPower(1);
+		slideMotor2.setPower(1);
 		slideMotor1.setTargetPosition(targetPos);
 		slideMotor2.setTargetPosition(-targetPos);
 

@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 @Config
 @TeleOp(name="Linear slide testing", group="Debug")
 public class SlideTesting extends LinearOpMode {
-	public static int max_position = 0;
-	// 4500
+	public static int TARGET = 0;
+	// 4200
 
 	@Override
 	public void runOpMode() {
@@ -20,6 +20,7 @@ public class SlideTesting extends LinearOpMode {
 		motor2.setPower(1);
 		motor.setTargetPosition(0);
 		motor2.setTargetPosition(0);
+		motor2.setDirection(DcMotor.Direction.REVERSE);
 		motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		motor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -27,15 +28,13 @@ public class SlideTesting extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
-			int target = (int) (gamepad1.left_trigger * max_position);
-			motor.setTargetPosition(target);
-			motor2.setTargetPosition(-target);
+			motor.setTargetPosition(TARGET);
+			motor2.setTargetPosition(TARGET);
 
-			telemetry.addData("Position", target);
+			telemetry.addData("Position", TARGET);
 			telemetry.addData("Current Position", motor.getCurrentPosition());
 			telemetry.addData("Current Position", motor2.getCurrentPosition());
 			telemetry.update();
-
 		}
 	}
 }

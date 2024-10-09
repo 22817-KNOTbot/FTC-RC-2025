@@ -1,11 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
+import java.util.List;
+
+import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import com.acmerobotics.dashboard.config.Config;
 
@@ -22,6 +25,8 @@ public class fieldCentricRed extends LinearOpMode {
 	private String automationName;
 	private Automations automationHandler; 
 	private Automations.Basket targetBasket;
+
+	private boolean postDeposit = false;
 	
 	IMU imu;
 	
@@ -46,6 +51,12 @@ public class fieldCentricRed extends LinearOpMode {
 		imu.initialize(parameters);
 		imu.resetYaw();
 
+		// Bulk read. If max performance is needed use MANUAL
+		List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+
+		for (LynxModule hub : allHubs) {
+			hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+		}
 		// ThreeDeadWheelLocalizer localizer = new ThreeDeadWheelLocalizer(hardwareMap, (double) 70/105);
 
 		waitForStart();
@@ -90,13 +101,22 @@ public class fieldCentricRed extends LinearOpMode {
 					} else if (gamepad1.a) {
 						automationName = "Hang specimen";
 						automationHandler.hangSpecimen();
-					} else if (gamepad1.b) {
+					} else if (gamepad1.b && !postDeposit) {
 						automationName = "Deposit sample";
 						automationHandler.depositInit(targetBasket);
 					} else if (gamepad1.x) {
 						automationName = "Lower slides";
 						automationHandler.setSlidePosition(0);
+						postDeposit = false;
+					} else {
+						if (automationHandler.slideMotor1.getCurrentPosition() < 5) {
+							automationHandler.slideMotor1.setPower(0);
+						}
+						if (automationHandler.slideMotor2.getCurrentPosition() < 5) {
+							automationHandler.slideMotor2.setPower(0);
+						}
 					}
+
 					break;
 				case INTAKE_WAIT:
 					automationHandler.intakeWait();
@@ -119,6 +139,7 @@ public class fieldCentricRed extends LinearOpMode {
 				case DEPOSIT_EXTENDED:
 					if (gamepad1.b) {
 						automationHandler.depositSample();
+						postDeposit = true;
 					}
 					break;
 				case ASCEND_LOW_EXTENDED:
