@@ -3,36 +3,49 @@ package org.firstinspires.ftc.teamcode;
 import java.util.List;
 
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 
-import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.Time;
+import com.acmerobotics.roadrunner.Twist2d;
+import com.acmerobotics.roadrunner.Twist2dDual;
+import com.acmerobotics.roadrunner.Vector2d;
+
+import org.firstinspires.ftc.teamcode.util.ControlTheory;
 
 @Config
 @TeleOp(name="Field Centric Teleop: Blue", group="Field Centric")
 public class fieldCentricBlue extends LinearOpMode {
-	public static boolean DEBUG = false;
-	public DcMotor frontLeftDrive;
-	public DcMotor backLeftDrive;
-	public DcMotor frontRightDrive;
-	public DcMotor backRightDrive;
-	private String automationName;
+	public static boolean DEBUG = true;
+	public static int TARGET_SPEED = 50;
+	public static double Kp = 0.008;
+	public static double Ki = 0;
+	public static double Kd = 0;
+	private ElapsedTime runtime = new ElapsedTime();
+	private DcMotor frontLeftDrive;
+	private DcMotor backLeftDrive;
+	private DcMotor frontRightDrive;
+	private DcMotor backRightDrive;
 	private Automations automationHandler; 
 	private Automations.Basket targetBasket;
 
-	private boolean postDeposit = false;
-	
-	IMU imu;
+	private Localizer localizer;
+	private Pose2d pose;
+
+	private Vector2d oldReferenceVel = new Vector2d(0, 0);
 	
 	@Override
 	public void runOpMode() {        
 		automationHandler = new Automations(hardwareMap, DEBUG);
+		ControlTheory.PID xVelocityController = new ControlTheory.PID(Kp, Ki, Kd, true);
+		ControlTheory.PID yVelocityController = new ControlTheory.PID(Kp, Ki, Kd, true);
 		targetBasket = Automations.Basket.HIGH;
 
 		frontLeftDrive = hardwareMap.get(DcMotor.class, "leftFront");
@@ -40,74 +53,93 @@ public class fieldCentricBlue extends LinearOpMode {
 		frontRightDrive = hardwareMap.get(DcMotor.class, "rightFront");
 		backRightDrive = hardwareMap.get(DcMotor.class, "rightBack");
 
-		frontLeftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
-		backLeftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
-		backRightDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+		frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+		backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+		frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
+		backRightDrive.setDirection(DcMotor.Direction.FORWARD);
+		frontLeftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		backLeftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		frontRightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		backRightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		backRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+		localizer = new ThreeDeadWheelLocalizer(hardwareMap, new MecanumDrive.Params().inPerTick);
+		pose = new Pose2d(0, 0, 0);
 		
-		IMU imu = hardwareMap.get(IMU.class, "imu");
-		IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-			RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-			RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
-		imu.initialize(parameters);
-		imu.resetYaw();
-
-		// Bulk read. If max performance is needed use MANUAL
+		// Bulk read
 		List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
-
 		for (LynxModule hub : allHubs) {
-			hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+			hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 		}
-		// ThreeDeadWheelLocalizer localizer = new ThreeDeadWheelLocalizer(hardwareMap, (double) 70/105);
 
 		waitForStart();
+		runtime.reset();
 
 		while (opModeIsActive()) {
-			double y = -gamepad1.left_stick_y;
-			double x = gamepad1.left_stick_x;
+			// IMPORTANT: Cache must be cleared every loop to prevent stale data
+			for (LynxModule hub : allHubs) {
+				hub.clearBulkCache();
+			}
+
+			// Update pose for velocity and heading used in field centric rotation
+			Vector2d velocity = updatePose();
+			double heading = pose.heading.log();
+
+			// Sets a target velocity (field-centric)
+			Vector2d referenceVel = new Vector2d(
+				gamepad1.left_stick_x * TARGET_SPEED, 
+				-gamepad1.left_stick_y * TARGET_SPEED);
+
+			// If reference changes -> reset integral sum
+			// Quite important for drivetrain movement to prevent delay in movement
+			if (oldReferenceVel.x != referenceVel.x) {
+				xVelocityController.resetIntegral();
+			}
+			if (oldReferenceVel.y != referenceVel.y) {
+				yVelocityController.resetIntegral();
+			}
+			
+			// Use PID calculations from ControlTheory.java
+			double xOutput = xVelocityController.calculate(referenceVel.x, velocity.x);
+			double yOutput = yVelocityController.calculate(referenceVel.y, velocity.y);
+			// Switch to regular input if PID doesn't work
+			// double xOutput = gamepad1.left_stick_x;
+			// double yOutput = -gamepad1.left_stick_y;
 			double rx = gamepad1.right_stick_x;
 
-			double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-			// Twist2dDual<Time> twist = localizer.update();
-			// heading = twist.value().heading;
+			// Rotate vector to be relative to robot
+			double xRotated = xOutput * Math.cos(heading) - yOutput * Math.sin(heading);
+			double yRotated = xOutput * Math.sin(heading) + yOutput * Math.cos(heading);
 
-			double rotX = x * Math.cos(-heading) - y * Math.sin(-heading);
-			double rotY = x * Math.sin(-heading) + y * Math.cos(-heading);
-			
-			rotX *= 1.1;
-			
-			double denominator = Math.max(Math.abs(rotX) + Math.abs(rotY) + Math.abs(rx), 1);
-			double frontLeftPower = (rotY + rotX + rx) / denominator;
-			double backLeftPower = (rotY - rotX + rx) / denominator;
-			double frontRightPower = (rotY - rotX - rx) / denominator;
-			double backRightPower = (rotY + rotX - rx) / denominator;
+			double denominator = Math.max(Math.abs(xRotated) + Math.abs(yRotated) + Math.abs(rx), 1);
+			double frontLeftPower = (yRotated + xRotated + rx) / denominator;
+			double backLeftPower = (yRotated - xRotated + rx) / denominator;
+			double frontRightPower = (yRotated - xRotated - rx) / denominator;
+			double backRightPower = (yRotated + xRotated - rx) / denominator;
 
 			frontLeftDrive.setPower(frontLeftPower);
 			backLeftDrive.setPower(backLeftPower);
 			frontRightDrive.setPower(frontRightPower);
 			backRightDrive.setPower(backRightPower);
 
-			switch (Automations.automationState) {
+			switch (automationHandler.automationState) {
 				case ABORT:
-					automationName = "ABORTING";
 					automationHandler.abort();
 					break;
 				case IDLE:
-					if (gamepad1.right_bumper) {
-						automationName = "Intake";
-						automationHandler.intakeInit();
-					} else if (gamepad1.right_trigger > 0.9) {
-						automationName = "Ascend";
-						automationHandler.ascendInit();
-					} else if (gamepad1.a) {
-						automationName = "Hang specimen";
-						automationHandler.hangSpecimen();
-					} else if (gamepad1.b && !postDeposit) {
-						automationName = "Deposit sample";
-						automationHandler.depositInit(targetBasket);
+					if (gamepad1.a) {
+						automationHandler.intakeInit(Automations.SamplePurpose.SAMPLE);
 					} else if (gamepad1.x) {
-						automationName = "Lower slides";
+						automationHandler.intakeInit(Automations.SamplePurpose.SPECIMEN);
+					} else if (gamepad1.y) {
+						automationHandler.specimenInit();
+					} else if (gamepad1.left_trigger > 0.9 /* && runtime.time() > 90 */) {
+						automationHandler.ascendInit();
+					} else if (gamepad1.right_bumper) {
 						automationHandler.setSlidePosition(0);
-						postDeposit = false;
 					} else {
 						if (automationHandler.slideMotor1.getCurrentPosition() < 5) {
 							automationHandler.slideMotor1.setPower(0);
@@ -118,6 +150,8 @@ public class fieldCentricBlue extends LinearOpMode {
 					}
 
 					break;
+
+				// Sample intake
 				case INTAKE_WAIT:
 					automationHandler.intakeWait();
 					break;
@@ -127,45 +161,103 @@ public class fieldCentricBlue extends LinearOpMode {
 				case INTAKE_DUMPING:
 					automationHandler.intakeDumping();
 					break;
+				// Transfer
 				case TRANSFER:
 					automationHandler.transferInit();
 					break;
 				case TRANSFER_WAIT:
 					automationHandler.transferWait();
 					break;
+				case TRANSFERRED:
+					if (gamepad1.b) {
+						automationHandler.depositInit(targetBasket);
+					}
+				// Deposit
 				case DEPOSIT_EXTENDING:
 					automationHandler.depositExtending();
 					break;
 				case DEPOSIT_EXTENDED:
 					if (gamepad1.b) {
 						automationHandler.depositSample();
-						postDeposit = true;
 					}
 					break;
+				case DEPOSITED:
+					if (gamepad1.right_bumper) {
+						automationHandler.resetDeposit();
+					}
+					break;
+
+				// Specimens
+				// Give to HP
+				case NO_TRANSFER:
+					automationHandler.noTransfer();
+					break;
+				case SAMPLE_LOADED:
+					if (gamepad1.x) {
+						automationHandler.sampleEjectInit();
+					}
+					break;
+				case SAMPLE_EJECT_WAIT:
+					automationHandler.sampleEject();
+					break;
+				case SAMPLE_EJECTED:
+					if (gamepad1.right_bumper) {
+						automationHandler.resetEject();
+					}
+					break;
+				// Grabbing specimen
+				case SPECIMEN_GRAB_READY:
+					if (gamepad1.y) {
+						automationHandler.grabSpecimen();
+					}
+					break;
+				case SPECIMEN_GRABBED:
+					if (gamepad1.y) {
+						automationHandler.hangSpecimen();
+					}
+					break;
+				case SPECIMEN_HUNG:
+					if (gamepad1.right_bumper) {
+						automationHandler.resetSpecimen();
+					}
+
+				// Ascent
 				case ASCEND_LOW_EXTENDED:
-					if (gamepad1.right_trigger > 0.9) {
+					if (gamepad1.left_trigger > 0.9) {
 						automationHandler.ascendLowRetract();
 					}
+					break;
 			}
 
-			if (gamepad2.back) {
-				Automations.automationState = Automations.State.ABORT;
+			if (gamepad1.back || gamepad2.back) {
+				automationHandler.automationState = Automations.State.ABORT;
 			} else if (gamepad2.start) {
-				imu.resetYaw();
+				pose = new Pose2d(pose.position, 0);
 			} else if (gamepad2.a) {
 				targetBasket = targetBasket == Automations.Basket.HIGH ? Automations.Basket.LOW : Automations.Basket.HIGH;
 			}
 
-			telemetry.addData("State", Automations.automationState);
+			telemetry.addData("State", automationHandler.automationState);
+			telemetry.addData("Basket", targetBasket);
 			if (DEBUG) {
 				telemetry.addData("Heading", Math.toDegrees(heading));
 				telemetry.addData("frontLeftPower", frontLeftPower);
 				telemetry.addData("frontRightPower", frontRightPower);
 				telemetry.addData("backLeftPower", backLeftPower);
 				telemetry.addData("backRightPower", backRightPower);
+
+				Canvas canvas = automationHandler.telemetryPacket.fieldOverlay();
+				Drawing.drawRobot(canvas, pose);
 				automationHandler.updateDashboardTelemetry();
 			}
 			telemetry.update();
 		}
+	}
+
+	public Vector2d updatePose() {
+        Twist2dDual<Time> twist = localizer.update();
+		pose = pose.plus(twist.value());
+
+		return twist.value().line;
 	}
 }
