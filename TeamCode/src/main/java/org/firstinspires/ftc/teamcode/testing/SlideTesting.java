@@ -9,18 +9,20 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 @Config
 @TeleOp(name="Linear slide testing", group="Debug")
 public class SlideTesting extends LinearOpMode {
+	public static String MOTOR1 = "slideMotorLeft";
+	public static String MOTOR2 = "slideMotorRight";
 	public static int TARGET = 0;
 	// 4200
 
 	@Override
 	public void runOpMode() {
-		DcMotor motor = hardwareMap.get(DcMotor.class, "slideMotorRight");
-		DcMotor motor2 = hardwareMap.get(DcMotor.class, "slideMotorLeft");
+		DcMotor motor = hardwareMap.get(DcMotor.class, MOTOR1);
+		DcMotor motor2 = hardwareMap.get(DcMotor.class, MOTOR2);
 		motor.setPower(1);
 		motor2.setPower(1);
 		motor.setTargetPosition(0);
 		motor2.setTargetPosition(0);
-		motor2.setDirection(DcMotor.Direction.REVERSE);
+		motor.setDirection(DcMotor.Direction.REVERSE);
 		motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		motor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);

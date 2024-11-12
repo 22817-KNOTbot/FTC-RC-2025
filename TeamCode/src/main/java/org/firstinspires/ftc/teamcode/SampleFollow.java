@@ -75,10 +75,6 @@ public class SampleFollow extends LinearOpMode
         Scalar maxScalar;
 
         switch(SAMPLE_COLOUR) {
-            case NONE:
-                minScalar = new Scalar(0, 0, 0);
-                maxScalar = new Scalar(255, 255, 255);
-                break;
             case RED:
                 minScalar = new Scalar(0, 170, 65);
                 maxScalar = new Scalar(255, 255, 134);
@@ -91,6 +87,7 @@ public class SampleFollow extends LinearOpMode
                 minScalar = new Scalar(0, 0, 0);
                 maxScalar = new Scalar(255, 255, 80);
                 break;
+            case NONE:
             default:
                 minScalar = new Scalar(0, 0, 0);
                 maxScalar = new Scalar(255, 255, 255);

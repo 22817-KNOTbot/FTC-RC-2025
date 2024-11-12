@@ -47,6 +47,8 @@ public class ControlTheory {
 
             if (debug) {
                 telemetryPacket.put("Error", error);
+                telemetryPacket.put("ref", reference);
+                telemetryPacket.put("cur", current);
                 dashboard.sendTelemetryPacket(telemetryPacket);
                 telemetryPacket = new TelemetryPacket();
             }
