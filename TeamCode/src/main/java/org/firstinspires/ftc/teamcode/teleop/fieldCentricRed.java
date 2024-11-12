@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.teleop;
 
 import java.util.List;
 
@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
@@ -18,12 +20,14 @@ import com.acmerobotics.roadrunner.Twist2d;
 import com.acmerobotics.roadrunner.Twist2dDual;
 import com.acmerobotics.roadrunner.Vector2d;
 
+import org.firstinspires.ftc.teamcode.Automations;
 import org.firstinspires.ftc.teamcode.util.ControlTheory;
 
 @Config
-@TeleOp(name="Field Centric Teleop: Blue", group="Field Centric")
-public class fieldCentricBlue extends LinearOpMode {
+@TeleOp(name="Field Centric Teleop: Red", group="Field Centric")
+public class fieldCentricRed extends LinearOpMode {
 	public static boolean DEBUG = true;
+	public static boolean USE_PID = true;
 	public static int TARGET_SPEED = 50;
 	public static double Kp = 0.008;
 	public static double Ki = 0;
@@ -42,10 +46,11 @@ public class fieldCentricBlue extends LinearOpMode {
 	private Vector2d oldReferenceVel = new Vector2d(0, 0);
 	
 	@Override
-	public void runOpMode() {        
+	public void runOpMode() {       
+		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry()); 
 		automationHandler = new Automations(hardwareMap, DEBUG);
 		ControlTheory.PID xVelocityController = new ControlTheory.PID(Kp, Ki, Kd, true);
-		ControlTheory.PID yVelocityController = new ControlTheory.PID(Kp, Ki, Kd, true);
+		ControlTheory.PID yVelocityController = new ControlTheory.PID(Kp, Ki, Kd, false);
 		targetBasket = Automations.Basket.HIGH;
 
 		frontLeftDrive = hardwareMap.get(DcMotor.class, "leftFront");
@@ -88,31 +93,38 @@ public class fieldCentricBlue extends LinearOpMode {
 			Vector2d velocity = updatePose();
 			double heading = pose.heading.log();
 
-			// Sets a target velocity (field-centric)
-			Vector2d referenceVel = new Vector2d(
-				gamepad1.left_stick_x * TARGET_SPEED, 
-				-gamepad1.left_stick_y * TARGET_SPEED);
+			double xOutput;
+			double yOutput;
 
-			// If reference changes -> reset integral sum
-			// Quite important for drivetrain movement to prevent delay in movement
-			if (oldReferenceVel.x != referenceVel.x) {
-				xVelocityController.resetIntegral();
+			if (USE_PID) {
+				// Sets a target velocity (field-centric)
+				Vector2d referenceVel = new Vector2d(
+					gamepad1.left_stick_x * TARGET_SPEED, 
+					-gamepad1.left_stick_y * TARGET_SPEED);
+
+				// If reference changes -> reset integral sum
+				// Quite important for drivetrain movement to prevent delay in movement
+				if (oldReferenceVel.x != referenceVel.x) {
+					xVelocityController.resetIntegral();
+				}
+				if (oldReferenceVel.y != referenceVel.y) {
+					yVelocityController.resetIntegral();
+				}
+				
+				// Use PID calculations from ControlTheory.java
+				xOutput = xVelocityController.calculate(referenceVel.x, velocity.x);
+				yOutput = yVelocityController.calculate(referenceVel.y, velocity.y);
+			} else {
+				// Switch to regular input if PID doesn't work
+				xOutput = gamepad1.left_stick_x;
+				yOutput = -gamepad1.left_stick_y;
+
 			}
-			if (oldReferenceVel.y != referenceVel.y) {
-				yVelocityController.resetIntegral();
-			}
-			
-			// Use PID calculations from ControlTheory.java
-			double xOutput = xVelocityController.calculate(referenceVel.x, velocity.x);
-			double yOutput = yVelocityController.calculate(referenceVel.y, velocity.y);
-			// Switch to regular input if PID doesn't work
-			// double xOutput = gamepad1.left_stick_x;
-			// double yOutput = -gamepad1.left_stick_y;
 			double rx = gamepad1.right_stick_x;
 
 			// Rotate vector to be relative to robot
-			double xRotated = xOutput * Math.cos(heading) - yOutput * Math.sin(heading);
-			double yRotated = xOutput * Math.sin(heading) + yOutput * Math.cos(heading);
+			double xRotated = xOutput * Math.cos(-heading) - yOutput * Math.sin(-heading);
+			double yRotated = xOutput * Math.sin(-heading) + yOutput * Math.cos(heading);
 
 			double denominator = Math.max(Math.abs(xRotated) + Math.abs(yRotated) + Math.abs(rx), 1);
 			double frontLeftPower = (yRotated + xRotated + rx) / denominator;
@@ -141,11 +153,11 @@ public class fieldCentricBlue extends LinearOpMode {
 					} else if (gamepad1.right_bumper) {
 						automationHandler.setSlidePosition(0);
 					} else {
-						if (automationHandler.slideMotor1.getCurrentPosition() < 5) {
-							automationHandler.slideMotor1.setPower(0);
+						if (automationHandler.slideMotorLeft.getCurrentPosition() > -5) {
+							automationHandler.slideMotorLeft.setPower(0);
 						}
-						if (automationHandler.slideMotor2.getCurrentPosition() < 5) {
-							automationHandler.slideMotor2.setPower(0);
+						if (automationHandler.slideMotorRight.getCurrentPosition() < 5) {
+							automationHandler.slideMotorRight.setPower(0);
 						}
 					}
 
@@ -156,7 +168,7 @@ public class fieldCentricBlue extends LinearOpMode {
 					automationHandler.intakeWait();
 					break;
 				case INTAKE_FILLED:
-					automationHandler.intakeFilled(Automations.Alliance.BLUE, true);
+					automationHandler.intakeFilled(Automations.Alliance.RED, true);
 					break;
 				case INTAKE_DUMPING:
 					automationHandler.intakeDumping();
@@ -196,14 +208,9 @@ public class fieldCentricBlue extends LinearOpMode {
 					if (gamepad1.x) {
 						automationHandler.sampleEjectInit();
 					}
-					break;
-				case SAMPLE_EJECT_WAIT:
+					break;		
+				case SAMPLE_LOADED:
 					automationHandler.sampleEject();
-					break;
-				case SAMPLE_EJECTED:
-					if (gamepad1.right_bumper) {
-						automationHandler.resetEject();
-					}
 					break;
 				// Grabbing specimen
 				case SPECIMEN_GRAB_READY:
