@@ -26,11 +26,15 @@ public class AprilTagDrive extends MecanumDrive {
     public static double APRIL_WEIGHT = 0.5;
     public static double POSE_WEIGHT = 0.5;
     private AprilTagProcessor aprilTag;
+    private boolean firstTagFound;
     private long tagDetectTime;
     
-    public AprilTagDrive(HardwareMap hardwareMap, Pose2d pose, AprilTagProcessor aprilTag) {
+    public AprilTagDrive(HardwareMap hardwareMap, Pose2d pose, AprilTagProcessor aprilTag, boolean estimateWithAprilTag) {
         super(hardwareMap, pose);
         this.aprilTag = aprilTag;
+        // estimateWithAprilTag means to set pose from april tag on first detection. Otherwise initial pose is purely
+        // based on constructor input. An estimate in the constructor is still required.
+        this.firstTagFound = !estimateWithAprilTag;
     }
 
     @Override
@@ -44,8 +48,14 @@ public class AprilTagDrive extends MecanumDrive {
 
         // it's possible we can't see any tags, so we need to check for a vector of 0
         if (aprilVector != null) {
-            // aprilVector*APRIL_WEIGHT+pose*POSE_WEIGHT)/APRIL_WEIGHT+POSE_WEIGHT
-            Vector2d processedVector = aprilVector.times(APRIL_WEIGHT).plus(pose.position.times(POSE_WEIGHT)).div(APRIL_WEIGHT+POSE_WEIGHT);
+            Vector2d processedVector;
+            // (aprilVector*APRIL_WEIGHT+pose*POSE_WEIGHT)/(APRIL_WEIGHT+POSE_WEIGHT)
+            if (firstTagFound) {
+                processedVector = aprilVector.times(APRIL_WEIGHT).plus(pose.position.times(POSE_WEIGHT)).div(APRIL_WEIGHT+POSE_WEIGHT);
+            } else {
+                processedVector = aprilVector;
+                firstTagFound = true;
+            }
             pose = new Pose2d(processedVector, pose.heading);
         }
 
@@ -59,12 +69,12 @@ public class AprilTagDrive extends MecanumDrive {
             tagDetectTime = aprilTag.getDetections().get(0).frameAcquisitionNanoTime;
             return aprilTag.getDetections().stream() // get the tag detections as a Java stream
                     .map(detection -> {
-                        double ftcX = detection.robotPose.getPosition().x;
-                        double ftcY = detection.robotPose.getPosition().y;
+                        double ftcX = detection.robotPose.getPosition().x / 24.8611111111;
+                        double ftcY = detection.robotPose.getPosition().y / 24.8611111111;
                         double offset = pose.heading.log() - (detection.robotPose.getOrientation().getYaw(AngleUnit.RADIANS) + Math.PI/2);
                         double x = ftcX*Math.cos(offset) + ftcY*Math.sin(offset);
                         double y = ftcX*-Math.sin(offset) + ftcY*Math.cos(offset);
-                        return new Vector2d(x, y).div(24.8611111111);
+                        return new Vector2d(x, y);
                     })
                     // add them together
                     .reduce(new Vector2d(0, 0), Vector2d::plus)
