@@ -21,7 +21,12 @@ import com.acmerobotics.roadrunner.Twist2dDual;
 import com.acmerobotics.roadrunner.Vector2d;
 
 import org.firstinspires.ftc.teamcode.Automations;
+import org.firstinspires.ftc.teamcode.Drawing;
+import org.firstinspires.ftc.teamcode.Localizer;
+import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.ThreeDeadWheelLocalizer;
 import org.firstinspires.ftc.teamcode.util.ControlTheory;
+import org.firstinspires.ftc.teamcode.util.OpModeStorage;
 
 @Config
 @TeleOp(name="Field Centric Teleop: Blue", group="Field Centric")
@@ -124,7 +129,7 @@ public class fieldCentricBlue extends LinearOpMode {
 
 			// Rotate vector to be relative to robot
 			double xRotated = xOutput * Math.cos(-heading) - yOutput * Math.sin(-heading);
-			double yRotated = xOutput * Math.sin(-heading) + yOutput * Math.cos(heading);
+			double yRotated = xOutput * Math.sin(-heading) + yOutput * Math.cos(-heading);
 
 			double denominator = Math.max(Math.abs(xRotated) + Math.abs(yRotated) + Math.abs(rx), 1);
 			double frontLeftPower = (yRotated + xRotated + rx) / denominator;
@@ -209,7 +214,7 @@ public class fieldCentricBlue extends LinearOpMode {
 						automationHandler.sampleEjectInit();
 					}
 					break;		
-				case SAMPLE_LOADED:
+				case SAMPLE_EJECT_WAIT:
 					automationHandler.sampleEject();
 					break;
 				// Grabbing specimen
