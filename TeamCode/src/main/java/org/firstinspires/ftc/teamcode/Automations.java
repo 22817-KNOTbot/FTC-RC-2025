@@ -25,6 +25,7 @@ public class Automations {
 	private Servo cv4bCoaxialServo;
 	private DcMotor intakeSlides;
 	private DcMotor scoopMotor;
+	private Servo flipServo;
 	private ColorRangeSensor colourRangeSensor;
 	private Servo clawServo;
 	public DcMotor slideMotorLeft;
@@ -40,6 +41,7 @@ public class Automations {
 		// Transfer (Variant NO_TRANSFER found below)
 		TRANSFER,
 		TRANSFER_WAIT,
+		TRANSFERRING,
 		TRANSFERRED,
 		DEPOSIT_EXTENDING,
 		DEPOSIT_EXTENDED,
@@ -73,6 +75,14 @@ public class Automations {
 		SPECIMEN
 	}
 
+	private enum Cv4bPosition {
+		BASE,
+		TRANSFER,
+		PRE_DEPOSIT,
+		DUMP,
+		SPECIMEN_GRAB
+	}
+
 	public Automations(HardwareMap hardwareMap) {
 		this(hardwareMap, false);
 	}
@@ -85,29 +95,31 @@ public class Automations {
 		this.dashboard = FtcDashboard.getInstance();
 		this.telemetryPacket = new TelemetryPacket();
 
-		// cv4bLeftServo = hardwareMap.get(Servo.class, "cv4bLeftServo");
-		// cv4bRightServo = hardwareMap.get(Servo.class, "cv4bRightServo");
-		// cv4bLeftServo.setDirection(Servo.Direction.REVERSE);
-		// cv4bRightServo.setDirection(Servo.Direction.FORWARD);
-		// cv4bCoaxialServo = hardwareMap.get(Servo.class, "cv4bCoaxialServo");
-		// cv4bCoaxialServo.scaleRange(0, 0.6);
-		// Dropdown arms: 0 = down, 1 = up
+		cv4bLeftServo = hardwareMap.get(Servo.class, "cv4bLeftServo");
+		cv4bRightServo = hardwareMap.get(Servo.class, "cv4bRightServo");
+		cv4bLeftServo.setDirection(Servo.Direction.FORWARD);
+		cv4bRightServo.setDirection(Servo.Direction.REVERSE);
+		cv4bCoaxialServo = hardwareMap.get(Servo.class, "cv4bCoaxialServo");
+		cv4bCoaxialServo.setDirection(Servo.Direction.REVERSE);
 		intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
-		// intakeSlides.setDirection(DcMotor.Direction.REVERSE);
+		intakeSlides.setDirection(DcMotor.Direction.REVERSE);
 		intakeSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		intakeSlides.setTargetPosition(0);
 		intakeSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		intakeSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 		scoopMotor = hardwareMap.get(DcMotor.class, "scoopMotor");
-		// scoopMotor.setDirection(DcMotor.Direction.REVERSE);
+		scoopMotor.setDirection(DcMotor.Direction.REVERSE);
+		// Bucket: 0 = up, 1 = down
+		flipServo = hardwareMap.get(Servo.class, "flipServo");
+		flipServo.scaleRange(0.85, 0.95);
 		colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
 		// Claw: 0 = open, 1 = closed
 		clawServo = hardwareMap.get(Servo.class, "clawServo");
 		clawServo.setDirection(Servo.Direction.REVERSE);
-		clawServo.scaleRange(0.7, 0.85);
-		slideMotorLeft = hardwareMap.get(DcMotor.class, "slideMotorRight");
-		slideMotorRight = hardwareMap.get(DcMotor.class, "slideMotorLeft");
-		slideMotorRight.setDirection(DcMotor.Direction.REVERSE);
+		clawServo.scaleRange(0, 0.2);
+		slideMotorLeft = hardwareMap.get(DcMotor.class, "slideMotorLeft");
+		slideMotorRight = hardwareMap.get(DcMotor.class, "slideMotorRight");
+		slideMotorLeft.setDirection(DcMotor.Direction.REVERSE);
 		slideMotorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		slideMotorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		slideMotorLeft.setTargetPosition(0);
@@ -140,6 +152,7 @@ public class Automations {
 		if (DEBUG) {
 			telemetryPacket.put("intakeSlides", intakeSlides.getCurrentPosition());
 		}
+		flipServo.setPosition(1);
 		// Start intake motor
 		scoopMotor.setPower(0.25);
 
@@ -186,9 +199,9 @@ public class Automations {
 	}
 
 	public void intakeDumping() {
-		// reverse intake motor until proximity > 50mm
+		// reverse intake motor until proximity > 10mm
 		scoopMotor.setPower(-0.25);
-		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 50) {
+		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 10) {
 			scoopMotor.setPower(0.25);
 			automationState = State.INTAKE_WAIT;
 		}
@@ -200,27 +213,32 @@ public class Automations {
 	public void transferInit() {		
 		// Retract intake slides
 		setIntakeSlidePosition(0);
-		// setCV4BPosition(0, 0);
-
-		timer.reset();
+		flipServo.setPosition(0);
+		setCV4BPosition(Cv4bPosition.TRANSFER);
 		
 		automationState = State.TRANSFER_WAIT;
 	}
 
 	public void transferWait() {
-		if (timer.time() > 2) {
-			// setCV4BPosition(0, 0.2);
+		if (!intakeSlides.isBusy()) {
+			scoopMotor.setPower(-0.25);
+
+			automationState = State.TRANSFERRING;
+		}
+	}
+
+	public void transferring() {
+		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 10) {
+			scoopMotor.setPower(0);
 
 			automationState = State.TRANSFERRED;
-		} else if (timer.time() > 1) {
-			scoopMotor.setPower(-0.25);
 		}
 	}
 
 	public void depositInit(Basket basket) {
 		// Extend linear slide
 		setSlidePosition(basket == Basket.HIGH ? 3800 : 2000);
-		// setCV4BPosition(0.7, 0.3);
+		setCV4BPosition(Cv4bPosition.PRE_DEPOSIT);
 
 		automationState = State.DEPOSIT_EXTENDING;
 	}
@@ -232,13 +250,13 @@ public class Automations {
 	}
 
 	public void depositSample() {
-		// setCV4BPosition(0.7, 1);
+		setCV4BPosition(Cv4bPosition.DUMP);
 		
 		automationState = State.DEPOSITED;
 	}
 
 	public void resetDeposit() {
-		// setCV4BPosition(0, 0);
+		setCV4BPosition(Cv4bPosition.BASE);
 		setSlidePosition(0);
 
 		automationState = State.IDLE;
@@ -257,15 +275,16 @@ public class Automations {
 	}
 
 	public void sampleEject() {
-		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 50) {
+		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 10) {
 			scoopMotor.setPower(0);
 			automationState = State.IDLE;
 		}
 	}
 	
 	public void specimenInit() {
-		// setCV4BPosition(0.8, 0.5);
+		setCV4BPosition(Cv4bPosition.SPECIMEN_GRAB);
 		clawServo.setPosition(0);
+		setSlidePosition(500);
 
 		automationState = State.SPECIMEN_GRAB_READY;
 	}
@@ -285,7 +304,7 @@ public class Automations {
 	}
 
 	public void resetSpecimen() {
-		// setCV4BPosition(0, 0);
+		setCV4BPosition(Cv4bPosition.BASE);
 		clawServo.setPosition(1);
 
 		automationState = State.IDLE;
@@ -311,8 +330,32 @@ public class Automations {
 	}
 
 	// Util functions
-	public void setCV4BPosition(float v4bRot, float coaxialRot) {
-		// 0 = in, 1 = out
+	public void setCV4BPosition(Cv4bPosition position) {
+		switch (position) {
+			case BASE:
+				setCV4BPosition(0.14, 0.2);
+				break;
+			case TRANSFER:
+				setCV4BPosition(0.3, 0.1);
+				break;
+			case PRE_DEPOSIT:
+				setCV4BPosition(0.68, 0.35);
+				break;
+			case DUMP:
+				setCV4BPosition(0.68, 0.8);
+				break;
+			case SPECIMEN_GRAB:
+				setCV4BPosition(0.78, 0.5);
+				break;
+		}
+	}
+
+	public void setCV4BPosition(double v4bRot, double coaxialRot) {
+		// POSITIONS (V4B, COAX)
+		// Base: 0.14, 0.2
+		// Pre-deposit: 0.68, 0.35
+		// Dump: 0.68, 0.8
+		// Specimen Grab: 0.78, 0.5
 		cv4bLeftServo.setPosition(v4bRot);
 		cv4bRightServo.setPosition(v4bRot);
 		cv4bCoaxialServo.setPosition(coaxialRot);
