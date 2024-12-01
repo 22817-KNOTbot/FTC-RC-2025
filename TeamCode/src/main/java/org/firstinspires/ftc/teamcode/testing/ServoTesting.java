@@ -15,7 +15,7 @@ public class ServoTesting extends LinearOpMode {
 	@Override
 	public void runOpMode() {
 		Servo testServo = hardwareMap.get(Servo.class, SERVONAME);
-		testServo.setDirection(Servo.Direction.REVERSE);
+		// testServo.setDirection(Servo.Direction.REVERSE);
 
 		waitForStart();
 

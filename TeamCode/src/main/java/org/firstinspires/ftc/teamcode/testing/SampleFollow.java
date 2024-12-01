@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.testing;
 
 import android.util.Size;
 
@@ -14,10 +14,14 @@ import org.firstinspires.ftc.vision.opencv.ColorBlobLocatorProcessor;
 import org.firstinspires.ftc.vision.opencv.ColorRange;
 import org.firstinspires.ftc.vision.opencv.ColorSpace;
 import org.firstinspires.ftc.vision.opencv.ImageRegion;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
 import java.util.List;
 
@@ -32,6 +36,7 @@ public class SampleFollow extends LinearOpMode
         NONE
     }
 
+    public static boolean MOVE_ROBOT = true;
     public static Sample_colour SAMPLE_COLOUR = Sample_colour.BLUE;
     public static int TARGET_X = 160;
     public static double MAX_SPEED = 0.5; // Replacement for Kp
@@ -46,13 +51,17 @@ public class SampleFollow extends LinearOpMode
     @Override
     public void runOpMode()
     {
-        leftFrontDrive = hardwareMap.get(DcMotor.class, "leftFront");
-        rightFrontDrive = hardwareMap.get(DcMotor.class, "rightFront");
-        leftBackDrive = hardwareMap.get(DcMotor.class, "leftBack");
-        rightBackDrive = hardwareMap.get(DcMotor.class, "rightBack");
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-		leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        if (MOVE_ROBOT) {
+            leftFrontDrive = hardwareMap.get(DcMotor.class, "leftFront");
+            rightFrontDrive = hardwareMap.get(DcMotor.class, "rightFront");
+            leftBackDrive = hardwareMap.get(DcMotor.class, "leftBack");
+            rightBackDrive = hardwareMap.get(DcMotor.class, "rightBack");
+    
+            leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+            leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        }
 
          /*        .setBlurSize(int pixels)    Blurring an image helps to provide a smooth color transition between objects, and smoother contours.
          *                                    The higher the number of pixels, the more blurred the image becomes.
@@ -107,7 +116,7 @@ public class SampleFollow extends LinearOpMode
                 .setDilateSize(2)
                 .build();
 
-        ColorBlobLocatorProcessor.BlobFilter areaFilter = new ColorBlobLocatorProcessor.BlobFilter(ColorBlobLocatorProcessor.BlobCriteria.BY_CONTOUR_AREA, 2500, 20000);
+        ColorBlobLocatorProcessor.BlobFilter areaFilter = new ColorBlobLocatorProcessor.BlobFilter(ColorBlobLocatorProcessor.BlobCriteria.BY_CONTOUR_AREA, 2500, 30000);
         colorLocator.addFilter(areaFilter);    
 
         /*
@@ -168,22 +177,25 @@ public class SampleFollow extends LinearOpMode
              *     ColorBlobLocatorProcessor.Util.sortByAspectRatio(SortOrder.DESCENDING, blobs);
              */
 
-            telemetry.addLine(" Area Density Aspect  Center");
+            // telemetry.addLine(" Area Density Aspect  Center");
 
             // Display the size (area) and center location for each Blob.
-            for(ColorBlobLocatorProcessor.Blob b : blobs)
-            {
-                RotatedRect boxFit = b.getBoxFit();
-                telemetry.addLine(String.format("%5d  %4.2f   %5.2f  (%3d,%3d)",
-                        b.getContourArea(), b.getDensity(), b.getAspectRatio(), (int) boxFit.center.x, (int) boxFit.center.y));
-            }
+            // for(ColorBlobLocatorProcessor.Blob b : blobs)
+            // {
+            //     RotatedRect boxFit = b.getBoxFit();
+            //     telemetry.addLine(String.format("%5d  %4.2f   %5.2f  (%3d,%3d)",
+            //             b.getContourArea(), b.getDensity(), b.getAspectRatio(), (int) boxFit.center.x, (int) boxFit.center.y));
+            // }
 
             if (blobs.size() > 0) {
                 int targetArea;
                 String sampleOrientation = "Unknown";
                 ColorBlobLocatorProcessor.Blob largestBlob = blobs.get(0);
                 RotatedRect largestRect = largestBlob.getBoxFit();
-                double aspectRatio = largestBlob.getAspectRatio();
+                Rect largestRectBound = largestRect.boundingRect();
+                double aspectRatio = (double) largestRectBound.width / largestRectBound.height;
+                List<Point> points = null; 
+                // largestBlob.points(points);
 
                 // Orientation finder
                 if (3 > aspectRatio && aspectRatio > 0.3) {
@@ -209,11 +221,19 @@ public class SampleFollow extends LinearOpMode
                 double speedX = ((double) distX/160) * MAX_SPEED;
                 
                 int distY = largestBlob.getContourArea() - targetArea;
-                double speedY = ((double) distY/targetArea) * MAX_SPEED;
+                double speedY = ((double) distY/targetArea) * -MAX_SPEED;
 
-                telemetry.addData("Target", "X: %.2f Y: %.2f", distX, distY);
+                double angle = largestRect.angle;
+
+                telemetry.addData("Target", "X: %d Y: %d", distX, distY);
                 telemetry.addData("Speed", "X: %.2f Y: %.2f", speedX, speedY);
+                telemetry.addData("Angle", angle);
+                telemetry.addData("Bound aspect", aspectRatio);
                 telemetry.addData("Orientation", sampleOrientation);
+                for(Point point : points) {
+                    telemetry.addData("Point", point);
+                }
+
                 moveRobot(speedX, speedY, 0);
             } else {
                 moveRobot(0, 0, 0);
@@ -224,6 +244,8 @@ public class SampleFollow extends LinearOpMode
     }
 
     public void moveRobot(double x, double y, double rotX) {
+        if (!MOVE_ROBOT) return;
+
         // Calculate wheel powers.
         double leftFrontPower    =  y + x + rotX;
         double rightFrontPower   =  y - x - rotX;

@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 // Set power = 0 to manually get encoder limits
 // Set power = 1 to set position
 public class ManualSlideControl extends LinearOpMode {
-	public static String MOTOR1 = "intakeSlideLeft";
+	public static String MOTOR1 = "intakeSlides";
 	public static double POWER = 0;
 	public static int TARGET = 0;
 	public static ZERO_POWER ZEROPOWER = ZERO_POWER.FLOAT;
@@ -29,7 +29,6 @@ public class ManualSlideControl extends LinearOpMode {
 
 		DcMotor motor = hardwareMap.get(DcMotor.class, MOTOR1);
 		motor.setPower(POWER);
-		// motor.setDirection(DcMotor.Direction.REVERSE);
 		motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		motor.setTargetPosition(0);
 		motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -38,6 +37,8 @@ public class ManualSlideControl extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
+			// Max: 1800
+			motor.setPower(POWER);
 			motor.setTargetPosition(TARGET);
 			telemetry.addData("Slide position", motor.getCurrentPosition());
 			telemetry.update();

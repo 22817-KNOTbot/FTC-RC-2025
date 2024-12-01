@@ -14,12 +14,12 @@ public class MotorTesting extends LinearOpMode {
 
 	@Override
 	public void runOpMode() {
-		DcMotor dropArmMotor = hardwareMap.get(DcMotor.class, MOTOR_NAME);
+		DcMotor motor = hardwareMap.get(DcMotor.class, MOTOR_NAME);
 
 		waitForStart();
 
 		while (opModeIsActive()) {
-			dropArmMotor.setPower(POWER);
+			motor.setPower(POWER);
 
 			telemetry.addData("Power", POWER);
 			telemetry.update();
