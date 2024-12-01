@@ -3,9 +3,11 @@ package org.firstinspires.ftc.teamcode.teleop;
 import java.util.List;
 
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import com.acmerobotics.dashboard.canvas.Canvas;
@@ -20,6 +22,7 @@ import com.acmerobotics.roadrunner.Twist2d;
 import com.acmerobotics.roadrunner.Twist2dDual;
 import com.acmerobotics.roadrunner.Vector2d;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Automations;
 import org.firstinspires.ftc.teamcode.Drawing;
 import org.firstinspires.ftc.teamcode.Localizer;
@@ -32,7 +35,8 @@ import org.firstinspires.ftc.teamcode.util.OpModeStorage;
 @TeleOp(name="Field Centric Teleop: Blue", group="Field Centric")
 public class fieldCentricBlue extends LinearOpMode {
 	public static boolean DEBUG = true;
-	public static boolean USE_PID = true;
+	public static boolean USE_PID = false;
+	public static boolean USE_ODO = true;
 	public static int TARGET_SPEED = 50;
 	public static double Kp = 0.008;
 	public static double Ki = 0;
@@ -51,7 +55,9 @@ public class fieldCentricBlue extends LinearOpMode {
 	private Vector2d oldReferenceVel = new Vector2d(0, 0);
 	
 	@Override
-	public void runOpMode() {       
+	public void runOpMode() {    
+		final boolean USE_PID = this.USE_PID;
+		final boolean USE_ODO = this.USE_ODO;
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry()); 
 		automationHandler = new Automations(hardwareMap, DEBUG);
 		ControlTheory.PID xVelocityController = new ControlTheory.PID(Kp, Ki, Kd, true);
@@ -76,8 +82,22 @@ public class fieldCentricBlue extends LinearOpMode {
 		frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 		backRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-		localizer = new ThreeDeadWheelLocalizer(hardwareMap, new MecanumDrive.Params().inPerTick);
-		pose = new Pose2d(0, 0, 0);
+		IMU imu = null;
+		if (USE_ODO) {
+			localizer = new ThreeDeadWheelLocalizer(hardwareMap, new MecanumDrive.Params().inPerTick);
+			if (OpModeStorage.pose != null) {
+				pose = OpModeStorage.pose;
+			} else {
+				pose = new Pose2d(0, 0, Math.PI*1.5);
+			}
+		} else {
+			imu = hardwareMap.get(IMU.class, "imu");
+			IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+				RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+				RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+			imu.initialize(parameters);
+			imu.resetYaw();	
+		}
 		
 		// Bulk read
 		List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -95,13 +115,21 @@ public class fieldCentricBlue extends LinearOpMode {
 			}
 
 			// Update pose for velocity and heading used in field centric rotation
-			Vector2d velocity = updatePose();
-			double heading = pose.heading.log();
+			double heading;
+			Vector2d velocity = new Vector2d(0, 0);
+			if (USE_ODO) {
+				velocity = updatePose();
+				// First line for red, second line for b\lue ('\' is to prevent find and replace)
+				// double heading = Math.PI/2 - pose.heading.log();
+				heading = Math.PI*1.5 - pose.heading.log();				
+			} else {
+				heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+			}
 
 			double xOutput;
 			double yOutput;
 
-			if (USE_PID) {
+			if (USE_PID && USE_ODO) {
 				// Sets a target velocity (field-centric)
 				Vector2d referenceVel = new Vector2d(
 					gamepad1.left_stick_x * TARGET_SPEED, 
@@ -158,7 +186,7 @@ public class fieldCentricBlue extends LinearOpMode {
 					} else if (gamepad1.right_bumper) {
 						automationHandler.setSlidePosition(0);
 					} else {
-						if (automationHandler.slideMotorLeft.getCurrentPosition() > -5) {
+						if (automationHandler.slideMotorLeft.getCurrentPosition() < 5) {
 							automationHandler.slideMotorLeft.setPower(0);
 						}
 						if (automationHandler.slideMotorRight.getCurrentPosition() < 5) {
@@ -185,11 +213,15 @@ public class fieldCentricBlue extends LinearOpMode {
 				case TRANSFER_WAIT:
 					automationHandler.transferWait();
 					break;
+				case TRANSFERRING:
+					automationHandler.transferring();
+					break;
+				// Deposit
 				case TRANSFERRED:
 					if (gamepad1.b) {
 						automationHandler.depositInit(targetBasket);
 					}
-				// Deposit
+					break;
 				case DEPOSIT_EXTENDING:
 					automationHandler.depositExtending();
 					break;
@@ -232,7 +264,7 @@ public class fieldCentricBlue extends LinearOpMode {
 					if (gamepad1.right_bumper) {
 						automationHandler.resetSpecimen();
 					}
-
+					break;
 				// Ascent
 				case ASCEND_LOW_EXTENDED:
 					if (gamepad1.left_trigger > 0.9) {
@@ -258,7 +290,7 @@ public class fieldCentricBlue extends LinearOpMode {
 				telemetry.addData("backLeftPower", backLeftPower);
 				telemetry.addData("backRightPower", backRightPower);
 
-				Canvas canvas = automationHandler.telemetryPacket.fieldOverlay();
+				Canvas canvas = automationHandler.telemetryPacket.fieldOverlay().setRotation(Math.toRadians(-90));
 				Drawing.drawRobot(canvas, pose);
 				automationHandler.updateDashboardTelemetry();
 			}
