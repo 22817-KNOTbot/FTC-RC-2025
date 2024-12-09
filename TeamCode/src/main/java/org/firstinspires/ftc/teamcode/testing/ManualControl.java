@@ -11,20 +11,24 @@ import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.subsystems.CV4B;
+
 @Config
 @TeleOp(name="Manual Control", group="Debug")
 public class ManualControl extends LinearOpMode {
-	public static double BUCKET_POSITION = 0.93;
+	public static double BUCKET_POSITION = 0.89;
 	public static double SCOOP_POWER = 0;
-	public static Cv4bPosition CV4B_POSITION = Cv4bPosition.BASE;
+	public static CV4B.Positions CV4B_POSITION = CV4B.Positions.BASE;
+	public static boolean MANUAL_CV4B = false;
 	public static double POSITION_V4B = 0;
 	public static double POSITION_COAX = 0;
 	public static int SLIDE_POSITION = 0;
+	public static double SLIDE_POWER = 1;
 	public static int INTAKE_POSITION = 0;
+	public static double INTAKE_SLIDE_POWER = 1;
 	public static double CLAW_POSITION = 1;
-	private Servo cv4bLeftServo;
-	private Servo cv4bRightServo;
-	private Servo cv4bCoaxialServo;
+	public static boolean CV4B_ENABLED = true;
+	private CV4B cv4b;
 	public DcMotor slideMotorLeft;
 	public DcMotor slideMotorRight;
 
@@ -43,36 +47,20 @@ public class ManualControl extends LinearOpMode {
 	 * 
 	 */
 
-	private enum Cv4bPosition {
-		BASE,
-		TRANSFER,
-		PRE_DEPOSIT,
-		DUMP,
-		SPECIMEN_GRAB,
-		MANUAL
-	}
-
 	@Override
 	public void runOpMode() {
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
 		// Bucket: 0 = up, 1 = down
 		Servo flipServo = hardwareMap.get(Servo.class, "flipServo");
-		// flipServo.scaleRange(0.85, 0.93);
+		// flipServo.scaleRange(0.795, 0.885);
 		DcMotor scoopMotor = hardwareMap.get(DcMotor.class, "scoopMotor");
 		scoopMotor.setDirection(DcMotor.Direction.REVERSE);
 
-		cv4bLeftServo = hardwareMap.get(Servo.class, "cv4bLeftServo");
-		cv4bRightServo = hardwareMap.get(Servo.class, "cv4bRightServo");
-		cv4bLeftServo.setDirection(Servo.Direction.FORWARD);
-		cv4bRightServo.setDirection(Servo.Direction.REVERSE);
-		cv4bCoaxialServo = hardwareMap.get(Servo.class, "cv4bCoaxialServo");
-		cv4bCoaxialServo.setDirection(Servo.Direction.REVERSE);
+		cv4b = new CV4B(hardwareMap);
 
 		slideMotorLeft = hardwareMap.get(DcMotor.class, "slideMotorLeft");
 		slideMotorRight = hardwareMap.get(DcMotor.class, "slideMotorRight");
-		slideMotorLeft.setPower(1);
-		slideMotorRight.setPower(1);
 		slideMotorLeft.setTargetPosition(0);
 		slideMotorRight.setTargetPosition(0);
 		slideMotorLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -80,9 +68,10 @@ public class ManualControl extends LinearOpMode {
 		slideMotorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		slideMotorLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		slideMotorRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		slideMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		slideMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 		DcMotor intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
-		intakeSlides.setPower(1);
 		intakeSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		intakeSlides.setTargetPosition(0);
 		intakeSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -93,64 +82,47 @@ public class ManualControl extends LinearOpMode {
 		clawServo.setDirection(Servo.Direction.REVERSE);
 		clawServo.scaleRange(0, 0.2);
 
-		// ColorRangeSensor colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
+		ColorRangeSensor colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
 
 		waitForStart();
 
 		while (opModeIsActive()) {
 			flipServo.setPosition(BUCKET_POSITION);
 			scoopMotor.setPower(SCOOP_POWER);
-			setCV4BPosition(CV4B_POSITION);
+			if (CV4B_ENABLED) {
+				if (MANUAL_CV4B) {
+					cv4b.setPosition(POSITION_V4B, POSITION_COAX);
+				} else {
+					cv4b.setPosition(CV4B_POSITION);
+				}
+			} else {
+				cv4b.setDrivePWM(CV4B_ENABLED);
+				cv4b.setCoaxialPWM(CV4B_ENABLED);
+			}
+			slideMotorLeft.setPower(SLIDE_POWER);
+			slideMotorRight.setPower(SLIDE_POWER);
 			setSlidePosition(SLIDE_POSITION);
+			intakeSlides.setPower(INTAKE_SLIDE_POWER);
 			intakeSlides.setTargetPosition(INTAKE_POSITION);
 			clawServo.setPosition(CLAW_POSITION);
 
-			// int red = colourRangeSensor.red();
-			// int green = colourRangeSensor.green();
-			// int blue = colourRangeSensor.blue();
+			int red = colourRangeSensor.red();
+			int green = colourRangeSensor.green();
+			int blue = colourRangeSensor.blue();
 	
-			// if ((red / blue > 2.5) && (green / blue > 3)) {
-			// 	telemetry.addData("Colour", "YELLOW");
-			// } else if ((red / green > 1.6) && (red / blue > 2)) {
-			// 	telemetry.addData("Colour", "RED");
-			// } else if ((blue / red > 3.5) && (blue / green > 1.2)) {
-			// 	telemetry.addData("Colour", "BLUE");
-			// }
-			// telemetry.addData("Distance", colourRangeSensor.getDistance(DistanceUnit.MM));
+			if ((red / blue > 2.5) && (green / blue > 3)) {
+				telemetry.addData("Colour", "YELLOW");
+			} else if ((red / green > 1.6) && (red / blue > 2)) {
+				telemetry.addData("Colour", "RED");
+			} else if ((blue / red > 3.5) && (blue / green > 1.2)) {
+				telemetry.addData("Colour", "BLUE");
+			}
+			telemetry.addData("Distance", colourRangeSensor.getDistance(DistanceUnit.MM));
 			telemetry.addData("Slide 1", slideMotorLeft.getCurrentPosition());
 			telemetry.addData("Slide 2", slideMotorRight.getCurrentPosition());
 			telemetry.update();
 
 		}
-	}
-
-	public void setCV4BPosition(Cv4bPosition position) {
-		switch (position) {
-			case BASE:
-				setCV4BPosition(0.14, 0.2);
-				break;
-			case TRANSFER:
-				setCV4BPosition(0.3, 0.1);
-				break;
-			case PRE_DEPOSIT:
-				setCV4BPosition(0.68, 0.35);
-				break;
-			case DUMP:
-				setCV4BPosition(0.68, 0.8);
-				break;
-			case SPECIMEN_GRAB:
-				setCV4BPosition(0.78, 0.5);
-				break;
-			case MANUAL:
-				setCV4BPosition(POSITION_V4B, POSITION_COAX);
-				break;
-		}
-	}
-
-	public void setCV4BPosition(double v4bRot, double coaxialRot) {
-		cv4bLeftServo.setPosition(v4bRot);
-		cv4bRightServo.setPosition(v4bRot);
-		cv4bCoaxialServo.setPosition(coaxialRot);
 	}
 
 	public void setSlidePosition(int targetPos) {

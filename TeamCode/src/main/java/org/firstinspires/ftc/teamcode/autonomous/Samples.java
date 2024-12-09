@@ -36,14 +36,6 @@ public class Samples extends LinearOpMode {
 	private Intake intakeControl; 
 	private Slides slideControl;
 	private CV4B cv4bControl;	
-
-	private enum Cv4bPosition {
-		BASE,
-		TRANSFER,
-		PRE_DEPOSIT,
-		DUMP,
-		SPECIMEN_GRAB
-	}
 	
 	@Override
 	public void runOpMode() {
@@ -99,12 +91,12 @@ public class Samples extends LinearOpMode {
 				new ParallelAction(
 					preDeposit,
 					slideControl.raiseSlides(), // Raise slides
-					cv4bControl.setPosition(Cv4bPosition.PRE_DEPOSIT) // Extend CV4B
+					cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.PRE_DEPOSIT) // Extend CV4B
 				),
-				cv4bControl.setPosition(Cv4bPosition.DUMP), // Dump
+				cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.DUMP), // Dump
 				
 				new ParallelAction(
-					cv4bControl.setPosition(Cv4bPosition.BASE), // Retract CV4B
+					cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.BASE), // Retract CV4B
 					slideControl.lowerSlides(), // Lower slides
 					intakeFirst,
 					intakeControl.start() // Start intake
@@ -115,13 +107,13 @@ public class Samples extends LinearOpMode {
 					new SequentialAction(
 						intakeControl.transfer(), // Transfer
 						slideControl.raiseSlides(), // Raise slides
-						cv4bControl.setPosition(Cv4bPosition.PRE_DEPOSIT) // Extend CV4B
+						cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.PRE_DEPOSIT) // Extend CV4B
 					)
 				),
-				cv4bControl.setPosition(Cv4bPosition.DUMP), // Dump
+				cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.DUMP), // Dump
 				
 				new ParallelAction(
-					cv4bControl.setPosition(Cv4bPosition.BASE), // Retract CV4B
+					cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.BASE), // Retract CV4B
 					slideControl.lowerSlides(), // Lower slides
 					intakeSecond,
 					intakeControl.start() // Start intake
@@ -132,13 +124,13 @@ public class Samples extends LinearOpMode {
 					new SequentialAction(
 						intakeControl.transfer(), // Transfer
 						slideControl.raiseSlides(), // Raise slides
-						cv4bControl.setPosition(Cv4bPosition.PRE_DEPOSIT) // Extend CV4B
+						cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.PRE_DEPOSIT) // Extend CV4B
 					)
 				),
-				cv4bControl.setPosition(Cv4bPosition.DUMP), // Dump
+				cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.DUMP), // Dump
 				
 				new ParallelAction(
-					cv4bControl.setPosition(Cv4bPosition.BASE), // Retract CV4B
+					cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.BASE), // Retract CV4B
 					slideControl.lowerSlides(), // Lower slides
 					intakeThird,
 					intakeControl.start() // Start intake
@@ -149,13 +141,13 @@ public class Samples extends LinearOpMode {
 					new SequentialAction(
 						intakeControl.transfer(), // Transfer
 						slideControl.raiseSlides(), // Raise slides
-						cv4bControl.setPosition(Cv4bPosition.PRE_DEPOSIT) // Extend CV4B
+						cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.PRE_DEPOSIT) // Extend CV4B
 					)
 				),
-				cv4bControl.setPosition(Cv4bPosition.DUMP), // Dump
+				cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.DUMP), // Dump
 				
 				new ParallelAction(
-					cv4bControl.setPosition(Cv4bPosition.BASE), // Retract CV4B
+					cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.BASE), // Retract CV4B
 					park,
 					slideControl.slidesToAscend() // Lower slides
 				)
@@ -217,7 +209,7 @@ public class Samples extends LinearOpMode {
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
 					intakeSlides.setTargetPosition(0);  
-					cv4bControl.setPositionMethod(Cv4bPosition.TRANSFER);
+					cv4bControl.setPositionMethod(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.TRANSFER);
 
 					return false;
 				}
@@ -339,51 +331,17 @@ public class Samples extends LinearOpMode {
 	}
 
 	public class CV4B {
-		private Servo cv4bLeftServo;
-		private Servo cv4bRightServo;
-		private Servo cv4bCoaxialServo;
+		private org.firstinspires.ftc.teamcode.subsystems.CV4B cv4b;
 	
-		public CV4B(HardwareMap hardwareMao) {
-			cv4bLeftServo = hardwareMap.get(Servo.class, "cv4bLeftServo");
-			cv4bRightServo = hardwareMap.get(Servo.class, "cv4bRightServo");
-			cv4bLeftServo.setDirection(Servo.Direction.FORWARD);
-			cv4bRightServo.setDirection(Servo.Direction.REVERSE);
-			cv4bCoaxialServo = hardwareMap.get(Servo.class, "cv4bCoaxialServo");
-			cv4bCoaxialServo.setDirection(Servo.Direction.REVERSE);
+		public CV4B(HardwareMap hardwareMap) {
+			cv4b = new org.firstinspires.ftc.teamcode.subsystems.CV4B(hardwareMap);
 		}
 
-		public Action setPosition(Cv4bPosition position) {
+		public Action setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions position) {
 			return setPosition(position, 0);
 		}
 
-		public Action setPosition(Cv4bPosition position, double length) {
-			double v4bRot;
-			double coaxialRot;
-
-			switch (position) {
-				default:
-				case BASE:
-					v4bRot = 0.14;
-					coaxialRot = 0.2;
-					break;
-				case TRANSFER:
-					v4bRot = 0.3;
-					coaxialRot = 0.1;
-					break;
-				case PRE_DEPOSIT:
-					v4bRot = 0.68;
-					coaxialRot = 0.35;
-					break;
-				case DUMP:
-					v4bRot = 0.68;
-					coaxialRot = 0.8;
-					break;
-				case SPECIMEN_GRAB:
-					v4bRot = 0.78;
-					coaxialRot = 0.5;
-					break;
-			}
-
+		public Action setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions position, double length) {
 			return new Action() {
 				private boolean initialized = false;
 				private ElapsedTime timer = new ElapsedTime();
@@ -391,10 +349,8 @@ public class Samples extends LinearOpMode {
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
 					if (!initialized) {
-						cv4bLeftServo.setPosition(v4bRot);
-						cv4bRightServo.setPosition(v4bRot);
-						cv4bCoaxialServo.setPosition(coaxialRot);
-				
+						cv4b.setPosition(position);
+						
 						timer.reset();
 						initialized = true;
 						return true;
@@ -408,37 +364,8 @@ public class Samples extends LinearOpMode {
 			};
 		}
 
-		public void setPositionMethod(Cv4bPosition position) {
-			double v4bRot;
-			double coaxialRot;
-
-			switch (position) {
-				default:
-				case BASE:
-					v4bRot = 0.14;
-					coaxialRot = 0.2;
-					break;
-				case TRANSFER:
-					v4bRot = 0.3;
-					coaxialRot = 0.1;
-					break;
-				case PRE_DEPOSIT:
-					v4bRot = 0.68;
-					coaxialRot = 0.35;
-					break;
-				case DUMP:
-					v4bRot = 0.68;
-					coaxialRot = 0.8;
-					break;
-				case SPECIMEN_GRAB:
-					v4bRot = 0.78;
-					coaxialRot = 0.5;
-					break;
-			}
-
-			cv4bLeftServo.setPosition(v4bRot);
-			cv4bRightServo.setPosition(v4bRot);
-			cv4bCoaxialServo.setPosition(coaxialRot);
+		public void setPositionMethod(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions position) {
+			cv4b.setPosition(position);
 		}
 	}
 

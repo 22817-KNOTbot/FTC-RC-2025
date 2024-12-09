@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
+import org.firstinspires.ftc.teamcode.subsystems.CV4B;
+
 public class Automations {
 	public State automationState;
 	private SamplePurpose samplePurpose;
@@ -20,9 +22,7 @@ public class Automations {
 	public TelemetryPacket telemetryPacket;
 
 	// Hardware mapping
-	private Servo cv4bLeftServo;
-	private Servo cv4bRightServo;
-	private Servo cv4bCoaxialServo;
+	public CV4B cv4b;
 	private DcMotor intakeSlides;
 	private DcMotor scoopMotor;
 	private Servo flipServo;
@@ -75,14 +75,6 @@ public class Automations {
 		SPECIMEN
 	}
 
-	private enum Cv4bPosition {
-		BASE,
-		TRANSFER,
-		PRE_DEPOSIT,
-		DUMP,
-		SPECIMEN_GRAB
-	}
-
 	public Automations(HardwareMap hardwareMap) {
 		this(hardwareMap, false);
 	}
@@ -95,14 +87,8 @@ public class Automations {
 		this.dashboard = FtcDashboard.getInstance();
 		this.telemetryPacket = new TelemetryPacket();
 
-		cv4bLeftServo = hardwareMap.get(Servo.class, "cv4bLeftServo");
-		cv4bRightServo = hardwareMap.get(Servo.class, "cv4bRightServo");
-		cv4bLeftServo.setDirection(Servo.Direction.FORWARD);
-		cv4bRightServo.setDirection(Servo.Direction.REVERSE);
-		cv4bCoaxialServo = hardwareMap.get(Servo.class, "cv4bCoaxialServo");
-		cv4bCoaxialServo.setDirection(Servo.Direction.REVERSE);
+		cv4b = new CV4B(hardwareMap);
 		intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
-		intakeSlides.setDirection(DcMotor.Direction.REVERSE);
 		intakeSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		intakeSlides.setTargetPosition(0);
 		intakeSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -111,7 +97,7 @@ public class Automations {
 		scoopMotor.setDirection(DcMotor.Direction.REVERSE);
 		// Bucket: 0 = up, 1 = down
 		flipServo = hardwareMap.get(Servo.class, "flipServo");
-		flipServo.scaleRange(0.85, 0.95);
+		flipServo.scaleRange(0.84, 0.935);
 		colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
 		// Claw: 0 = open, 1 = closed
 		clawServo = hardwareMap.get(Servo.class, "clawServo");
@@ -147,21 +133,21 @@ public class Automations {
 	public void intakeInit(SamplePurpose samplePurpose) {
 		this.samplePurpose = samplePurpose;
 		// Extend intake slides
-		setIntakeSlidePosition(100);
+		setIntakeSlidePosition(1000);
 
 		if (DEBUG) {
 			telemetryPacket.put("intakeSlides", intakeSlides.getCurrentPosition());
 		}
 		flipServo.setPosition(1);
 		// Start intake motor
-		scoopMotor.setPower(0.25);
+		scoopMotor.setPower(0.5);
 
 		automationState = State.INTAKE_WAIT;
 	}
 	
 	public void intakeWait() {
-		// Do nothing until distance <10mm
-		if (colourRangeSensor.getDistance(DistanceUnit.MM) < 10) {
+		// Do nothing until distance <15mm
+		if (colourRangeSensor.getDistance(DistanceUnit.MM) <= 20) {
 			automationState = State.INTAKE_FILLED;
 		}	
 		if (DEBUG) {
@@ -199,10 +185,10 @@ public class Automations {
 	}
 
 	public void intakeDumping() {
-		// reverse intake motor until proximity > 10mm
-		scoopMotor.setPower(-0.25);
-		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 10) {
-			scoopMotor.setPower(0.25);
+		// reverse intake motor until proximity > 15mm
+		scoopMotor.setPower(-0.5);
+		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 20) {
+			scoopMotor.setPower(0.5);
 			automationState = State.INTAKE_WAIT;
 		}
 		if (DEBUG) {
@@ -212,23 +198,23 @@ public class Automations {
 
 	public void transferInit() {		
 		// Retract intake slides
-		setIntakeSlidePosition(0);
+		setIntakeSlidePosition(300);
 		flipServo.setPosition(0);
-		setCV4BPosition(Cv4bPosition.TRANSFER);
+		cv4b.setPosition(CV4B.Positions.TRANSFER);
 		
 		automationState = State.TRANSFER_WAIT;
 	}
 
 	public void transferWait() {
 		if (!intakeSlides.isBusy()) {
-			scoopMotor.setPower(-0.25);
+			scoopMotor.setPower(-0.5);
 
 			automationState = State.TRANSFERRING;
 		}
 	}
 
 	public void transferring() {
-		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 10) {
+		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 75) {
 			scoopMotor.setPower(0);
 
 			automationState = State.TRANSFERRED;
@@ -237,26 +223,26 @@ public class Automations {
 
 	public void depositInit(Basket basket) {
 		// Extend linear slide
-		setSlidePosition(basket == Basket.HIGH ? 3800 : 2000);
-		setCV4BPosition(Cv4bPosition.PRE_DEPOSIT);
+		setSlidePosition(basket == Basket.HIGH ? 3000 : 2000); // May be 4100 for high basket
+		cv4b.setPosition(CV4B.Positions.PRE_DEPOSIT);
 
 		automationState = State.DEPOSIT_EXTENDING;
 	}
 
 	public void depositExtending() {
-		if (!slideMotorLeft.isBusy()) {
+		if (!slideMotorLeft.isBusy() && !slideMotorRight.isBusy()) {
 			automationState = State.DEPOSIT_EXTENDED;
 		}
 	}
 
 	public void depositSample() {
-		setCV4BPosition(Cv4bPosition.DUMP);
+		cv4b.setPosition(CV4B.Positions.DUMP);
 		
 		automationState = State.DEPOSITED;
 	}
 
 	public void resetDeposit() {
-		setCV4BPosition(Cv4bPosition.BASE);
+		cv4b.setPosition(CV4B.Positions.TRANSFER);
 		setSlidePosition(0);
 
 		automationState = State.IDLE;
@@ -275,14 +261,14 @@ public class Automations {
 	}
 
 	public void sampleEject() {
-		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 10) {
+		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 20) {
 			scoopMotor.setPower(0);
 			automationState = State.IDLE;
 		}
 	}
 	
 	public void specimenInit() {
-		setCV4BPosition(Cv4bPosition.SPECIMEN_GRAB);
+		cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
 		clawServo.setPosition(0);
 		setSlidePosition(500);
 
@@ -304,7 +290,7 @@ public class Automations {
 	}
 
 	public void resetSpecimen() {
-		setCV4BPosition(Cv4bPosition.BASE);
+		cv4b.setPosition(CV4B.Positions.TRANSFER);
 		clawServo.setPosition(1);
 
 		automationState = State.IDLE;
@@ -330,39 +316,8 @@ public class Automations {
 	}
 
 	// Util functions
-	public void setCV4BPosition(Cv4bPosition position) {
-		switch (position) {
-			case BASE:
-				setCV4BPosition(0.14, 0.2);
-				break;
-			case TRANSFER:
-				setCV4BPosition(0.3, 0.1);
-				break;
-			case PRE_DEPOSIT:
-				setCV4BPosition(0.68, 0.35);
-				break;
-			case DUMP:
-				setCV4BPosition(0.68, 0.8);
-				break;
-			case SPECIMEN_GRAB:
-				setCV4BPosition(0.78, 0.5);
-				break;
-		}
-	}
-
-	public void setCV4BPosition(double v4bRot, double coaxialRot) {
-		// POSITIONS (V4B, COAX)
-		// Base: 0.14, 0.2
-		// Pre-deposit: 0.68, 0.35
-		// Dump: 0.68, 0.8
-		// Specimen Grab: 0.78, 0.5
-		cv4bLeftServo.setPosition(v4bRot);
-		cv4bRightServo.setPosition(v4bRot);
-		cv4bCoaxialServo.setPosition(coaxialRot);
-	}
-
 	public void setSlidePosition(int targetPos) {
-		// Max 4200
+		// Max 4100
 		slideMotorLeft.setPower(1);
 		slideMotorRight.setPower(1);
 		slideMotorLeft.setTargetPosition(targetPos);

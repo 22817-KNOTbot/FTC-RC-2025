@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 public class SlideTesting extends LinearOpMode {
 	public static String MOTOR1 = "slideMotorLeft";
 	public static String MOTOR2 = "slideMotorRight";
+	public static float POWER = 0;
 	public static int TARGET = 0;
 	// 4200
 
@@ -18,8 +19,8 @@ public class SlideTesting extends LinearOpMode {
 	public void runOpMode() {
 		DcMotor motor = hardwareMap.get(DcMotor.class, MOTOR1);
 		DcMotor motor2 = hardwareMap.get(DcMotor.class, MOTOR2);
-		motor.setPower(1);
-		motor2.setPower(1);
+		motor.setPower(POWER);
+		motor2.setPower(POWER);
 		motor.setTargetPosition(0);
 		motor2.setTargetPosition(0);
 		motor.setDirection(DcMotor.Direction.REVERSE);
@@ -30,6 +31,9 @@ public class SlideTesting extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
+			motor.setPower(POWER);
+			motor2.setPower(POWER);
+	
 			motor.setTargetPosition(TARGET);
 			motor2.setTargetPosition(TARGET);
 

@@ -25,6 +25,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 // import org.firstinspires.ftc.teamode.AprilTagDrive;
+import org.firstinspires.ftc.teamcode.subsystems.CV4B;
 import org.firstinspires.ftc.teamcode.util.OpModeStorage;
 
 @Config
@@ -34,15 +35,7 @@ public class Specimens extends LinearOpMode {
 	public static double initialPoseY = -62;
 	public static double initialPoseHeading = 0;
     private Mechanisms mechanismControl;
-    
-	private enum Cv4bPosition {
-		BASE,
-		TRANSFER,
-		PRE_DEPOSIT,
-		DUMP,
-		SPECIMEN_GRAB
-	}
-	
+    	
 	@Override
 	public void runOpMode() {
 		Pose2d initialPose = new Pose2d(initialPoseX, initialPoseY, Math.toRadians(initialPoseHeading));
@@ -164,9 +157,7 @@ public class Specimens extends LinearOpMode {
 	public class Mechanisms {
 		private DcMotor slideMotorLeft;
 		private DcMotor slideMotorRight;
-        private Servo cv4bLeftServo;
-		private Servo cv4bRightServo;
-		private Servo cv4bCoaxialServo;
+        private CV4B cv4b;
         private Servo clawServo;
 
 		public Mechanisms(HardwareMap hardwareMap) {
@@ -181,12 +172,7 @@ public class Specimens extends LinearOpMode {
 			slideMotorRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 			slideMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 			slideMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            cv4bLeftServo = hardwareMap.get(Servo.class, "cv4bLeftServo");
-			cv4bRightServo = hardwareMap.get(Servo.class, "cv4bRightServo");
-			cv4bLeftServo.setDirection(Servo.Direction.FORWARD);
-			cv4bRightServo.setDirection(Servo.Direction.REVERSE);
-			cv4bCoaxialServo = hardwareMap.get(Servo.class, "cv4bCoaxialServo");
-			cv4bCoaxialServo.setDirection(Servo.Direction.REVERSE);
+            cv4b = new CV4B(hardwareMap);
             clawServo = hardwareMap.get(Servo.class, "clawServo");
             clawServo.setDirection(Servo.Direction.REVERSE);
             clawServo.scaleRange(0, 0.2);    
@@ -196,7 +182,7 @@ public class Specimens extends LinearOpMode {
             return new Action() {
                 @Override
                 public boolean run(@NonNull TelemetryPacket packet) {
-                    setPosition(Cv4bPosition.SPECIMEN_GRAB);
+                    setPosition(CV4B.Positions.SPECIMEN_GRAB);
                     return false;
                 }
             };
@@ -266,38 +252,9 @@ public class Specimens extends LinearOpMode {
             };
         }
 
-        public void setPosition(Cv4bPosition position) {
-			double v4bRot;
-			double coaxialRot;
-
-			switch (position) {
-				default:
-				case BASE:
-					v4bRot = 0.14;
-					coaxialRot = 0.2;
-					break;
-				case TRANSFER:
-					v4bRot = 0.3;
-					coaxialRot = 0.1;
-					break;
-				case PRE_DEPOSIT:
-					v4bRot = 0.68;
-					coaxialRot = 0.35;
-					break;
-				case DUMP:
-					v4bRot = 0.68;
-					coaxialRot = 0.8;
-					break;
-				case SPECIMEN_GRAB:
-					v4bRot = 0.78;
-					coaxialRot = 0.5;
-					break;
-			}
-
-			cv4bLeftServo.setPosition(v4bRot);
-			cv4bRightServo.setPosition(v4bRot);
-			cv4bCoaxialServo.setPosition(coaxialRot);
-		}
+        public void setPosition(CV4B.Positions position) {
+            cv4b.setPosition(position);
+        }
 	}
 
 	public Action placeholderAction() {
