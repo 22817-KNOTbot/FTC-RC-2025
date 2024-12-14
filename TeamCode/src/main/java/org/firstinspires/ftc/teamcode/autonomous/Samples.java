@@ -25,6 +25,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 // import org.firstinspires.ftc.teamode.AprilTagDrive;
+import org.firstinspires.ftc.teamcode.subsystems.CV4B;
 import org.firstinspires.ftc.teamcode.util.OpModeStorage;
 
 @Config
@@ -35,7 +36,7 @@ public class Samples extends LinearOpMode {
 	public static double initialPoseHeading = 0;
 	private Intake intakeControl; 
 	private Slides slideControl;
-	private CV4B cv4bControl;	
+	private CV4BActions cv4bControl;	
 	
 	@Override
 	public void runOpMode() {
@@ -44,29 +45,27 @@ public class Samples extends LinearOpMode {
 		// AprilTagDrive drive = new AprilTagDrive(hardwareMap, initialPose, aprilTagProcessor, true);
 		intakeControl = new Intake(hardwareMap);
 		slideControl = new Slides(hardwareMap);
-		cv4bControl = new CV4B(hardwareMap);
+		cv4bControl = new CV4BActions(hardwareMap);
 
-		Action preDeposit = drive.actionBuilder(initialPose)
+		Action firstSample = drive.actionBuilder(initialPose)
 			.setReversed(true)
 			.splineToConstantHeading(new Vector2d(-40, -55), Math.toRadians(180))
 			.splineToSplineHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(180))
 			.build();
 
 		Action intakeFirst = drive.actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-			.splineToLinearHeading(new Pose2d(-49, -38, Math.toRadians(90)), Math.toRadians(90))
+			.splineToLinearHeading(new Pose2d(-36, -25, Math.toRadians(180)), Math.toRadians(90))
 			.build();
 
-		Action depositFirst = drive.actionBuilder(new Pose2d(-49, -38, Math.toRadians(90)))
-			.setReversed(true)
+		Action depositFirst = drive.actionBuilder(new Pose2d(-36, -25, Math.toRadians(180)))
 			.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(270))
 			.build();
 
 		Action intakeSecond = drive.actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-			.splineToLinearHeading(new Pose2d(-59, -38, Math.toRadians(90)), Math.toRadians(90))
+			.splineToLinearHeading(new Pose2d(-48, -25, Math.toRadians(180)), Math.toRadians(180))
 			.build();
 
-		Action depositSecond = drive.actionBuilder(new Pose2d(-59, -38, Math.toRadians(90)))
-			.setReversed(true)
+		Action depositSecond = drive.actionBuilder(new Pose2d(-48, -25, Math.toRadians(180)))
 			.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(270))
 			.build();
 
@@ -83,76 +82,86 @@ public class Samples extends LinearOpMode {
 			.splineToLinearHeading(new Pose2d(-25, -10, Math.toRadians(180)), Math.toRadians(0))
 			.build();
 
-
 		waitForStart();
+		
+		myBot.runAction(new SequentialAction(
+			firstSample,
+			intakeFirst,
+			depositFirst,
+			intakeSecond,
+			depositSecond,
+			intakeThird,
+			depositThird,
+			park
+		));
 
-		Actions.runBlocking(
-			new SequentialAction(
-				new ParallelAction(
-					preDeposit,
-					slideControl.raiseSlides(), // Raise slides
-					cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.PRE_DEPOSIT) // Extend CV4B
-				),
-				cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.DUMP), // Dump
+		// Actions.runBlocking(
+		// 	new SequentialAction(
+		// 		new ParallelAction(
+		// 			firstSample,
+		// 			slideControl.raiseSlides(), // Raise slides
+		// 			cv4bControl.setPosition(CV4B.Positions.PRE_DEPOSIT, 1.5) // Extend CV4B
+		// 		),
+		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
 				
-				new ParallelAction(
-					cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.BASE), // Retract CV4B
-					slideControl.lowerSlides(), // Lower slides
-					intakeFirst,
-					intakeControl.start() // Start intake
-				),
-				intakeControl.retract(), // Stop and retract intake
-				new ParallelAction(
-					depositFirst,
-					new SequentialAction(
-						intakeControl.transfer(), // Transfer
-						slideControl.raiseSlides(), // Raise slides
-						cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.PRE_DEPOSIT) // Extend CV4B
-					)
-				),
-				cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.DUMP), // Dump
+		// 		new ParallelAction(
+		// 			intakeFirst,
+		// 			cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
+		// 			slideControl.lowerSlides(), // Lower slides
+		// 			intakeControl.start() // Start intake
+		// 		),
+		// 		intakeControl.retract(), // Stop and retract intake
+		// 		new ParallelAction(
+		// 			depositFirst,
+		// 			new SequentialAction(
+		// 				intakeControl.transfer(), // Transfer
+		// 				slideControl.raiseSlides(), // Raise slides
+		// 				cv4bControl.setPosition(CV4B.Positions.PRE_DEPOSIT, 1.5) // Extend CV4B
+		// 			)
+		// 		),
+		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
 				
-				new ParallelAction(
-					cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.BASE), // Retract CV4B
-					slideControl.lowerSlides(), // Lower slides
-					intakeSecond,
-					intakeControl.start() // Start intake
-				),
-				intakeControl.retract(), // Stop and retract intake
-				new ParallelAction(
-					depositSecond,
-					new SequentialAction(
-						intakeControl.transfer(), // Transfer
-						slideControl.raiseSlides(), // Raise slides
-						cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.PRE_DEPOSIT) // Extend CV4B
-					)
-				),
-				cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.DUMP), // Dump
+		// 		new ParallelAction(
+		// 			intakeSecond,
+		// 			cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
+		// 			slideControl.lowerSlides(), // Lower slides
+		// 			intakeControl.start() // Start intake
+		// 		),
+		// 		intakeControl.retract(), // Stop and retract intake
+		// 		new ParallelAction(
+		// 			depositSecond,
+		// 			new SequentialAction(
+		// 				intakeControl.transfer(), // Transfer
+		// 				slideControl.raiseSlides(), // Raise slides
+		// 				cv4bControl.setPosition(CV4B.Positions.PRE_DEPOSIT, 1.5) // Extend CV4B
+		// 			)
+		// 		),
+		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
 				
-				new ParallelAction(
-					cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.BASE), // Retract CV4B
-					slideControl.lowerSlides(), // Lower slides
-					intakeThird,
-					intakeControl.start() // Start intake
-				),
-				intakeControl.retract(), // Stop and retract intake
-				new ParallelAction(
-					depositThird,
-					new SequentialAction(
-						intakeControl.transfer(), // Transfer
-						slideControl.raiseSlides(), // Raise slides
-						cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.PRE_DEPOSIT) // Extend CV4B
-					)
-				),
-				cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.DUMP), // Dump
+		// 		new ParallelAction(
+		// 			intakeThird,
+		// 			cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
+		// 			slideControl.lowerSlides(), // Lower slides
+		// 			intakeControl.start() // Start intake
+		// 		),
+		// 		intakeControl.retract(), // Stop and retract intake
+		// 		new ParallelAction(
+		// 			depositThird,
+		// 			new SequentialAction(
+		// 				intakeControl.transfer(), // Transfer
+		// 				slideControl.raiseSlides(), // Raise slides
+		// 				cv4bControl.setPosition(CV4B.Positions.PRE_DEPOSIT, 1.5) // Extend CV4B
+		// 			)
+		// 		),
+		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
 				
-				new ParallelAction(
-					cv4bControl.setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.BASE), // Retract CV4B
-					park,
-					slideControl.slidesToAscend() // Lower slides
-				)
-			)
-		);
+		// 		new ParallelAction(
+		// 			park,
+		// 			cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
+		// 			slideControl.slidesToAscend() // Lower slides
+		// 		)
+		// 	)
+		// );
 
 		// Store pose for future use
 		OpModeStorage.pose = drive.pose;
@@ -178,17 +187,18 @@ public class Samples extends LinearOpMode {
 		private DcMotor intakeSlides;
 		private DcMotor scoopMotor;
 		private ColorRangeSensor colourRangeSensor;
+		private Servo flipServo;
 
 		public Intake(HardwareMap hardwareMap) {
 			intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
-			intakeSlides.setDirection(DcMotor.Direction.REVERSE);
 			intakeSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 			intakeSlides.setTargetPosition(0);
 			intakeSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 			intakeSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 			scoopMotor = hardwareMap.get(DcMotor.class, "scoopMotor");
-			// scoopMotor.setDirection(DcMotor.Direction.REVERSE);
+			scoopMotor.setDirection(DcMotor.Direction.REVERSE);
 			colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");	 
+			flipServo = hardwareMap.get(Servo.class, "flipServo");
 		}
 
 		public Action start() {
@@ -196,8 +206,9 @@ public class Samples extends LinearOpMode {
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
 					intakeSlides.setPower(1);
-					intakeSlides.setTargetPosition(100);  
-					scoopMotor.setPower(0.25);
+					intakeSlides.setTargetPosition(600);  
+					scoopMotor.setPower(0.5);
+					flipServo.setPosition(0.875);
 
 					return false;
 				}
@@ -208,8 +219,9 @@ public class Samples extends LinearOpMode {
 			return new Action() {
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
-					intakeSlides.setTargetPosition(0);  
-					cv4bControl.setPositionMethod(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions.TRANSFER);
+					intakeSlides.setTargetPosition(500);  
+					flipServo.setPosition(0.76);
+					cv4bControl.setPositionMethod(CV4B.Positions.TRANSFER);
 
 					return false;
 				}
@@ -243,11 +255,11 @@ public class Samples extends LinearOpMode {
 		public Slides(HardwareMap hardwareMap) {
 			slideMotorLeft = hardwareMap.get(DcMotor.class, "slideMotorLeft");
 			slideMotorRight = hardwareMap.get(DcMotor.class, "slideMotorRight");
+			slideMotorLeft.setTargetPosition(0);
+			slideMotorRight.setTargetPosition(0);
 			slideMotorLeft.setDirection(DcMotor.Direction.REVERSE);
 			slideMotorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 			slideMotorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-			slideMotorLeft.setTargetPosition(0);
-			slideMotorRight.setTargetPosition(0);
 			slideMotorLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 			slideMotorRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 			slideMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -263,8 +275,8 @@ public class Samples extends LinearOpMode {
 					if (!initialized) {
 						slideMotorLeft.setPower(1);
 						slideMotorRight.setPower(1);
-						slideMotorLeft.setTargetPosition(3800);
-						slideMotorRight.setTargetPosition(3800);
+						slideMotorLeft.setTargetPosition(4100);
+						slideMotorRight.setTargetPosition(4100);
 	
 						initialized = true;
 						return true;
@@ -330,18 +342,18 @@ public class Samples extends LinearOpMode {
 		}
 	}
 
-	public class CV4B {
-		private org.firstinspires.ftc.teamcode.subsystems.CV4B cv4b;
+	public class CV4BActions {
+		private CV4B cv4b;
 	
-		public CV4B(HardwareMap hardwareMap) {
-			cv4b = new org.firstinspires.ftc.teamcode.subsystems.CV4B(hardwareMap);
+		public CV4BActions(HardwareMap hardwareMap) {
+			cv4b = new CV4B(hardwareMap);
 		}
 
-		public Action setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions position) {
+		public Action setPosition(CV4B.Positions position) {
 			return setPosition(position, 0);
 		}
 
-		public Action setPosition(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions position, double length) {
+		public Action setPosition(CV4B.Positions position, double length) {
 			return new Action() {
 				private boolean initialized = false;
 				private ElapsedTime timer = new ElapsedTime();
@@ -364,7 +376,7 @@ public class Samples extends LinearOpMode {
 			};
 		}
 
-		public void setPositionMethod(org.firstinspires.ftc.teamcode.subsystems.CV4B.Positions position) {
+		public void setPositionMethod(CV4B.Positions position) {
 			cv4b.setPosition(position);
 		}
 	}
