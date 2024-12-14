@@ -16,9 +16,9 @@ import org.firstinspires.ftc.teamcode.subsystems.CV4B;
 @Config
 @TeleOp(name="Manual Control", group="Debug")
 public class ManualControl extends LinearOpMode {
-	public static double BUCKET_POSITION = 0.89;
+	public static double BUCKET_POSITION = 0.875;
 	public static double SCOOP_POWER = 0;
-	public static CV4B.Positions CV4B_POSITION = CV4B.Positions.BASE;
+	public static CV4B.Positions CV4B_POSITION = CV4B.Positions.TRANSFER;
 	public static boolean MANUAL_CV4B = false;
 	public static double POSITION_V4B = 0;
 	public static double POSITION_COAX = 0;
@@ -51,11 +51,11 @@ public class ManualControl extends LinearOpMode {
 	public void runOpMode() {
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-		// Bucket: 0 = up, 1 = down
+		// Bucket: 0.75 = transfer, 0.879 = intake, 0.78 = post-transfer
 		Servo flipServo = hardwareMap.get(Servo.class, "flipServo");
-		// flipServo.scaleRange(0.795, 0.885);
 		DcMotor scoopMotor = hardwareMap.get(DcMotor.class, "scoopMotor");
 		scoopMotor.setDirection(DcMotor.Direction.REVERSE);
+		scoopMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 		cv4b = new CV4B(hardwareMap);
 
@@ -70,17 +70,19 @@ public class ManualControl extends LinearOpMode {
 		slideMotorRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		slideMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 		slideMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		// 3500
 
 		DcMotor intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
 		intakeSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		intakeSlides.setTargetPosition(0);
 		intakeSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		intakeSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		// Transfer: 500
 
 		// Claw: 0 = open, 1 = closed
 		Servo clawServo = hardwareMap.get(Servo.class, "clawServo");
 		clawServo.setDirection(Servo.Direction.REVERSE);
-		clawServo.scaleRange(0, 0.2);
+		clawServo.scaleRange(0, 0.01);
 
 		ColorRangeSensor colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
 
