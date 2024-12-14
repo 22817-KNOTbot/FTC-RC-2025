@@ -91,7 +91,7 @@ public class Automations {
 
 		cv4b = new CV4B(hardwareMap);
 		intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
-		intakeSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		// intakeSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		intakeSlides.setTargetPosition(0);
 		intakeSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		intakeSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -115,8 +115,8 @@ public class Automations {
 		slideMotorLeft.setTargetPosition(0);
 		slideMotorRight.setTargetPosition(0);
 		slideMotorLeft.setDirection(DcMotor.Direction.REVERSE);
-		slideMotorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-		slideMotorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		// slideMotorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		// slideMotorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		slideMotorLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		slideMotorRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		slideMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -245,7 +245,7 @@ public class Automations {
 	public void transferring() {
 		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 75) {
 			scoopMotor.setPower(0);
-			flipServo.setPosition(0.875);
+			flipServo.setPosition(0.78);
 
 			automationState = State.TRANSFERRED;
 		}

@@ -10,41 +10,23 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.subsystems.CV4B;
+
 @Config
 @TeleOp(name="Robot Inspection", group="Debug")
 public class RobotInspection extends LinearOpMode {
-	public static double BUCKET_POSITION = 1;
-	public static Cv4bPosition CV4B_POSITION = Cv4bPosition.SPECIMEN_GRAB;
-	public static int SLIDE_POSITION = 3800;
-	public static int INTAKE_POSITION = 1800;
+	public static CV4B.Positions CV4B_POSITION = CV4B.Positions.SPECIMEN_GRAB;
+	public static int SLIDE_POSITION = 4100;
+	public static int INTAKE_POSITION = 800;
 	private static boolean extended = false;
-	private Servo cv4bLeftServo;
-	private Servo cv4bRightServo;
-	private Servo cv4bCoaxialServo;
 	public DcMotor slideMotorLeft;
 	public DcMotor slideMotorRight;
-
-	private enum Cv4bPosition {
-		BASE,
-		TRANSFER,
-		PRE_DEPOSIT,
-		DUMP,
-		SPECIMEN_GRAB
-	}
 
 	@Override
 	public void runOpMode() {
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-		// Bucket: 0 = up, 1 = down
-		Servo flipServo = hardwareMap.get(Servo.class, "flipServo");
-
-		cv4bLeftServo = hardwareMap.get(Servo.class, "cv4bLeftServo");
-		cv4bRightServo = hardwareMap.get(Servo.class, "cv4bRightServo");
-		cv4bLeftServo.setDirection(Servo.Direction.FORWARD);
-		cv4bRightServo.setDirection(Servo.Direction.REVERSE);
-		cv4bCoaxialServo = hardwareMap.get(Servo.class, "cv4bCoaxialServo");
-		cv4bCoaxialServo.setDirection(Servo.Direction.REVERSE);
+		cv4b = new CV4B(harwareMap);
 
 		slideMotorLeft = hardwareMap.get(DcMotor.class, "slideMotorLeft");
 		slideMotorRight = hardwareMap.get(DcMotor.class, "slideMotorRight");
@@ -69,13 +51,11 @@ public class RobotInspection extends LinearOpMode {
 
 		while (opModeIsActive()) {
 			if (!extended) {
-				flipServo.setPosition(0);
-				setCV4BPosition(Cv4bPosition.BASE);
+				cv4b.setPosition(CV4B.Positions.TRANSFER);
 				setSlidePosition(0);
 				intakeSlides.setTargetPosition(0);
 			} else {
-				flipServo.setPosition(BUCKET_POSITION);
-				setCV4BPosition(CV4B_POSITION);
+				cv4b.setPosition(CV4B_POSITION);
 				setSlidePosition(SLIDE_POSITION);
 				intakeSlides.setTargetPosition(INTAKE_POSITION);
 			}
@@ -86,32 +66,6 @@ public class RobotInspection extends LinearOpMode {
 				extended = true;
 			}
 		}
-	}
-
-	public void setCV4BPosition(Cv4bPosition position) {
-		switch (position) {
-			case BASE:
-				setCV4BPosition(0.14, 0.2);
-				break;
-			case TRANSFER:
-				setCV4BPosition(0.3, 0.1);
-				break;
-			case PRE_DEPOSIT:
-				setCV4BPosition(0.68, 0.35);
-				break;
-			case DUMP:
-				setCV4BPosition(0.68, 0.8);
-				break;
-			case SPECIMEN_GRAB:
-				setCV4BPosition(0.78, 0.5);
-				break;
-		}
-	}
-
-	public void setCV4BPosition(double v4bRot, double coaxialRot) {
-		cv4bLeftServo.setPosition(v4bRot);
-		cv4bRightServo.setPosition(v4bRot);
-		cv4bCoaxialServo.setPosition(coaxialRot);
 	}
 
 	public void setSlidePosition(int targetPos) {
