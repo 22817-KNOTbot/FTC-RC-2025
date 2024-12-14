@@ -16,7 +16,7 @@ public class Samples {
 
 		RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
 				// Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
-				.setConstraints(100, 100, Math.toRadians(18000), Math.toRadians(180), 15)
+				.setConstraints(50, 50, Math.PI, Math.PI, 13)
 				.build();
 
 		if (OPTION == 1) {
@@ -27,20 +27,18 @@ public class Samples {
 				.build();
 
 			Action intakeFirst = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-				.splineToLinearHeading(new Pose2d(-49, -38, Math.toRadians(90)), Math.toRadians(90))
+				.splineToLinearHeading(new Pose2d(-36, -25, Math.toRadians(180)), Math.toRadians(90))
 				.build();
 
-			Action depositFirst = myBot.getDrive().actionBuilder(new Pose2d(-49, -38, Math.toRadians(90)))
-				.setReversed(true)
+			Action depositFirst = myBot.getDrive().actionBuilder(new Pose2d(-36, -25, Math.toRadians(180)))
 				.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(270))
 				.build();
 
 			Action intakeSecond = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-				.splineToLinearHeading(new Pose2d(-59, -38, Math.toRadians(90)), Math.toRadians(90))
+				.splineToLinearHeading(new Pose2d(-48, -25, Math.toRadians(180)), Math.toRadians(180))
 				.build();
 
-			Action depositSecond = myBot.getDrive().actionBuilder(new Pose2d(-59, -38, Math.toRadians(90)))
-				.setReversed(true)
+			Action depositSecond = myBot.getDrive().actionBuilder(new Pose2d(-48, -25, Math.toRadians(180)))
 				.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(270))
 				.build();
 
@@ -125,7 +123,15 @@ public class Samples {
 			myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, 0, Math.toRadians(90)))
 					.turn(99999)
 					.build());
-		} else{
+		} else if (OPTION == 4) {
+			// Spline test in RR tuning
+			myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, 0, 0))
+				.splineTo(new Vector2d(30, 30), Math.PI / 2)
+				.splineTo(new Vector2d(0, 60), Math.PI)
+
+				.build());
+
+		} else {
 			myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-58.1, -23, Math.toRadians(90)))
 					.strafeTo(new Vector2d(-58.1, 23))
 					.strafeTo(new Vector2d(-34.8, -23))
