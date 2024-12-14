@@ -28,6 +28,7 @@ import org.firstinspires.ftc.teamcode.Drawing;
 import org.firstinspires.ftc.teamcode.Localizer;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.ThreeDeadWheelLocalizer;
+import org.firstinspires.ftc.teamcode.subsystems.CV4B;
 import org.firstinspires.ftc.teamcode.util.ControlTheory;
 import org.firstinspires.ftc.teamcode.util.OpModeStorage;
 
@@ -58,6 +59,7 @@ public class fieldCentricBlue extends LinearOpMode {
 	public void runOpMode() {    
 		final boolean USE_PID = this.USE_PID;
 		final boolean USE_ODO = this.USE_ODO;
+		boolean buttonPressed = false;
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry()); 
 		automationHandler = new Automations(hardwareMap, DEBUG);
 		ControlTheory.PID xVelocityController = new ControlTheory.PID(Kp, Ki, Kd, true);
@@ -84,11 +86,12 @@ public class fieldCentricBlue extends LinearOpMode {
 
 		IMU imu = null;
 		if (USE_ODO) {
-			localizer = new ThreeDeadWheelLocalizer(hardwareMap, new MecanumDrive.Params().inPerTick);
+			localizer = new ThreeDeadWheelLocalizer(hardwareMap, MecanumDrive.PARAMS.inPerTick);
 			if (OpModeStorage.pose != null) {
-				pose = OpModeStorage.pose;
+				Pose2d storedPose = OpModeStorage.pose;
+				pose = new Pose2d(storedPose.position, -storedPose.heading.plus(Math.PI/2).log()); // Rotate so forwards = 0
 			} else {
-				pose = new Pose2d(0, 0, Math.PI*1.5);
+				pose = new Pose2d(0, 0, 0);
 			}
 		} else {
 			imu = hardwareMap.get(IMU.class, "imu");
@@ -119,9 +122,7 @@ public class fieldCentricBlue extends LinearOpMode {
 			Vector2d velocity = new Vector2d(0, 0);
 			if (USE_ODO) {
 				velocity = updatePose();
-				// First line for red, second line for b\lue ('\' is to prevent find and replace)
-				// double heading = Math.PI/2 - pose.heading.log();
-				heading = Math.PI*1.5 - pose.heading.log();				
+				heading = pose.heading.log();				
 			} else {
 				heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 			}
@@ -175,16 +176,18 @@ public class fieldCentricBlue extends LinearOpMode {
 					automationHandler.abort();
 					break;
 				case IDLE:
-					if (gamepad1.a) {
+					if (gamepad2.a) {
 						automationHandler.intakeInit(Automations.SamplePurpose.SAMPLE);
-					} else if (gamepad1.x) {
+					} else if (gamepad2.x) {
 						automationHandler.intakeInit(Automations.SamplePurpose.SPECIMEN);
-					} else if (gamepad1.y) {
+					} else if (gamepad2.y) {
 						automationHandler.specimenInit();
 					} else if (gamepad1.left_trigger > 0.9 /* && runtime.time() > 90 */) {
 						automationHandler.ascendInit();
 					} else if (gamepad1.right_bumper) {
 						automationHandler.setSlidePosition(0);
+						automationHandler.setIntakeSlidePosition(600);
+						automationHandler.setCV4BPosition(CV4B.Positions.TRANSFER);
 					} else {
 						if (automationHandler.slideMotorLeft.getCurrentPosition() < 5) {
 							automationHandler.slideMotorLeft.setPower(0);
@@ -198,6 +201,12 @@ public class fieldCentricBlue extends LinearOpMode {
 
 				// Sample intake
 				case INTAKE_WAIT:
+					automationHandler.intakePosition(gamepad2.right_trigger, gamepad2.dpad_up, gamepad2.dpad_down);
+					if (gamepad2.left_trigger > 0.9) {
+						automationHandler.manualEject();
+					} else {
+						automationHandler.stopManualEject();
+					}
 					automationHandler.intakeWait();
 					break;
 				case INTAKE_FILLED:
@@ -214,11 +223,14 @@ public class fieldCentricBlue extends LinearOpMode {
 					automationHandler.transferWait();
 					break;
 				case TRANSFERRING:
+					if (gamepad2.left_trigger > 0.9) {
+						automationHandler.changeTransferSpeed(-1);
+					}
 					automationHandler.transferring();
 					break;
 				// Deposit
 				case TRANSFERRED:
-					if (gamepad1.b) {
+					if (gamepad2.b) {
 						automationHandler.depositInit(targetBasket);
 					}
 					break;
@@ -226,7 +238,7 @@ public class fieldCentricBlue extends LinearOpMode {
 					automationHandler.depositExtending();
 					break;
 				case DEPOSIT_EXTENDED:
-					if (gamepad1.b) {
+					if (gamepad2.b) {
 						automationHandler.depositSample();
 					}
 					break;
@@ -242,7 +254,7 @@ public class fieldCentricBlue extends LinearOpMode {
 					automationHandler.noTransfer();
 					break;
 				case SAMPLE_LOADED:
-					if (gamepad1.x) {
+					if (gamepad2.x) {
 						automationHandler.sampleEjectInit();
 					}
 					break;		
@@ -250,15 +262,21 @@ public class fieldCentricBlue extends LinearOpMode {
 					automationHandler.sampleEject();
 					break;
 				// Grabbing specimen
+				case SPECIMEN_INIT_WAIT:
+					automationHandler.specimenInitWait();
+					break;
 				case SPECIMEN_GRAB_READY:
-					if (gamepad1.y) {
+					if (gamepad2.y && !buttonPressed) {
 						automationHandler.grabSpecimen();
 					}
 					break;
 				case SPECIMEN_GRABBED:
-					if (gamepad1.y) {
+					if (gamepad2.y && !buttonPressed) {
 						automationHandler.hangSpecimen();
 					}
+					break;
+				case SPECIMEN_HANGING:
+					automationHandler.hangSpecimenWait();
 					break;
 				case SPECIMEN_HUNG:
 					if (gamepad1.right_bumper) {
@@ -267,7 +285,7 @@ public class fieldCentricBlue extends LinearOpMode {
 					break;
 				// Ascent
 				case ASCEND_LOW_EXTENDED:
-					if (gamepad1.left_trigger > 0.9) {
+					if (gamepad1.left_trigger > 0.9 && !buttonPressed) {
 						automationHandler.ascendLowRetract();
 					}
 					break;
@@ -275,23 +293,36 @@ public class fieldCentricBlue extends LinearOpMode {
 
 			if (gamepad1.back || gamepad2.back) {
 				automationHandler.automationState = Automations.State.ABORT;
-			} else if (gamepad2.start) {
-				pose = new Pose2d(pose.position, 0);
-			} else if (gamepad2.a) {
-				targetBasket = targetBasket == Automations.Basket.HIGH ? Automations.Basket.LOW : Automations.Basket.HIGH;
-			}
+			} else if (gamepad1.start || gamepad2.start) {
+				if (USE_ODO) {
+					pose = new Pose2d(pose.position, 0);
+				} else {
+					imu.resetYaw();	
+				}
+			} 
+			// if (gamepad1.a) {
+			// 	targetBasket = targetBasket == Automations.Basket.HIGH ? Automations.Basket.LOW : Automations.Basket.HIGH;
+			// }
 
+			buttonPressed = gamepad2.y || gamepad1.left_trigger > 0.9;
+
+			telemetry.addData("Time", runtime.time());
 			telemetry.addData("State", automationHandler.automationState);
-			telemetry.addData("Basket", targetBasket);
+			// telemetry.addData("Basket", targetBasket);
 			if (DEBUG) {
 				telemetry.addData("Heading", Math.toDegrees(heading));
+				telemetry.addData("CV4B Position", automationHandler.cv4b.position);
 				telemetry.addData("frontLeftPower", frontLeftPower);
 				telemetry.addData("frontRightPower", frontRightPower);
 				telemetry.addData("backLeftPower", backLeftPower);
 				telemetry.addData("backRightPower", backRightPower);
 
-				Canvas canvas = automationHandler.telemetryPacket.fieldOverlay().setRotation(Math.toRadians(-90));
-				Drawing.drawRobot(canvas, pose);
+				Canvas canvas = automationHandler.telemetryPacket.fieldOverlay();
+				if (USE_ODO) {
+					Drawing.drawRobot(canvas, pose);
+				} else {
+					Drawing.drawRobot(canvas, new Pose2d(0, 0, heading));
+				} 
 				automationHandler.updateDashboardTelemetry();
 			}
 			telemetry.update();
