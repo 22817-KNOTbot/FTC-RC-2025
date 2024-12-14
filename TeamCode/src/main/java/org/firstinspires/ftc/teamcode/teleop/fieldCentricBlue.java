@@ -186,7 +186,7 @@ public class fieldCentricBlue extends LinearOpMode {
 						automationHandler.ascendInit();
 					} else if (gamepad1.right_bumper) {
 						automationHandler.setSlidePosition(0);
-						automationHandler.setIntakeSlidePosition(600);
+						automationHandler.setIntakeSlidePosition(550);
 						automationHandler.setCV4BPosition(CV4B.Positions.TRANSFER);
 					} else {
 						if (automationHandler.slideMotorLeft.getCurrentPosition() < 5) {
@@ -284,6 +284,9 @@ public class fieldCentricBlue extends LinearOpMode {
 					}
 					break;
 				// Ascent
+				case ASCEND_LOW_EXTENDING:
+					automationHandler.ascendLowExtending();
+					break;
 				case ASCEND_LOW_EXTENDED:
 					if (gamepad1.left_trigger > 0.9 && !buttonPressed) {
 						automationHandler.ascendLowRetract();

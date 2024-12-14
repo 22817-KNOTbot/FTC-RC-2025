@@ -51,16 +51,14 @@ public class MechanismTest extends LinearOpMode {
 
 		Actions.runBlocking(
 			new SequentialAction(
-				new ParallelAction(
-					new SequentialAction(
-						intakeControl.init(),
-						new ParallelAction(
-							slideControl.raiseSlides(), // Raise slides
-							cv4bControl.setPosition(CV4B.Positions.PRE_DEPOSIT, 1.5) // Extend CV4B
-						)
-					)
-				),
-				cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+                new SequentialAction(
+                    intakeControl.init(),
+                    new ParallelAction(
+                        slideControl.raiseSlides(), // Raise slides
+                        cv4bControl.setPosition(CV4B.Positions.PRE_DEPOSIT, 1.5) // Extend CV4B
+                    )
+                ),
+				cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 				new ParallelAction(
 					cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
@@ -77,7 +75,7 @@ public class MechanismTest extends LinearOpMode {
 						)
 					)
 				),
-				cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+				cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 				new ParallelAction(
 					cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
@@ -94,7 +92,7 @@ public class MechanismTest extends LinearOpMode {
 						)
 					)
 				),
-				cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+				cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 				new ParallelAction(
 					cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
@@ -111,7 +109,7 @@ public class MechanismTest extends LinearOpMode {
 						)
 					)
 				),
-				cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+				cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 				new ParallelAction(
 					cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
@@ -133,7 +131,7 @@ public class MechanismTest extends LinearOpMode {
 				// 		)
 				// 	)
 				// ),
-		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 		// 		new ParallelAction(
 		// 			intakeFirst,
@@ -152,7 +150,7 @@ public class MechanismTest extends LinearOpMode {
 		// 				)
 		// 			)
 		// 		),
-		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 		// 		new ParallelAction(
 		// 			intakeSecond,
@@ -171,7 +169,7 @@ public class MechanismTest extends LinearOpMode {
 		// 				)
 		// 			)
 		// 		),
-		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 		// 		new ParallelAction(
 		// 			intakeThird,
@@ -190,7 +188,7 @@ public class MechanismTest extends LinearOpMode {
 		// 				)
 		// 			)
 		// 		),
-		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 		// 		new ParallelAction(
 		// 			park,
@@ -231,6 +229,8 @@ public class MechanismTest extends LinearOpMode {
 					if (!initialized) {
 						flipServo.setPosition(0.875);
 						intakeSlides.setTargetPosition(600);
+
+                        initialized = true;
 					} else {
 						if (timer.time() > 0.5) {
 							return false;
@@ -414,7 +414,6 @@ public class MechanismTest extends LinearOpMode {
 					if (!initialized) {
 						cv4b.setPosition(position);
 						
-						timer.reset();
 						initialized = true;
 						return true;
 					}

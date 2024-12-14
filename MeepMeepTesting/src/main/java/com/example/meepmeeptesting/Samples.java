@@ -31,7 +31,7 @@ public class Samples {
 				.build();
 
 			Action depositFirst = myBot.getDrive().actionBuilder(new Pose2d(-36, -25, Math.toRadians(180)))
-				.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(270))
+				.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(225))
 				.build();
 
 			Action intakeSecond = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))

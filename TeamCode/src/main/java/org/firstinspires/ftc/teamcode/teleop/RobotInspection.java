@@ -21,12 +21,13 @@ public class RobotInspection extends LinearOpMode {
 	private static boolean extended = false;
 	public DcMotor slideMotorLeft;
 	public DcMotor slideMotorRight;
+	private CV4B cv4b;
 
 	@Override
 	public void runOpMode() {
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-		cv4b = new CV4B(harwareMap);
+		cv4b = new CV4B(hardwareMap);
 
 		slideMotorLeft = hardwareMap.get(DcMotor.class, "slideMotorLeft");
 		slideMotorRight = hardwareMap.get(DcMotor.class, "slideMotorRight");

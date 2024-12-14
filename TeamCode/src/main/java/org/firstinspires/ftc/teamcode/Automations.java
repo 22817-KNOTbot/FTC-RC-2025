@@ -140,7 +140,7 @@ public class Automations {
 	public void intakeInit(SamplePurpose samplePurpose) {
 		this.samplePurpose = samplePurpose;
 		// Extend intake slides
-		setIntakeSlidePosition(1000);
+		setIntakeSlidePosition(800);
 
 		if (DEBUG) {
 			telemetryPacket.put("intakeSlides", intakeSlides.getCurrentPosition());
@@ -162,11 +162,11 @@ public class Automations {
 	}
 
 	public void intakePosition(double input, boolean extend, boolean retract) {
-		final double up = 0.8;
-		final double down = 0.875;
+		final double up = 0.79;
+		final double down = 0.87;
 		flipServo.setPosition(down + input*(up-down));
 
-		if (extend == retract || (500 >= intakeSlides.getCurrentPosition() && intakeSlides.getCurrentPosition() >= 1000)) {
+		if (extend == retract || (600 >= intakeSlides.getCurrentPosition() && intakeSlides.getCurrentPosition() >= 800)) {
 			if (!intakeSlides.isBusy()) {
 				setIntakeSlidePosition(intakeSlides.getCurrentPosition());
 			}
@@ -198,7 +198,7 @@ public class Automations {
 			(red / blue > 2.5) && (green / blue > 3)
 		) : false) || (alliance == Alliance.RED ? (
 			// Red check
-			(red / green > 1.6) && (red / blue > 2)
+			(red / green > 0) && (red / blue > 0)
 		) : (
 			// Blue check
 			(blue / red > 3.5) && (blue / green > 1.2)
@@ -227,7 +227,7 @@ public class Automations {
 	public void transferInit() {		
 		// Retract intake slides
 		setIntakeSlidePosition(600);
-		flipServo.setPosition(0.76);
+		flipServo.setPosition(0.75);
 		cv4b.setPosition(CV4B.Positions.TRANSFER);
 		timer.reset();
 		
@@ -245,7 +245,7 @@ public class Automations {
 	public void transferring() {
 		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 75) {
 			scoopMotor.setPower(0);
-			flipServo.setPosition(0.78);
+			flipServo.setPosition(0.77);
 
 			automationState = State.TRANSFERRED;
 		}
@@ -287,7 +287,7 @@ public class Automations {
 
 	// Retract arms without transferring. Designed for samples to be given to HP
 	public void noTransfer() {
-		setIntakeSlidePosition(600);
+		setIntakeSlidePosition(800);
 
 		automationState = State.SAMPLE_LOADED;
 	}
@@ -349,14 +349,16 @@ public class Automations {
 	}
 	
 	public void ascendInit() {
+		// Extend linear slides		
+		setSlidePosition(3600);
+
 		automationState = State.ASCEND_LOW_EXTENDING;
 	}
 	
 	public void ascendLowExtending() {
-		// Extend linear slides		
-		setSlidePosition(3600);
-	
-		automationState = State.ASCEND_LOW_EXTENDED;
+		if (!slideMotorLeft.isBusy() && !slideMotorRight.isBusy()) {
+			automationState = State.ASCEND_LOW_EXTENDED;
+		}
 	}
 
 	public void ascendLowRetract() {

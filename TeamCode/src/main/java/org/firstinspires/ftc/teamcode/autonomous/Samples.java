@@ -95,7 +95,7 @@ public class Samples extends LinearOpMode {
 						)
 					)
 				),
-				cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+				cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 				new ParallelAction(
 					cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
@@ -112,7 +112,7 @@ public class Samples extends LinearOpMode {
 						)
 					)
 				),
-				cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+				cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 				new ParallelAction(
 					cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
@@ -129,7 +129,7 @@ public class Samples extends LinearOpMode {
 						)
 					)
 				),
-				cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+				cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 				new ParallelAction(
 					cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
@@ -146,7 +146,7 @@ public class Samples extends LinearOpMode {
 						)
 					)
 				),
-				cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+				cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 				new ParallelAction(
 					cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
@@ -168,7 +168,7 @@ public class Samples extends LinearOpMode {
 				// 		)
 				// 	)
 				// ),
-		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 		// 		new ParallelAction(
 		// 			intakeFirst,
@@ -187,7 +187,7 @@ public class Samples extends LinearOpMode {
 		// 				)
 		// 			)
 		// 		),
-		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 		// 		new ParallelAction(
 		// 			intakeSecond,
@@ -206,7 +206,7 @@ public class Samples extends LinearOpMode {
 		// 				)
 		// 			)
 		// 		),
-		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 		// 		new ParallelAction(
 		// 			intakeThird,
@@ -225,7 +225,7 @@ public class Samples extends LinearOpMode {
 		// 				)
 		// 			)
 		// 		),
-		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 0.75), // Dump
+		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
 				
 		// 		new ParallelAction(
 		// 			park,
