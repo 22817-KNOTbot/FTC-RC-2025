@@ -29,8 +29,8 @@ import org.firstinspires.ftc.teamcode.subsystems.CV4B;
 import org.firstinspires.ftc.teamcode.util.OpModeStorage;
 
 @Config
-@Autonomous(name = "Samples Testing Auto", group = "Testing")
-public class Samples extends LinearOpMode {
+@Autonomous(name = "Mechanism Testing Auto", group = "Testing")
+public class MechanismTest extends LinearOpMode {
 	public static double initialPoseX = -23;
 	public static double initialPoseY = -62;
 	public static double initialPoseHeading = 0;
@@ -46,41 +46,6 @@ public class Samples extends LinearOpMode {
 		intakeControl = new Intake(hardwareMap);
 		slideControl = new Slides(hardwareMap);
 		cv4bControl = new CV4BActions(hardwareMap);
-
-		Action firstSample = drive.actionBuilder(initialPose)
-			.setReversed(true)
-			.splineToConstantHeading(new Vector2d(-40, -55), Math.toRadians(180))
-			.splineToSplineHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(180))
-			.build();
-
-		Action intakeFirst = drive.actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-			.splineToLinearHeading(new Pose2d(-36, -25, Math.toRadians(180)), Math.toRadians(90))
-			.build();
-
-		Action depositFirst = drive.actionBuilder(new Pose2d(-36, -25, Math.toRadians(180)))
-			.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(225))
-			.build();
-
-		Action intakeSecond = drive.actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-			.splineToLinearHeading(new Pose2d(-48, -25, Math.toRadians(180)), Math.toRadians(180))
-			.build();
-
-		Action depositSecond = drive.actionBuilder(new Pose2d(-48, -25, Math.toRadians(180)))
-			.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(270))
-			.build();
-
-		Action intakeThird = drive.actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-			.splineToLinearHeading(new Pose2d(-59, -25, Math.toRadians(180)), Math.toRadians(180))
-			.build();
-
-		Action depositThird = drive.actionBuilder(new Pose2d(-59, -25, Math.toRadians(180)))
-			.setReversed(true)
-			.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(270))
-			.build();
-
-		Action park = drive.actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-			.splineToLinearHeading(new Pose2d(-25, -10, Math.toRadians(180)), Math.toRadians(0))
-			.build();
 
 		waitForStart();
 
