@@ -182,7 +182,7 @@ public class fieldCentricBlue extends LinearOpMode {
 						automationHandler.intakeInit(Automations.SamplePurpose.SPECIMEN);
 					} else if (gamepad2.y) {
 						automationHandler.specimenInit();
-					} else if (gamepad1.left_trigger > 0.9 /* && runtime.time() > 90 */) {
+					} else if (gamepad1.left_trigger > 0.9 && !buttonPressed /* && runtime.time() > 90 */) {
 						automationHandler.ascendInit();
 					} else if (gamepad1.right_bumper) {
 						automationHandler.setSlidePosition(0);

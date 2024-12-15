@@ -163,7 +163,7 @@ public class Automations {
 
 	public void intakePosition(double input, boolean extend, boolean retract) {
 		final double up = 0.79;
-		final double down = 0.87;
+		final double down = 0.865;
 		flipServo.setPosition(down + input*(up-down));
 
 		if (extend == retract || (600 >= intakeSlides.getCurrentPosition() && intakeSlides.getCurrentPosition() >= 800)) {
@@ -227,7 +227,7 @@ public class Automations {
 	public void transferInit() {		
 		// Retract intake slides
 		setIntakeSlidePosition(600);
-		flipServo.setPosition(0.75);
+		flipServo.setPosition(0.745);
 		cv4b.setPosition(CV4B.Positions.TRANSFER);
 		timer.reset();
 		

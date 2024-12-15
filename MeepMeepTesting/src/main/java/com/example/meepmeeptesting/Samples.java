@@ -23,15 +23,19 @@ public class Samples {
 			Action firstSample = myBot.getDrive().actionBuilder(new Pose2d(-23, -62, Math.toRadians(0)))
 				.setReversed(true)
 				.splineToConstantHeading(new Vector2d(-40, -55), Math.toRadians(180))
-				.splineToSplineHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(180))
+				.splineToSplineHeading(new Pose2d(-50, -50, Math.toRadians(45)), Math.toRadians(180))
 				.build();
 
+			Action basket = myBot.getDrive().actionBuilder(new Pose2d(-50, -50, Math.toRadians(45)))
+				.strafeTo(new Vector2d(-55, -55))
+				.build();
+			
 			Action intakeFirst = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
 				.splineToLinearHeading(new Pose2d(-36, -25, Math.toRadians(180)), Math.toRadians(90))
 				.build();
 
 			Action depositFirst = myBot.getDrive().actionBuilder(new Pose2d(-36, -25, Math.toRadians(180)))
-				.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(225))
+				.splineToLinearHeading(new Pose2d(-50, -50, Math.toRadians(45)), Math.toRadians(225))
 				.build();
 
 			Action intakeSecond = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
@@ -39,7 +43,7 @@ public class Samples {
 				.build();
 
 			Action depositSecond = myBot.getDrive().actionBuilder(new Pose2d(-48, -25, Math.toRadians(180)))
-				.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(270))
+				.splineToLinearHeading(new Pose2d(-50, -50, Math.toRadians(45)), Math.toRadians(270))
 				.build();
 
 			Action intakeThird = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
@@ -48,7 +52,7 @@ public class Samples {
 
 			Action depositThird = myBot.getDrive().actionBuilder(new Pose2d(-59, -25, Math.toRadians(180)))
 				.setReversed(true)
-				.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(270))
+				.splineToLinearHeading(new Pose2d(-50, -50, Math.toRadians(45)), Math.toRadians(270))
 				.build();
 
 			Action park = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
@@ -57,12 +61,16 @@ public class Samples {
 
 			myBot.runAction(new SequentialAction(
 				firstSample,
+				basket,
 				intakeFirst,
 				depositFirst,
+				basket,
 				intakeSecond,
 				depositSecond,
+				basket,
 				intakeThird,
 				depositThird,
+				basket,
 				park
 			));
 		} else if (OPTION == 2) {
