@@ -3,9 +3,11 @@ package org.firstinspires.ftc.teamcode.testing;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 
+@Disabled
 @Config
 @TeleOp(name="Color testing", group="Debug")
 public class ColourTesting extends LinearOpMode {

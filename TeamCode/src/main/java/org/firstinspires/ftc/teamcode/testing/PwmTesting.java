@@ -3,11 +3,13 @@ package org.firstinspires.ftc.teamcode.testing;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 // import com.qualcomm.robotcore.hardware.PwmControl.PwmRange;
 
+@Disabled
 @Config
 @TeleOp(name="PWM Servo testing", group="Debug")
 public class PwmTesting extends LinearOpMode {
