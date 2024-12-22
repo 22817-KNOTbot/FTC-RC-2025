@@ -185,15 +185,10 @@ public class fieldCentricRed extends LinearOpMode {
 					} else if (gamepad1.left_trigger > 0.9 /* && runtime.time() > 90 */) {
 						automationHandler.ascendInit();
 					} else if (gamepad1.right_bumper) {
-						automationHandler.setSlidePosition(0);
-						automationHandler.setIntakeSlidePosition(600);
-						automationHandler.setCV4BPosition(CV4B.Positions.TRANSFER);
+						automationHandler.retract();
 					} else {
-						if (automationHandler.slideMotorLeft.getCurrentPosition() < 5) {
-							automationHandler.slideMotorLeft.setPower(0);
-						}
-						if (automationHandler.slideMotorRight.getCurrentPosition() < 5) {
-							automationHandler.slideMotorRight.setPower(0);
+						if (automationHandler.getSlideLeftPosition() < 5 && automationHandler.getSlideRightPosition() < 5) {
+							automationHandler.setSlidesPower(0);
 						}
 					}
 
@@ -284,6 +279,9 @@ public class fieldCentricRed extends LinearOpMode {
 					}
 					break;
 				// Ascent
+				case ASCEND_LOW_EXTENDING:
+					automationHandler.ascendLowExtending();
+					break;
 				case ASCEND_LOW_EXTENDED:
 					if (gamepad1.left_trigger > 0.9 && !buttonPressed) {
 						automationHandler.ascendLowRetract();
@@ -311,7 +309,6 @@ public class fieldCentricRed extends LinearOpMode {
 			// telemetry.addData("Basket", targetBasket);
 			if (DEBUG) {
 				telemetry.addData("Heading", Math.toDegrees(heading));
-				telemetry.addData("CV4B Position", automationHandler.cv4b.position);
 				telemetry.addData("frontLeftPower", frontLeftPower);
 				telemetry.addData("frontRightPower", frontRightPower);
 				telemetry.addData("backLeftPower", backLeftPower);

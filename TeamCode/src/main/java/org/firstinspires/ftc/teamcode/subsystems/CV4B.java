@@ -8,27 +8,43 @@ import com.acmerobotics.dashboard.config.Config;
 
 @Config
 public class CV4B {
-    // While facing same direction as robot
-    // Drive: Higher = back
-    // Coax: Higher = back
+	/*
+	 * Configurable constants
+	 *
+	 * Most positions/values can be changed here.
+	 * 
+	 * While facing same direction as robot
+	 * Drive: Higher = back
+	 * Coax: Higher = back
+	 */
+	// Base is deprecated and should typically not be used
     public static double BASE_DRIVE = 0.29;
     public static double BASE_COAX = 0.25;
-    public static double SPECIMEN_GRAB_DRIVE = 0.81;
-    public static double SPECIMEN_GRAB_COAX = 0.44;
-    public static double SPECIMEN_HANG_DRIVE = 0.81;
-    public static double SPECIMEN_HANG_COAX = 0.47;
     public static double TRANSFER_DRIVE = 0.1;
     public static double TRANSFER_COAX = 0.38;
     public static double PRE_DEPOSIT_DRIVE = 0.65;
     public static double PRE_DEPOSIT_COAX = 0.41;
     public static double DUMP_DRIVE = 0.65;
     public static double DUMP_COAX = 0.49;
+    public static double SPECIMEN_GRAB_DRIVE = 0.81;
+    public static double SPECIMEN_GRAB_COAX = 0.44;
+    public static double SPECIMEN_HANG_DRIVE = 0.81;
+    public static double SPECIMEN_HANG_COAX = 0.47;
+	// Offsets are added to all positions.
+	// Use them to fix positions after slips
     public static double offset_drive = 0.1;
     public static double offset_coax = 0.16;
+
+	/*
+	 * DO NOT change the below code unless necessary
+	 * or you know what you are doing
+	 */
+
 	private ServoImplEx cv4bLeftServo;
 	private ServoImplEx cv4bRightServo;
 	private ServoImplEx cv4bCoaxialServo;
-    public Positions position = Positions.BASE;
+
+    public static Positions position = Positions.TRANSFER;
 
     public enum Positions {
 		BASE,
@@ -36,7 +52,8 @@ public class CV4B {
 		SPECIMEN_GRAB,
 		SPECIMEN_HANG,
 		PRE_DEPOSIT,
-		DUMP
+		DUMP,
+		MANUAL
 	} 
 
     public CV4B(HardwareMap hardwareMap) {
@@ -48,35 +65,64 @@ public class CV4B {
 		cv4bCoaxialServo.setDirection(Servo.Direction.REVERSE);
     }
 
+	/*
+	 * Sets the position of the CV4B
+	 * 
+	 * There are 2 methods: enum and manual.
+	 * Enum should be the primary one used, 
+	 * as it also updates a variable for telemetry
+	 * and allows for quick changing of positions.
+	 */
+
     public void setPosition(Positions position) {
-        this.position = position;
+        CV4B.position = position;
+		double driveTarget = 0;
+		double coaxTarget = 0;
 		switch (position) {
 			case BASE:
-				setPosition(BASE_DRIVE+offset_drive, BASE_COAX+offset_coax);
-				break;
-			case SPECIMEN_GRAB:
-				setPosition(SPECIMEN_GRAB_DRIVE+offset_drive, SPECIMEN_GRAB_COAX+offset_coax);
-				break;
-            case SPECIMEN_HANG:
-				setPosition(SPECIMEN_HANG_DRIVE+offset_drive, SPECIMEN_HANG_COAX+offset_coax);
+				driveTarget = BASE_DRIVE+offset_drive;
+				coaxTarget = BASE_COAX+offset_coax;
 				break;
 			case TRANSFER:
-				setPosition(TRANSFER_DRIVE+offset_drive, TRANSFER_COAX+offset_coax);
+			default:
+				driveTarget = TRANSFER_DRIVE+offset_drive;
+				coaxTarget = TRANSFER_COAX+offset_coax;
 				break;
 			case PRE_DEPOSIT:
-				setPosition(PRE_DEPOSIT_DRIVE+offset_drive, PRE_DEPOSIT_COAX+offset_coax);
+				driveTarget = PRE_DEPOSIT_DRIVE+offset_drive;
+				coaxTarget = PRE_DEPOSIT_COAX+offset_coax;
 				break;
 			case DUMP:
-				setPosition(DUMP_DRIVE+offset_drive, DUMP_COAX+offset_coax);
+				driveTarget = DUMP_DRIVE+offset_drive;
+				coaxTarget = DUMP_COAX+offset_coax;
+				break;
+			case SPECIMEN_GRAB:
+				driveTarget = SPECIMEN_GRAB_DRIVE+offset_drive;
+				coaxTarget = SPECIMEN_GRAB_COAX+offset_coax;
+				break;
+            case SPECIMEN_HANG:
+				driveTarget = SPECIMEN_HANG_DRIVE+offset_drive;
+				coaxTarget = SPECIMEN_HANG_COAX+offset_coax;
 				break;
 		}
+		cv4bLeftServo.setPosition(driveTarget);
+		cv4bRightServo.setPosition(driveTarget);
+		cv4bCoaxialServo.setPosition(coaxTarget);
     }
 
     public void setPosition(double v4bRot, double coaxialRot) {
+		CV4B.position = CV4B.Positions.MANUAL;
 		cv4bLeftServo.setPosition(v4bRot);
 		cv4bRightServo.setPosition(v4bRot);
 		cv4bCoaxialServo.setPosition(coaxialRot);
 	}
+
+	/*
+	 * Sets the servo PWM
+	 * 
+	 * These can be used to "disengage" the servos,
+	 * essentially turning off their resistance.
+	 */
 
     public void setDrivePWM(boolean enabled) {
         if (enabled) {
