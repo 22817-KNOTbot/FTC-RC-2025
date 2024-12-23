@@ -52,10 +52,10 @@ public class ManualControl extends LinearOpMode {
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
 		// Bucket: 0.75 = transfer, 0.879 = intake, 0.78 = post-transfer
-		Servo flipServo = hardwareMap.get(Servo.class, "flipServo");
-		DcMotor scoopMotor = hardwareMap.get(DcMotor.class, "scoopMotor");
-		scoopMotor.setDirection(DcMotor.Direction.REVERSE);
-		scoopMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		// Servo flipServo = hardwareMap.get(Servo.class, "flipServo");
+		// DcMotor scoopMotor = hardwareMap.get(DcMotor.class, "scoopMotor");
+		// scoopMotor.setDirection(DcMotor.Direction.REVERSE);
+		// scoopMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 		cv4b = new CV4B(hardwareMap);
 
@@ -72,11 +72,11 @@ public class ManualControl extends LinearOpMode {
 		slideMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 		// 3500
 
-		DcMotor intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
-		intakeSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-		intakeSlides.setTargetPosition(0);
-		intakeSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		intakeSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		// DcMotor intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
+		// intakeSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		// intakeSlides.setTargetPosition(0);
+		// intakeSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		// intakeSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 		// Transfer: 500
 
 		// Claw: 0 = open, 1 = closed
@@ -84,13 +84,13 @@ public class ManualControl extends LinearOpMode {
 		clawServo.setDirection(Servo.Direction.REVERSE);
 		clawServo.scaleRange(0, 0.01);
 
-		ColorRangeSensor colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
+		// ColorRangeSensor colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
 
 		waitForStart();
 
 		while (opModeIsActive()) {
-			flipServo.setPosition(BUCKET_POSITION);
-			scoopMotor.setPower(SCOOP_POWER);
+			// flipServo.setPosition(BUCKET_POSITION);
+			// scoopMotor.setPower(SCOOP_POWER);
 			if (CV4B_ENABLED) {
 				if (MANUAL_CV4B) {
 					cv4b.setPosition(POSITION_V4B, POSITION_COAX);
@@ -104,22 +104,22 @@ public class ManualControl extends LinearOpMode {
 			slideMotorLeft.setPower(SLIDE_POWER);
 			slideMotorRight.setPower(SLIDE_POWER);
 			setSlidePosition(SLIDE_POSITION);
-			intakeSlides.setPower(INTAKE_SLIDE_POWER);
-			intakeSlides.setTargetPosition(INTAKE_POSITION);
+			// intakeSlides.setPower(INTAKE_SLIDE_POWER);
+			// intakeSlides.setTargetPosition(INTAKE_POSITION);
 			clawServo.setPosition(CLAW_POSITION);
 
-			int red = colourRangeSensor.red();
-			int green = colourRangeSensor.green();
-			int blue = colourRangeSensor.blue();
+			// int red = colourRangeSensor.red();
+			// int green = colourRangeSensor.green();
+			// int blue = colourRangeSensor.blue();
 	
-			if ((red / blue > 2.5) && (green / blue > 3)) {
-				telemetry.addData("Colour", "YELLOW");
-			} else if ((red / green > 1.6) && (red / blue > 2)) {
-				telemetry.addData("Colour", "RED");
-			} else if ((blue / red > 3.5) && (blue / green > 1.2)) {
-				telemetry.addData("Colour", "BLUE");
-			}
-			telemetry.addData("Distance", colourRangeSensor.getDistance(DistanceUnit.MM));
+			// if ((red / blue > 2.5) && (green / blue > 3)) {
+			// 	telemetry.addData("Colour", "YELLOW");
+			// } else if ((red / green > 1.6) && (red / blue > 2)) {
+			// 	telemetry.addData("Colour", "RED");
+			// } else if ((blue / red > 3.5) && (blue / green > 1.2)) {
+			// 	telemetry.addData("Colour", "BLUE");
+			// }
+			// telemetry.addData("Distance", colourRangeSensor.getDistance(DistanceUnit.MM));
 			telemetry.addData("Slide 1", slideMotorLeft.getCurrentPosition());
 			telemetry.addData("Slide 2", slideMotorRight.getCurrentPosition());
 			telemetry.update();
