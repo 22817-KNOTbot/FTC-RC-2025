@@ -154,6 +154,10 @@ public class Intake {
 		return intakeSlides.isBusy();
 	}
 
+	public void setSlidePower(double power) {
+		intakeSlides.setPower(power);
+	}
+	
 	/*
 	 * Sets power of intake motor
 	 */
