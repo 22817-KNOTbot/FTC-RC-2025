@@ -194,8 +194,8 @@ public class SampleFollow extends LinearOpMode
                 RotatedRect largestRect = largestBlob.getBoxFit();
                 Rect largestRectBound = largestRect.boundingRect();
                 double aspectRatio = (double) largestRectBound.width / largestRectBound.height;
-                List<Point> points = null; 
-                // largestBlob.points(points);
+                // Point[] points = {};
+                // largestRect.points(points);
 
                 // Orientation finder
                 if (3 > aspectRatio && aspectRatio > 0.3) {
@@ -230,9 +230,10 @@ public class SampleFollow extends LinearOpMode
                 telemetry.addData("Angle", angle);
                 telemetry.addData("Bound aspect", aspectRatio);
                 telemetry.addData("Orientation", sampleOrientation);
-                for(Point point : points) {
-                    telemetry.addData("Point", point);
-                }
+                // for(Point point : points) {
+                //     telemetry.addData("Point", point.x);
+                //     telemetry.addData("Point", point.y);
+                // }
 
                 moveRobot(speedX, speedY, 0);
             } else {
