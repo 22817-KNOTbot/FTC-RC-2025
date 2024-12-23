@@ -18,9 +18,8 @@ public class Intake {
 	 * Most positions/values can be changed here.
 	 */
 	// Bucket
-	public static double BUCKET_POSITION_MIN = 0.79;
-	public static double BUCKET_POSITION_DEFAULT = 0.865;
-	public static double BUCKET_POSITION_MAX = 0.865;
+	public static double BUCKET_INTAKE_HIGH = 0.79;
+	public static double BUCKET_INTAKE_LOW = 0.865;
 
 	public static double BUCKET_TRANSFER_POSITION = 0.745;
 
@@ -108,7 +107,7 @@ public class Intake {
 		switch (position) {
 			case INTAKE:
 			default:
-				target = BUCKET_POSITION_DEFAULT;
+				target = BUCKET_INTAKE_LOW;
 				break;
 			case TRANSFER:
 				target = BUCKET_TRANSFER_POSITION;
@@ -173,7 +172,7 @@ public class Intake {
 		int green = getGreen();
 		int blue = getBlue();
 		boolean correct = false;
-		if (red != 0 || green != 0 || blue != 0) {
+		if (colourSensorResponding()) {
 			switch (colour) {
 				case RED:
 					correct = (red / green > 1.6) && (red / blue > 2);
@@ -205,6 +204,11 @@ public class Intake {
 
 	public double getDistance(DistanceUnit unit) {
 		return colourRangeSensor.getDistance(unit);
+	}
+
+	public boolean colourSensorResponding() {
+		// TODO: Find better way to detect disconnect
+		return !(getRed() == 0 && getGreen() == 0 && getBlue() == 0);
 	}
 
 	public boolean isTouched() {

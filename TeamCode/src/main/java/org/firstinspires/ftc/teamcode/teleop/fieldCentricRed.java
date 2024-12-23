@@ -197,11 +197,7 @@ public class fieldCentricRed extends LinearOpMode {
 				// Sample intake
 				case INTAKE_WAIT:
 					automationHandler.intakePosition(gamepad2.right_trigger, gamepad2.dpad_up, gamepad2.dpad_down);
-					if (gamepad2.left_trigger > 0.9) {
-						automationHandler.manualEject();
-					} else {
-						automationHandler.stopManualEject();
-					}
+					automationHandler.setIntakePower(gamepad2.left_trigger > 0.9 ? -0.5 : 0.5);
 					automationHandler.intakeWait();
 					break;
 				case INTAKE_FILLED:
@@ -218,9 +214,6 @@ public class fieldCentricRed extends LinearOpMode {
 					automationHandler.transferWait();
 					break;
 				case TRANSFERRING:
-					if (gamepad2.left_trigger > 0.9) {
-						automationHandler.changeTransferSpeed(-1);
-					}
 					automationHandler.transferring();
 					break;
 				// Deposit
@@ -306,6 +299,12 @@ public class fieldCentricRed extends LinearOpMode {
 
 			telemetry.addData("Time", runtime.time());
 			telemetry.addData("State", automationHandler.automationState);
+			if (!automationHandler.colourSensorResponding()) {
+				telemetry.addLine("********************");
+				telemetry.addLine("WARNING: COLOUR SENSOR");
+				telemetry.addLine("IS NOT RESPONDING");
+				telemetry.addLine("********************");
+			}
 			// telemetry.addData("Basket", targetBasket);
 			if (DEBUG) {
 				telemetry.addData("Heading", Math.toDegrees(heading));

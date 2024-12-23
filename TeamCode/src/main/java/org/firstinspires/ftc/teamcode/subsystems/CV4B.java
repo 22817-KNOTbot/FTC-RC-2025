@@ -17,15 +17,10 @@ public class CV4B {
 	 * Drive: Higher = back
 	 * Coax: Higher = back
 	 */
-	// Base is deprecated and should typically not be used
-    public static double BASE_DRIVE = 0.29;
-    public static double BASE_COAX = 0.25;
     public static double TRANSFER_DRIVE = 0.1;
     public static double TRANSFER_COAX = 0.38;
-    public static double PRE_DEPOSIT_DRIVE = 0.65;
-    public static double PRE_DEPOSIT_COAX = 0.41;
-    public static double DUMP_DRIVE = 0.65;
-    public static double DUMP_COAX = 0.49;
+    public static double DEPOSIT_DRIVE = 0.65;
+    public static double DEPOSIT_COAX = 0.41;
     public static double SPECIMEN_GRAB_DRIVE = 0.81;
     public static double SPECIMEN_GRAB_COAX = 0.44;
     public static double SPECIMEN_HANG_DRIVE = 0.81;
@@ -51,8 +46,7 @@ public class CV4B {
 		TRANSFER,
 		SPECIMEN_GRAB,
 		SPECIMEN_HANG,
-		PRE_DEPOSIT,
-		DUMP,
+		DEPOSIT,
 		MANUAL
 	} 
 
@@ -79,22 +73,14 @@ public class CV4B {
 		double driveTarget = 0;
 		double coaxTarget = 0;
 		switch (position) {
-			case BASE:
-				driveTarget = BASE_DRIVE+offset_drive;
-				coaxTarget = BASE_COAX+offset_coax;
-				break;
 			case TRANSFER:
 			default:
 				driveTarget = TRANSFER_DRIVE+offset_drive;
 				coaxTarget = TRANSFER_COAX+offset_coax;
 				break;
-			case PRE_DEPOSIT:
-				driveTarget = PRE_DEPOSIT_DRIVE+offset_drive;
-				coaxTarget = PRE_DEPOSIT_COAX+offset_coax;
-				break;
-			case DUMP:
-				driveTarget = DUMP_DRIVE+offset_drive;
-				coaxTarget = DUMP_COAX+offset_coax;
+			case DEPOSIT:
+				driveTarget = DEPOSIT_DRIVE+offset_drive;
+				coaxTarget = DEPOSIT_COAX+offset_coax;
 				break;
 			case SPECIMEN_GRAB:
 				driveTarget = SPECIMEN_GRAB_DRIVE+offset_drive;

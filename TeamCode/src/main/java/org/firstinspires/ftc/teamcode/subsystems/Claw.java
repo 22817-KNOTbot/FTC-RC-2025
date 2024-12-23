@@ -12,6 +12,7 @@ public class Claw {
 	 *
 	 * Most positions/values can be changed here.
 	 * 
+	 * Directions:
 	 * Lower = open
 	 * Higher = closed
 	 */
