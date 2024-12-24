@@ -118,7 +118,7 @@ public class Automations {
 
 	public void retract() {
 		slides.setPosition(Slides.Positions.RETRACTED);
-		intake.setPosition(Intake.Positions.TRANSFER);
+		intake.setSlidePosition(Intake.Positions.TRANSFER);
 		cv4b.setPosition(CV4B.Positions.TRANSFER);
 	}
 

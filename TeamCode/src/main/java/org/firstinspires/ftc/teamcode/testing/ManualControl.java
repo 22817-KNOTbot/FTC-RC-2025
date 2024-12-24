@@ -69,8 +69,8 @@ public class ManualControl extends LinearOpMode {
 				slides.setPosition(SLIDE_POSITION_MANUAL);
 			}
 
-			intake.setBucketPosition(BUCKET_POSITION);
-			intake.setPower(SCOOP_POWER);
+			// intake.setBucketPosition(BUCKET_POSITION);
+			// intake.setPower(SCOOP_POWER);
 			intake.setSlidePower(INTAKE_SLIDE_POWER);
 			if (INTAKE_POSITION_MANUAL == -1) {
 				intake.setSlidePosition(INTAKE_POSITION);
@@ -80,20 +80,21 @@ public class ManualControl extends LinearOpMode {
 
 			claw.setPosition(CLAW_POSITION);
 
-			if (intake.colourSensorResponding()) {
-				int red = intake.getRed();
-				int green = intake.getGreen();
-				int blue = intake.getBlue();
+			// if (intake.colourSensorResponding()) {
+			// 	int red = intake.getRed();
+			// 	int green = intake.getGreen();
+			// 	int blue = intake.getBlue();
 		
-				if ((red / blue > 2.5) && (green / blue > 3)) {
-					telemetry.addData("Colour", "YELLOW");
-				} else if ((red / green > 1.6) && (red / blue > 2)) {
-					telemetry.addData("Colour", "RED");
-				} else if ((blue / red > 3.5) && (blue / green > 1.2)) {
-					telemetry.addData("Colour", "BLUE");
-				}
-				telemetry.addData("Distance", intake.getDistance(DistanceUnit.MM));
-			}
+			// 	if ((red / blue > 2.5) && (green / blue > 3)) {
+			// 		telemetry.addData("Colour", "YELLOW");
+			// 	} else if ((red / green > 1.6) && (red / blue > 2)) {
+			// 		telemetry.addData("Colour", "RED");
+			// 	} else if ((blue / red > 3.5) && (blue / green > 1.2)) {
+			// 		telemetry.addData("Colour", "BLUE");
+			// 	}
+			// 	telemetry.addData("Distance", intake.getDistance(DistanceUnit.MM));
+			// }
+			// telemetry.addData("Intake Touch", intake.isTouched());
 			telemetry.addData("Slide 1", slides.getSlideLeftPosition());
 			telemetry.addData("Slide 2", slides.getSlideRightPosition());
 			telemetry.update();
