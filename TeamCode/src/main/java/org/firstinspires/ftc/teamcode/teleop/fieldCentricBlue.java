@@ -304,12 +304,12 @@ public class fieldCentricBlue extends LinearOpMode {
 
 			telemetry.addData("Time", runtime.time());
 			telemetry.addData("State", automationHandler.automationState);
-			if (!automationHandler.colourSensorResponding()) {
-				telemetry.addLine("********************");
-				telemetry.addLine("WARNING: COLOUR SENSOR");
-				telemetry.addLine("IS NOT RESPONDING");
-				telemetry.addLine("********************");
-			}
+			// if (!automationHandler.colourSensorResponding()) {
+			// 	telemetry.addLine("********************");
+			// 	telemetry.addLine("WARNING: COLOUR SENSOR");
+			// 	telemetry.addLine("IS NOT RESPONDING");
+			// 	telemetry.addLine("********************");
+			// }
 			// telemetry.addData("Basket", targetBasket);
 			if (DEBUG) {
 				telemetry.addData("Heading", Math.toDegrees(heading));
