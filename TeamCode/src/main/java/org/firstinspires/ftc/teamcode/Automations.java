@@ -30,6 +30,9 @@ public class Automations {
 	private CV4B cv4b;
 	private Claw claw;
 
+	// Misc
+	private boolean intakeFirstMoving = false;
+
 	public enum State {
 		ABORT,
 		IDLE,
@@ -52,6 +55,7 @@ public class Automations {
 		// Specimens
 		SPECIMEN_INIT_WAIT,
 		SPECIMEN_GRAB_READY,
+		SPECIMEN_GRABBING,
 		SPECIMEN_GRABBED,
 		SPECIMEN_HANGING,
 		SPECIMEN_HUNG,
@@ -122,6 +126,7 @@ public class Automations {
 		this.samplePurpose = samplePurpose;
 		intake.setPosition(Intake.Positions.INTAKE);
 		intake.setPower(0.5);
+		intakeFirstMoving = true;
 
 		automationState = State.INTAKE_WAIT;
 	}
@@ -140,6 +145,12 @@ public class Automations {
 		final double down = Intake.BUCKET_INTAKE_LOW;
 		intake.setBucketPosition(down + input*(up-down));
 
+		if (intakeFirstMoving) {
+			if (!intake.isSlideBusy()) {
+				intakeFirstMoving = false;
+			}
+			return;
+		}
 		if (extend != retract) {
 			intake.setSlidePosition(extend ? Intake.SLIDE_POSITION_MAX : Intake.SLIDE_POSITION_MIN);
 		} else {
@@ -275,6 +286,14 @@ public class Automations {
 
 	public void grabSpecimen() {
 		claw.setPosition(Claw.Positions.CLOSED);
+		timer.reset();
+
+		automationState = State.SPECIMEN_GRABBING;
+	}
+
+	public void grabSpecimenWait() {
+		if (timer.time() < 0.5) return;
+		cv4b.setPosition(CV4B.Positions.SPECIMEN_HANG);
 		slides.setPosition(Slides.Positions.HIGH_CHAMBER_PREHANG);
 
 		automationState = State.SPECIMEN_GRABBED;
@@ -282,7 +301,6 @@ public class Automations {
 
 	public void hangSpecimen() {
 		slides.setPosition(Slides.Positions.HIGH_CHAMBER_HANG);
-		cv4b.setPosition(CV4B.Positions.SPECIMEN_HANG);
 
 		automationState = State.SPECIMEN_HANGING;
 	}
@@ -290,8 +308,6 @@ public class Automations {
 	public void hangSpecimenWait() {
 		if (!slides.slideIsBusy()) {
 			claw.setPosition(Claw.Positions.OPEN);
-			slides.setPosition(Slides.Positions.RETRACTED);
-			cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
 
 			automationState = State.SPECIMEN_HUNG;
 		}

@@ -258,6 +258,9 @@ public class fieldCentricBlue extends LinearOpMode {
 						automationHandler.grabSpecimen();
 					}
 					break;
+				case SPECIMEN_GRABBING:
+					automationHandler.grabSpecimenWait();
+					break;
 				case SPECIMEN_GRABBED:
 					if (gamepad2.y && !buttonPressed) {
 						automationHandler.hangSpecimen();
