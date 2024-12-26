@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -15,6 +16,8 @@ import org.firstinspires.ftc.teamcode.subsystems.CV4B;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Slides;
 
+import org.firstinspires.ftc.teamcode.util.GamepadStorage;
+
 public class Automations {
 	public State automationState;
 	private SamplePurpose samplePurpose;
@@ -23,6 +26,9 @@ public class Automations {
 	private ElapsedTime timer;
 	private FtcDashboard dashboard;
 	public TelemetryPacket telemetryPacket;
+
+	private Gamepad gamepad1;
+	private Gamepad gamepad2;
 
 	// Hardware mapping
 	private Intake intake;
@@ -92,6 +98,9 @@ public class Automations {
 		this.dashboard = FtcDashboard.getInstance();
 		this.telemetryPacket = new TelemetryPacket();
 
+		if (GamepadStorage.gamepad1 != null) this.gamepad1 = GamepadStorage.gamepad1;
+		if (GamepadStorage.gamepad2 != null) this.gamepad2 = GamepadStorage.gamepad2;
+
 		intake = new Intake(hardwareMap, false);
 		slides = new Slides(hardwareMap, false);
 		cv4b = new CV4B(hardwareMap);
@@ -133,6 +142,7 @@ public class Automations {
 	
 	public void intakeWait() {
 		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 50) /* && intake.isTouched() */) {
+			vibrateControllers();
 			automationState = State.INTAKE_FILLED;
 		}	
 		if (DEBUG) {
@@ -210,6 +220,7 @@ public class Automations {
 		if (timer.time() > 1.5 && !intake.isSlideBusy()) {
 			claw.setPosition(Claw.Positions.CLOSED);
 			if (timer.time() > 1.7) {
+				vibrateControllers();
 
 				// Note: originally TRANSFERRING - may need to change back
 				automationState = State.TRANSFERRED;
@@ -281,6 +292,8 @@ public class Automations {
 
 	public void specimenInitWait() {
 		if (timer.time() < 2) return;
+		vibrateControllers();
+
 		automationState = State.SPECIMEN_GRAB_READY;
 	}
 
@@ -308,6 +321,7 @@ public class Automations {
 	public void hangSpecimenWait() {
 		if (!slides.slideIsBusy()) {
 			claw.setPosition(Claw.Positions.OPEN);
+			vibrateControllers();
 
 			automationState = State.SPECIMEN_HUNG;
 		}
@@ -356,5 +370,10 @@ public class Automations {
 
 	public boolean colourSensorResponding() {
 		return intake.colourSensorResponding();
+	}
+
+	public void vibrateControllers() {
+		if (!gamepad1 == null) gamepad1.rumble(1, 1, 100);
+		if (!gamepad2 == null) gamepad2.rumble(1, 1, 100);
 	}
 }

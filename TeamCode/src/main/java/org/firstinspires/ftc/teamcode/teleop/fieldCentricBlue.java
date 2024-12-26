@@ -31,6 +31,7 @@ import org.firstinspires.ftc.teamcode.ThreeDeadWheelLocalizer;
 import org.firstinspires.ftc.teamcode.subsystems.CV4B;
 import org.firstinspires.ftc.teamcode.util.ControlTheory;
 import org.firstinspires.ftc.teamcode.util.OpModeStorage;
+import org.firstinspires.ftc.teamcode.util.GamepadStorage;
 
 @Config
 @TeleOp(name="Field Centric Teleop: Blue", group="Field Centric")
@@ -61,6 +62,8 @@ public class fieldCentricBlue extends LinearOpMode {
 		final boolean USE_ODO = this.USE_ODO;
 		boolean buttonPressed = false;
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry()); 
+		GamepadStorage.gamepad1 = gamepad1;
+		GamepadStorage.gamepad2 = gamepad2;
 		automationHandler = new Automations(hardwareMap, DEBUG);
 		ControlTheory.PID xVelocityController = new ControlTheory.PID(Kp, Ki, Kd, true);
 		ControlTheory.PID yVelocityController = new ControlTheory.PID(Kp, Ki, Kd, false);

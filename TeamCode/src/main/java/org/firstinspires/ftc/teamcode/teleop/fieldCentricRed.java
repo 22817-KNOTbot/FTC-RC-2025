@@ -31,6 +31,7 @@ import org.firstinspires.ftc.teamcode.ThreeDeadWheelLocalizer;
 import org.firstinspires.ftc.teamcode.subsystems.CV4B;
 import org.firstinspires.ftc.teamcode.util.ControlTheory;
 import org.firstinspires.ftc.teamcode.util.OpModeStorage;
+import org.firstinspires.ftc.teamcode.util.GamepadStorage;
 
 @Config
 @TeleOp(name="Field Centric Teleop: Red", group="Field Centric")
@@ -61,6 +62,8 @@ public class fieldCentricRed extends LinearOpMode {
 		final boolean USE_ODO = this.USE_ODO;
 		boolean buttonPressed = false;
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry()); 
+		GamepadStorage.gamepad1 = gamepad1;
+		GamepadStorage.gamepad2 = gamepad2;
 		automationHandler = new Automations(hardwareMap, DEBUG);
 		ControlTheory.PID xVelocityController = new ControlTheory.PID(Kp, Ki, Kd, true);
 		ControlTheory.PID yVelocityController = new ControlTheory.PID(Kp, Ki, Kd, false);
@@ -177,15 +180,17 @@ public class fieldCentricRed extends LinearOpMode {
 					break;
 				case IDLE:
 					if (gamepad2.a) {
-						automationHandler.intakeInit(Automations.SamplePurpose.SAMPLE);
+						// automationHandler.intakeInit(Automations.SamplePurpose.SAMPLE);
 					} else if (gamepad2.x) {
-						automationHandler.intakeInit(Automations.SamplePurpose.SPECIMEN);
+						// automationHandler.intakeInit(Automations.SamplePurpose.SPECIMEN);
 					} else if (gamepad2.y) {
 						automationHandler.specimenInit();
 					} else if (gamepad1.left_trigger > 0.9 /* && runtime.time() > 90 */) {
 						automationHandler.ascendInit();
 					} else if (gamepad1.right_bumper) {
 						automationHandler.retract();
+					} else if (gamepad2.b) {
+						automationHandler.depositInit(targetBasket);
 					} else {
 						if (automationHandler.getSlideLeftPosition() < 5 && automationHandler.getSlideRightPosition() < 5) {
 							automationHandler.setSlidesPower(0);
@@ -302,12 +307,12 @@ public class fieldCentricRed extends LinearOpMode {
 
 			telemetry.addData("Time", runtime.time());
 			telemetry.addData("State", automationHandler.automationState);
-			if (!automationHandler.colourSensorResponding()) {
-				telemetry.addLine("********************");
-				telemetry.addLine("WARNING: COLOUR SENSOR");
-				telemetry.addLine("IS NOT RESPONDING");
-				telemetry.addLine("********************");
-			}
+			// if (!automationHandler.colourSensorResponding()) {
+			// 	telemetry.addLine("********************");
+			// 	telemetry.addLine("WARNING: COLOUR SENSOR");
+			// 	telemetry.addLine("IS NOT RESPONDING");
+			// 	telemetry.addLine("********************");
+			// }
 			// telemetry.addData("Basket", targetBasket);
 			if (DEBUG) {
 				telemetry.addData("Heading", Math.toDegrees(heading));
