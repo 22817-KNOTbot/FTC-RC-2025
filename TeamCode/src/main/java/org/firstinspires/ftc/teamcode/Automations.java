@@ -287,11 +287,13 @@ public class Automations {
 		cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
 		claw.setPosition(Claw.Positions.OPEN);
 
+		timer.reset();
+
 		automationState = State.SPECIMEN_INIT_WAIT;
 	}
 
 	public void specimenInitWait() {
-		if (timer.time() < 2) return;
+		if (timer.time() < 0.5) return;
 		vibrateControllers();
 
 		automationState = State.SPECIMEN_GRAB_READY;
@@ -314,12 +316,13 @@ public class Automations {
 
 	public void hangSpecimen() {
 		slides.setPosition(Slides.Positions.HIGH_CHAMBER_HANG);
+		timer.reset();
 
 		automationState = State.SPECIMEN_HANGING;
 	}
 
 	public void hangSpecimenWait() {
-		if (!slides.slideIsBusy()) {
+		if (timer.time() > 0.5) {
 			claw.setPosition(Claw.Positions.OPEN);
 			vibrateControllers();
 
@@ -328,7 +331,6 @@ public class Automations {
 	}
 
 	public void resetSpecimen() {
-		claw.setPosition(Claw.Positions.CLOSED);
 		slides.setPosition(Slides.Positions.RETRACTED);
 		cv4b.setPosition(CV4B.Positions.TRANSFER);
 
@@ -338,12 +340,13 @@ public class Automations {
 	public void ascendInit() {
 		// Extend linear slides		
 		slides.setPosition(Slides.Positions.ASCEND_PRE);
+		timer.reset();
 
 		automationState = State.ASCEND_LOW_EXTENDING;
 	}
 	
 	public void ascendLowExtending() {
-		if (!slides.slideIsBusy()) {
+		if (timer.time() > 0.5) {
 			automationState = State.ASCEND_LOW_EXTENDED;
 		}
 	}

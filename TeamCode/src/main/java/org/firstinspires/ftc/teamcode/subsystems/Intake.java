@@ -28,7 +28,7 @@ public class Intake {
 	public static int SLIDE_POSITION_DEFAULT = 800;
 	public static int SLIDE_POSITION_MAX = 800;
 
-	public static int SLIDE_TRANSFER_POSITION = 600;
+	public static int SLIDE_TRANSFER_POSITION = 0;
 	
 	/*
 	 * DO NOT change the below code unless necessary

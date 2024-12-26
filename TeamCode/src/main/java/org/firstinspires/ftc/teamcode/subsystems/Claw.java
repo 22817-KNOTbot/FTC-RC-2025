@@ -16,7 +16,7 @@ public class Claw {
 	 * Lower = open
 	 * Higher = closed
 	 */
-	public static double OPEN = 0.9;
+	public static double OPEN = 1;
 	public static double CLOSED = 0.8;
 
 	/*
