@@ -2,9 +2,9 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
@@ -39,7 +39,7 @@ public class Intake {
 	private Servo flipServoRight;
 	private DcMotor intakeSlides;
 	private DcMotor intakeMotor;
-	private DigitalChannel intakeTouch;
+	private TouchSensor intakeTouch;
 	private ColorRangeSensor colourRangeSensor;
 
 	public static Positions bucketPosition = Positions.INTAKE;
@@ -75,7 +75,7 @@ public class Intake {
 
 		// colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
 
-		// intakeTouch = hardwareMap.get(DigitalChannel.class, "intakeTouch");
+		// intakeTouch = hardwareMap.get(TouchSensor.class, "intakeTouch");
 	}
 
 	public void abort() {
@@ -212,10 +212,10 @@ public class Intake {
 
 	public boolean colourSensorResponding() {
 		// TODO: Find better way to detect disconnect
-		return !(getRed() == 0 && getGreen() == 0 && getBlue() == 0);
+		return !(colourRangeSensor == null || (getRed() == 0 && getGreen() == 0 && getBlue() == 0));
 	}
 
 	public boolean isTouched() {
-		return !intakeTouch.getState();
+		return intakeTouch.isPressed();
 	}
 }
