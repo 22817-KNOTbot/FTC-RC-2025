@@ -34,7 +34,7 @@ import org.firstinspires.ftc.teamcode.util.OpModeStorage;
 import org.firstinspires.ftc.teamcode.util.GamepadStorage;
 
 @Config
-@TeleOp(name="Field Centric Teleop: Red", group="Field Centric")
+@TeleOp(name="Field Centric Teleop: Red", group="AAA Field Centric")
 public class fieldCentricRed extends LinearOpMode {
 	public static boolean DEBUG = true;
 	public static boolean USE_PID = false;
