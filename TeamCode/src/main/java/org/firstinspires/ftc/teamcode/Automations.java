@@ -376,7 +376,11 @@ public class Automations {
 	}
 
 	public void vibrateControllers() {
-		if (gamepad1 != null) gamepad1.rumble(1, 1, 100);
-		if (gamepad2 != null) gamepad2.rumble(1, 1, 100);
+		vibrateControllers(100);
+	}
+
+	public void vibrateControllers(int durationMs) {
+		if (gamepad1 != null) gamepad1.rumble(1, 1, durationMs);
+		if (gamepad2 != null) gamepad2.rumble(1, 1, durationMs);
 	}
 }
