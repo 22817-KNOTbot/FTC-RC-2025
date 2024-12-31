@@ -111,6 +111,14 @@ public class fieldCentricRed extends LinearOpMode {
 			hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 		}
 
+		// if (!automationHandler.colourSensorResponding()) {
+		// 	automationHandler.vibrateControllers(1000);
+		// 	telemetry.addLine("********************");
+		// 	telemetry.addLine("WARNING: COLOUR SENSOR");
+		// 	telemetry.addLine("IS NOT RESPONDING");
+		// 	telemetry.addLine("********************");
+		// }
+
 		waitForStart();
 		runtime.reset();
 
