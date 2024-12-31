@@ -51,7 +51,6 @@ public class Automations {
 		TRANSFER_WAIT,
 		TRANSFERRING,
 		TRANSFERRED,
-		DEPOSIT_EXTENDING,
 		DEPOSIT_EXTENDED,
 		DEPOSITED,
 		// NO_TRANSFER for intake but no transfer (specimens)
@@ -242,13 +241,7 @@ public class Automations {
 		slides.setPosition(basket == Basket.HIGH ? Slides.Positions.HIGH_BASKET : Slides.Positions.LOW_BASKET);
 		cv4b.setPosition(CV4B.Positions.DEPOSIT);
 
-		automationState = State.DEPOSIT_EXTENDING;
-	}
-
-	public void depositExtending() {
-		if (!slides.slideIsBusy()) {
-			automationState = State.DEPOSIT_EXTENDED;
-		}
+		automationState = State.DEPOSIT_EXTENDED;
 	}
 
 	public void depositSample() {
