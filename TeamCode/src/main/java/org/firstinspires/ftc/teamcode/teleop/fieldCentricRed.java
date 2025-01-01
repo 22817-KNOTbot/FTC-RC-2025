@@ -204,7 +204,6 @@ public class fieldCentricRed extends LinearOpMode {
 							automationHandler.setSlidesPower(0);
 						}
 					}
-
 					break;
 
 				// Sample intake
@@ -292,6 +291,8 @@ public class fieldCentricRed extends LinearOpMode {
 					if (gamepad1.left_trigger > 0.9 && !buttonPressed) {
 						automationHandler.ascendLowRetract();
 					}
+					break;
+				default:
 					break;
 			}
 

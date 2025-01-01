@@ -68,6 +68,7 @@ public class Automations {
 		ASCEND_LOW_EXTENDING,
 		ASCEND_LOW_EXTENDED,
 		ASCEND_LOW_RETRACTING,
+		ASCENDED
 	}
 
 	public enum Alliance {
@@ -347,7 +348,7 @@ public class Automations {
 	
 		// TODO: Change state and put proper code
 		// automationState = State.ASCEND_HIGH_EXTENDING;
-		automationState = State.IDLE;
+		automationState = State.ASCENDED;
 	}
 
 	public int getSlideLeftPosition() {
