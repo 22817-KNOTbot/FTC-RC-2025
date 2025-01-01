@@ -208,7 +208,7 @@ public class Automations {
 		// Retract intake slides
 		intake.setPosition(Intake.Positions.TRANSFER);
 		intake.setPower(0);
-		cv4b.setPosition(CV4B.Positions.TRANSFER);
+		cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
 		claw.setPosition(Claw.Positions.OPEN);
 		timer.reset();
 		
@@ -216,27 +216,25 @@ public class Automations {
 	}
 
 	public void transferWait() {
-		if (timer.time() > 1.5 && !intake.isSlideBusy()) {
-			claw.setPosition(Claw.Positions.CLOSED);
-			if (timer.time() > 1.7) {
-				vibrateControllers();
+		if ((timer.time() > 1.5 && !intake.isSlideBusy())) {
+			cv4b.setPosition(CV4B.Positions.TRANSFER);
+			timer.reset();
 
-				// Note: originally TRANSFERRING - may need to change back
-				automationState = State.TRANSFERRED;
-			}
+			automationState = State.TRANSFERRING;
 		}
 	}
 
-	// TODO: Verify transferring is not needed, then remove it. Never called currently
 	public void transferring() {
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 75) /* && !intake.isTouched() */) {
-			intake.setPower(0);
+		if (timer.time() > 0.3) {
+			claw.setPosition(Claw.Positions.CLOSED);
+			vibrateControllers();
 
 			automationState = State.TRANSFERRED;
 		}
 	}
 
 	public void depositInit(Basket basket) {
+		claw.setPosition(Claw.Positions.CLOSED);
 		// Extend linear slide
 		slides.setPosition(basket == Basket.HIGH ? Slides.Positions.HIGH_BASKET : Slides.Positions.LOW_BASKET);
 		cv4b.setPosition(CV4B.Positions.DEPOSIT);
