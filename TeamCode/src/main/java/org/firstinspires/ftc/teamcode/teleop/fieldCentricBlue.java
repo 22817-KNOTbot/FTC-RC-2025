@@ -304,9 +304,9 @@ public class fieldCentricBlue extends LinearOpMode {
 					imu.resetYaw();	
 				}
 			} 
-			// if (gamepad1.a) {
-			// 	targetBasket = targetBasket == Automations.Basket.HIGH ? Automations.Basket.LOW : Automations.Basket.HIGH;
-			// }
+			if (gamepad1.a) {
+				targetBasket = targetBasket == Automations.Basket.HIGH ? Automations.Basket.LOW : Automations.Basket.HIGH;
+			}
 
 			buttonPressed = gamepad2.y || gamepad2.b || gamepad1.left_trigger > 0.9;
 

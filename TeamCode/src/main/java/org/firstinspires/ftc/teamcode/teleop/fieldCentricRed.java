@@ -236,7 +236,7 @@ public class fieldCentricRed extends LinearOpMode {
 					}
 					break;
 				case DEPOSIT_EXTENDED:
-					if (gamepad2.b) {
+					if (gamepad2.b && !buttonPressed) {
 						automationHandler.depositSample();
 					}
 					break;
@@ -304,11 +304,11 @@ public class fieldCentricRed extends LinearOpMode {
 					imu.resetYaw();	
 				}
 			} 
-			// if (gamepad1.a) {
-			// 	targetBasket = targetBasket == Automations.Basket.HIGH ? Automations.Basket.LOW : Automations.Basket.HIGH;
-			// }
+			if (gamepad1.a) {
+				targetBasket = targetBasket == Automations.Basket.HIGH ? Automations.Basket.LOW : Automations.Basket.HIGH;
+			}
 
-			buttonPressed = gamepad2.y || gamepad1.left_trigger > 0.9;
+			buttonPressed = gamepad2.y || gamepad2.b || gamepad1.left_trigger > 0.9;
 
 			telemetry.addData("Time", runtime.time());
 			telemetry.addData("State", automationHandler.automationState);
