@@ -58,10 +58,10 @@ public class Intake {
 	}
 
 	public Intake(HardwareMap hardwareMap, boolean resetEncoder) {
-		// flipServoLeft = hardwareMap.get(Servo.class, "flipServoLeft");
-		// flipServoRight = hardwareMap.get(Servo.class, "flipServoRight");
-		// flipServoLeft.setDirection(Servo.Direction.FORWARD);
-		// flipServoRight.setDirection(Servo.Direction.REVERSE);
+		flipServoLeft = hardwareMap.get(Servo.class, "flipServoLeft");
+		flipServoRight = hardwareMap.get(Servo.class, "flipServoRight");
+		flipServoLeft.setDirection(Servo.Direction.FORWARD);
+		flipServoRight.setDirection(Servo.Direction.REVERSE);
 
 		intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
 		if (resetEncoder) intakeSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -69,11 +69,11 @@ public class Intake {
 		intakeSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		intakeSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-		// intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
-		// intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-		// intakeMotor.setDirection(DcMotor.Direction.REVERSE);
+		intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
+		intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		intakeMotor.setDirection(DcMotor.Direction.REVERSE);
 
-		// colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
+		colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
 
 		// intakeTouch = hardwareMap.get(TouchSensor.class, "intakeTouch");
 	}
@@ -216,6 +216,7 @@ public class Intake {
 	}
 
 	public boolean isTouched() {
-		return intakeTouch.isPressed();
+		return false;
+		// return intakeTouch.isPressed();
 	}
 }

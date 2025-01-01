@@ -111,13 +111,13 @@ public class fieldCentricBlue extends LinearOpMode {
 			hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 		}
 
-		// if (!automationHandler.colourSensorResponding()) {
-		// 	automationHandler.vibrateControllers(1000);
-		// 	telemetry.addLine("********************");
-		// 	telemetry.addLine("WARNING: COLOUR SENSOR");
-		// 	telemetry.addLine("IS NOT RESPONDING");
-		// 	telemetry.addLine("********************");
-		// }
+		if (!automationHandler.colourSensorResponding()) {
+			automationHandler.vibrateControllers(1000);
+			telemetry.addLine("********************");
+			telemetry.addLine("WARNING: COLOUR SENSOR");
+			telemetry.addLine("IS NOT RESPONDING");
+			telemetry.addLine("********************");
+		}
 
 		waitForStart();
 		runtime.reset();
@@ -188,12 +188,12 @@ public class fieldCentricBlue extends LinearOpMode {
 					break;
 				case IDLE:
 					if (gamepad2.a) {
-						// automationHandler.intakeInit(Automations.SamplePurpose.SAMPLE);
+						automationHandler.intakeInit(Automations.SamplePurpose.SAMPLE);
 					} else if (gamepad2.x) {
-						// automationHandler.intakeInit(Automations.SamplePurpose.SPECIMEN);
+						automationHandler.intakeInit(Automations.SamplePurpose.SPECIMEN);
 					} else if (gamepad2.y) {
 						automationHandler.specimenInit();
-					} else if (gamepad1.left_trigger > 0.9 /* && runtime.time() > 90 */) {
+					} else if (gamepad1.left_trigger > 0.9 && (runtime.time() > 90 || DEBUG)) {
 						automationHandler.ascendInit();
 					} else if (gamepad1.right_bumper) {
 						automationHandler.retract();
@@ -312,13 +312,13 @@ public class fieldCentricBlue extends LinearOpMode {
 
 			telemetry.addData("Time", runtime.time());
 			telemetry.addData("State", automationHandler.automationState);
-			// if (!automationHandler.colourSensorResponding()) {
-			// 	telemetry.addLine("********************");
-			// 	telemetry.addLine("WARNING: COLOUR SENSOR");
-			// 	telemetry.addLine("IS NOT RESPONDING");
-			// 	telemetry.addLine("********************");
-			// }
-			// telemetry.addData("Basket", targetBasket);
+			if (!automationHandler.colourSensorResponding()) {
+				telemetry.addLine("********************");
+				telemetry.addLine("WARNING: COLOUR SENSOR");
+				telemetry.addLine("IS NOT RESPONDING");
+				telemetry.addLine("********************");
+			}
+			telemetry.addData("Basket", targetBasket);
 			if (DEBUG) {
 				telemetry.addData("Heading", Math.toDegrees(heading));
 				telemetry.addData("frontLeftPower", frontLeftPower);
