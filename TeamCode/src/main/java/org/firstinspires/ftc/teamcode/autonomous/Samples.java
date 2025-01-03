@@ -25,31 +25,35 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 // import org.firstinspires.ftc.teamode.AprilTagDrive;
+import org.firstinspires.ftc.teamcode.subsystems.Claw;
 import org.firstinspires.ftc.teamcode.subsystems.CV4B;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Slides;
 import org.firstinspires.ftc.teamcode.util.OpModeStorage;
 
 @Config
-@Autonomous(name = "Samples Testing Auto", group = "Testing")
+@Autonomous(name = "Samples Auto", group = "Autonomous")
 public class Samples extends LinearOpMode {
 	public static double initialPoseX = -23;
 	public static double initialPoseY = -62;
 	public static double initialPoseHeading = 0;
-	private Intake intakeControl; 
-	private Slides slideControl;
-	private CV4BActions cv4bControl;	
+	private IntakeActions intakeActions; 
+	private SlidesActions slidesActions;
+	private CV4BActions cv4bActions;
+	private ClawActions clawActions;
 	
 	@Override
 	public void runOpMode() {
 		Pose2d initialPose = new Pose2d(initialPoseX, initialPoseY, Math.toRadians(initialPoseHeading));
 		MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
 		// AprilTagDrive drive = new AprilTagDrive(hardwareMap, initialPose, aprilTagProcessor, true);
-		intakeControl = new Intake(hardwareMap);
-		slideControl = new Slides(hardwareMap);
-		cv4bControl = new CV4BActions(hardwareMap);
+		intakeActions = new IntakeActions(hardwareMap);
+		slidesActions = new SlidesActions(hardwareMap);
+		cv4bActions = new CV4BActions(hardwareMap);
 
 		Action firstSample = drive.actionBuilder(new Pose2d(-23, -62, Math.toRadians(0)))
 			.setReversed(true)
-			.splineToConstantHeading(new Vector2d(-40, -55), Math.toRadians(180))
+			.splineToConstantHeading(new Vector2d(-40, -50), Math.toRadians(180))
 			.splineToSplineHeading(new Pose2d(-50, -50, Math.toRadians(45)), Math.toRadians(180))
 			.build();
 
@@ -58,201 +62,108 @@ public class Samples extends LinearOpMode {
 			.build();
 		
 		Action intakeFirst = drive.actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-			.splineToLinearHeading(new Pose2d(-36, -25, Math.toRadians(180)), Math.toRadians(90))
+			.splineToSplineHeading(new Pose2d(-50, -50, Math.toRadians(85)), Math.toRadians(45))
 			.build();
 
-		Action depositFirst = drive.actionBuilder(new Pose2d(-36, -25, Math.toRadians(180)))
-			.splineToLinearHeading(new Pose2d(-50, -50, Math.toRadians(45)), Math.toRadians(225))
+		Action depositFirst = drive.actionBuilder(new Pose2d(-50, -50, Math.toRadians(85)))
+			.setReversed(true)
+			.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(225))
 			.build();
 
 		Action intakeSecond = drive.actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-			.splineToLinearHeading(new Pose2d(-48, -25, Math.toRadians(180)), Math.toRadians(180))
+			.splineToSplineHeading(new Pose2d(-50, -50, Math.toRadians(105)), Math.toRadians(45))
 			.build();
 
-		Action depositSecond = drive.actionBuilder(new Pose2d(-48, -25, Math.toRadians(180)))
-			.splineToLinearHeading(new Pose2d(-50, -50, Math.toRadians(45)), Math.toRadians(270))
+		Action depositSecond = drive.actionBuilder(new Pose2d(-50, -50, Math.toRadians(105)))
+			.setReversed(true)
+			.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(225))
 			.build();
 
 		Action intakeThird = drive.actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-			.splineToLinearHeading(new Pose2d(-59, -25, Math.toRadians(180)), Math.toRadians(180))
+			.splineToSplineHeading(new Pose2d(-48, -41, Math.toRadians(145)), Math.toRadians(145))
 			.build();
 
-		Action depositThird = drive.actionBuilder(new Pose2d(-59, -25, Math.toRadians(180)))
+		Action depositThird = drive.actionBuilder(new Pose2d(-48, -41, Math.toRadians(145)))
 			.setReversed(true)
-			.splineToLinearHeading(new Pose2d(-50, -50, Math.toRadians(45)), Math.toRadians(270))
+			.splineToLinearHeading(new Pose2d(-50, -50, Math.toRadians(45)), Math.toRadians(225))
 			.build();
 
 		Action park = drive.actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-			.splineToLinearHeading(new Pose2d(-25, -8, Math.toRadians(180)), Math.toRadians(0))
+			.splineToLinearHeading(new Pose2d(-25, -10, Math.toRadians(180)), Math.toRadians(0))
 			.build();
 
 		waitForStart();
 
-		// Actions.runBlocking(
-		// 	new SequentialAction(
-		// 		new SequentialAction(
-		// 			intakeControl.init(),
-		// 			new ParallelAction(
-		// 				slideControl.raiseSlides(), // Raise slides
-		// 				cv4bControl.setPosition(CV4B.Positions.PRE_DEPOSIT, 1.5) // Extend CV4B
-		// 			)
-		// 		),
-		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
-				
-		// 		new ParallelAction(
-		// 			cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
-		// 			slideControl.lowerSlides(), // Lower slides
-		// 			intakeControl.start() // Start intake
-		// 		),
-		// 		intakeControl.retract(), // Stop and retract intake
-		// 		new ParallelAction(
-		// 			new SequentialAction(
-		// 				intakeControl.transfer(), // Transfer
-		// 				new ParallelAction(
-		// 					slideControl.raiseSlides(), // Raise slides
-		// 					cv4bControl.setPosition(CV4B.Positions.PRE_DEPOSIT, 1.5) // Extend CV4B
-		// 				)
-		// 			)
-		// 		),
-		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
-				
-		// 		new ParallelAction(
-		// 			cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
-		// 			slideControl.lowerSlides(), // Lower slides
-		// 			intakeControl.start() // Start intake
-		// 		),
-		// 		intakeControl.retract(), // Stop and retract intake
-		// 		new ParallelAction(
-		// 			new SequentialAction(
-		// 				intakeControl.transfer(), // Transfer
-		// 				new ParallelAction(
-		// 					slideControl.raiseSlides(), // Raise slides
-		// 					cv4bControl.setPosition(CV4B.Positions.PRE_DEPOSIT, 1.5) // Extend CV4B
-		// 				)
-		// 			)
-		// 		),
-		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
-				
-		// 		new ParallelAction(
-		// 			cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
-		// 			slideControl.lowerSlides(), // Lower slides
-		// 			intakeControl.start() // Start intake
-		// 		),
-		// 		intakeControl.retract(), // Stop and retract intake
-		// 		new ParallelAction(
-		// 			new SequentialAction(
-		// 				intakeControl.transfer(), // Transfer
-		// 				new ParallelAction(
-		// 					slideControl.raiseSlides(), // Raise slides
-		// 					cv4bControl.setPosition(CV4B.Positions.PRE_DEPOSIT, 1.5) // Extend CV4B
-		// 				)
-		// 			)
-		// 		),
-		// 		cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
-				
-		// 		new ParallelAction(
-		// 			cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
-		// 			slideControl.slidesToAscend() // Lower slides
-		// 		)
-		// 	)
-		// );
-
-		// Full
 		Actions.runBlocking(
 			new SequentialAction(
-			// 	new ParallelAction(
-			// 		firstSample,
-			// 		new SequentialAction(
-			// 			intakeControl.init(),
-			// 			new ParallelAction(
-			// 				slideControl.raiseSlides(), // Raise slides
-			// 				cv4bControl.setPosition(CV4B.Positions.PRE_DEPOSIT, 1.5) // Extend CV4B
-			// 			)
-			// 		)
-			// 	),
-			// 	basket,
-			// 	cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
+				new ParallelAction(
+					// firstSample,
+					new SequentialAction(
+						intakeActions.init(),
+						new ParallelAction(
+							slidesActions.raiseSlides(), // Raise slides
+							cv4bActions.setPosition(CV4B.Positions.DEPOSIT, 1.5) // Extend CV4B
+						)
+					)
+				),
+				// basket,
+				clawActions.open(), // Dump
 				
-			// 	new ParallelAction(
-			// 		intakeFirst,
-			// 		cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
-			// 		slideControl.lowerSlides(), // Lower slides
-			// 		intakeControl.start() // Start intake
-			// 	),
-			// 	intakeControl.retract(), // Stop and retract intake
-			// 	new ParallelAction(
-			// 		depositFirst,
-			// 		new SequentialAction(
-			// 			intakeControl.transfer(), // Transfer
-			// 			new ParallelAction(
-			// 				slideControl.raiseSlides(), // Raise slides
-			// 				cv4bControl.setPosition(CV4B.Positions.PRE_DEPOSIT, 1.5) // Extend CV4B
-			// 			)
-			// 		)
-			// 	),
-			// 	basket,
-			// 	cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
+				new ParallelAction(
+					// intakeFirst,
+					cv4bActions.setPosition(CV4B.Positions.PRE_TRANSFER, 1.5), // Retract CV4B
+					slidesActions.lowerSlides(), // Lower slides
+					intakeActions.start() // Start intake
+				),
+				intakeActions.retract(), // Stop and retract intake
+				intakeActions.transfer(), // Transfer
+				new ParallelAction(
+					slidesActions.raiseSlides(), // Raise slides
+					cv4bActions.setPosition(CV4B.Positions.DEPOSIT, 1.5) // Extend CV4B
+				),
+				// depositFirst,
+				clawActions.open(), // Dump
 				
-			// 	new ParallelAction(
-			// 		intakeSecond,
-			// 		cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
-			// 		slideControl.lowerSlides(), // Lower slides
-			// 		intakeControl.start() // Start intake
-			// 	),
-			// 	intakeControl.retract(), // Stop and retract intake
-			// 	new ParallelAction(
-			// 		depositSecond,
-			// 		new SequentialAction(
-			// 			intakeControl.transfer(), // Transfer
-			// 			new ParallelAction(
-			// 				slideControl.raiseSlides(), // Raise slides
-			// 				cv4bControl.setPosition(CV4B.Positions.PRE_DEPOSIT, 1.5) // Extend CV4B
-			// 			)
-			// 		)
-			// 	),
-			// 	basket,
-			// 	cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
+				new ParallelAction(
+					// intakeSecond,
+					cv4bActions.setPosition(CV4B.Positions.PRE_TRANSFER, 1.5), // Retract CV4B
+					slidesActions.lowerSlides(), // Lower slides
+					intakeActions.start() // Start intake
+				),
+				intakeActions.retract(), // Stop and retract intake
+				intakeActions.transfer(), // Transfer
+				new ParallelAction(
+					slidesActions.raiseSlides(), // Raise slides
+					cv4bActions.setPosition(CV4B.Positions.DEPOSIT, 1.5) // Extend CV4B
+				),
+				// depositSecond,
+				clawActions.open(), // Dump
 				
-			// 	new ParallelAction(
-			// 		intakeThird,
-			// 		cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
-			// 		slideControl.lowerSlides(), // Lower slides
-			// 		intakeControl.start() // Start intake
-			// 	),
-			// 	intakeControl.retract(), // Stop and retract intake
-			// 	new ParallelAction(
-			// 		depositThird,
-			// 		new SequentialAction(
-			// 			intakeControl.transfer(), // Transfer
-			// 			new ParallelAction(
-			// 				slideControl.raiseSlides(), // Raise slides
-			// 				cv4bControl.setPosition(CV4B.Positions.PRE_DEPOSIT, 1.5) // Extend CV4B
-			// 			)
-			// 		)
-			// 	),
-			// 	basket,
-			// 	cv4bControl.setPosition(CV4B.Positions.DUMP, 1.25), // Dump
+				new ParallelAction(
+					// intakeThird,
+					cv4bActions.setPosition(CV4B.Positions.PRE_TRANSFER, 1.5), // Retract CV4B
+					slidesActions.lowerSlides(), // Lower slides
+					intakeActions.start() // Start intake
+				),
+				intakeActions.retract(), // Stop and retract intake
+				new ParallelAction(
+					// depositThird,
+					new SequentialAction(
+						intakeActions.transfer(), // Transfer
+						new ParallelAction(
+							slidesActions.raiseSlides(), // Raise slides
+							cv4bActions.setPosition(CV4B.Positions.DEPOSIT, 1.5) // Extend CV4B
+						)
+					)
+				),
+				// basket,
+				clawActions.open(), // Dump
 				
-			// 	new ParallelAction(
-			// 		park,
-			// 		cv4bControl.setPosition(CV4B.Positions.TRANSFER, 1.5), // Retract CV4B
-			// 		slideControl.slidesToAscend() // Lower slides
-			// 	)
-			// )
-
-
-			firstSample,
-			basket,
-			intakeFirst,
-			depositFirst,
-			basket,
-			intakeSecond,
-			depositSecond,
-			basket,
-			intakeThird,
-			depositThird,
-			basket,
-			park
+				new ParallelAction(
+					// park,
+					cv4bActions.setPosition(CV4B.Positions.PRE_TRANSFER, 1.5), // Retract CV4B
+					slidesActions.slidesToAscend() // Lower slides
+				)
 			)
 		);
 
@@ -260,22 +171,11 @@ public class Samples extends LinearOpMode {
 		OpModeStorage.pose = drive.pose;
 	}
 
-	public class Intake {
-		private DcMotor intakeSlides;
-		private DcMotor scoopMotor;
-		private ColorRangeSensor colourRangeSensor;
-		private Servo flipServo;
+	public class IntakeActions {
+		private Intake intake;
 
-		public Intake(HardwareMap hardwareMap) {
-			intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
-			intakeSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-			intakeSlides.setTargetPosition(0);
-			intakeSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-			intakeSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-			scoopMotor = hardwareMap.get(DcMotor.class, "scoopMotor");
-			scoopMotor.setDirection(DcMotor.Direction.REVERSE);
-			colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");	 
-			flipServo = hardwareMap.get(Servo.class, "flipServo");
+		public IntakeActions(HardwareMap hardwareMap) {
+			intake = new Intake(hardwareMap, true);
 		}
 
 		public Action init() {
@@ -285,8 +185,7 @@ public class Samples extends LinearOpMode {
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
 					if (!initialized) {
-						flipServo.setPosition(0.865);
-						intakeSlides.setTargetPosition(600);
+						intake.setPosition(Intake.Positions.TRANSFER);
 
 						initialized = true;
 					} else {
@@ -303,11 +202,9 @@ public class Samples extends LinearOpMode {
 			return new Action() {
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
-					intakeSlides.setPower(1);
-					intakeSlides.setTargetPosition(600);  
-					scoopMotor.setPower(0.5);
-					flipServo.setPosition(0.865);
-
+					intake.setPosition(Intake.Positions.INTAKE);
+					intake.setPower(0.5);
+					
 					return false;
 				}
 			};
@@ -319,11 +216,12 @@ public class Samples extends LinearOpMode {
 
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
-					intakeSlides.setTargetPosition(600);  
-					flipServo.setPosition(0.745);
-					cv4bControl.setPositionMethod(CV4B.Positions.TRANSFER);
+					intake.setPosition(Intake.Positions.TRANSFER);
+					intake.setPower(0);
+					cv4bActions.setPositionMethod(CV4B.Positions.PRE_TRANSFER);
+					clawActions.setPositionMethod(Claw.Positions.OPEN);
 
-					if (timer.time() > 1.5 && !intakeSlides.isBusy()) {
+					if (timer.time() > 1.5 && !intake.isSlideBusy()) {
 						return false;
 					}
 					return true;
@@ -334,21 +232,15 @@ public class Samples extends LinearOpMode {
 		public Action transfer() {
 			return new Action() {
 				private ElapsedTime timer = new ElapsedTime();
-				private boolean finish = false;
+				private boolean initialized = false;
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
-					if (colourRangeSensor.getDistance(DistanceUnit.MM) < 75) {
-						scoopMotor.setPower(-1);
-					} else {
-						if (!finish) {
-							flipServo.setPosition(0.77);
-							scoopMotor.setPower(0);
-							timer.reset();
-							finish = true;
-						} else if (timer.time() > 0.5) {
-							return false;
-						}
-
+					if (!initialized) {
+						cv4bActions.setPosition(CV4B.Positions.TRANSFER);
+						initialized = true;
+					} else if (timer.time() > 0.3) {
+						clawActions.setPositionMethod(Claw.Positions.CLOSED);
+						return false;
 					}
 
 					return true;
@@ -357,22 +249,11 @@ public class Samples extends LinearOpMode {
 		}
 	}
 
-	public class Slides {
-		private DcMotor slideMotorLeft;
-		private DcMotor slideMotorRight;
+	public class SlidesActions {
+		private Slides slides;
 
-		public Slides(HardwareMap hardwareMap) {
-			slideMotorLeft = hardwareMap.get(DcMotor.class, "slideMotorLeft");
-			slideMotorRight = hardwareMap.get(DcMotor.class, "slideMotorRight");
-			slideMotorLeft.setTargetPosition(0);
-			slideMotorRight.setTargetPosition(0);
-			slideMotorLeft.setDirection(DcMotor.Direction.REVERSE);
-			slideMotorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-			slideMotorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-			slideMotorLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-			slideMotorRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-			slideMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-			slideMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		public SlidesActions(HardwareMap hardwareMap) {
+			slides = new Slides(hardwareMap, true);
 		}
 
 		public Action raiseSlides() {
@@ -382,16 +263,13 @@ public class Samples extends LinearOpMode {
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
 					if (!initialized) {
-						slideMotorLeft.setPower(1);
-						slideMotorRight.setPower(1);
-						slideMotorLeft.setTargetPosition(4100);
-						slideMotorRight.setTargetPosition(4100);
-	
+						slides.setPosition(Slides.Positions.HIGH_BASKET);
+						
 						initialized = true;
 						return true;
 					}
 	
-					if (!slideMotorLeft.isBusy() && !slideMotorRight.isBusy()) {
+					if (!slides.isSlideBusy()) {
 						return false;
 					}
 					return true;
@@ -406,18 +284,14 @@ public class Samples extends LinearOpMode {
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
 					if (!initialized) {
-						slideMotorLeft.setPower(1);
-						slideMotorRight.setPower(1);
-						slideMotorLeft.setTargetPosition(0);
-						slideMotorRight.setTargetPosition(0);
-	
+						slides.setPosition(Slides.Positions.RETRACTED);
+						
 						initialized = true;
 						return true;
 					}
 	
-					if (!slideMotorLeft.isBusy() && !slideMotorRight.isBusy()) {
-						slideMotorLeft.setPower(0);
-						slideMotorRight.setPower(0);
+					if (!slides.isSlideBusy()) {
+						slides.setPower(0);
 
 						return false;
 					}
@@ -433,16 +307,13 @@ public class Samples extends LinearOpMode {
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
 					if (!initialized) {
-						slideMotorLeft.setPower(1);
-						slideMotorRight.setPower(1);
-						slideMotorLeft.setTargetPosition(2000);
-						slideMotorRight.setTargetPosition(2000);
-	
+						slides.setPosition(Slides.Positions.ASCEND_ONE);
+						
 						initialized = true;
 						return true;
 					}
 	
-					if (!slideMotorLeft.isBusy() && !slideMotorRight.isBusy()) {
+					if (!slides.isSlideBusy()) {
 						return false;
 					}
 					return true;
@@ -487,6 +358,63 @@ public class Samples extends LinearOpMode {
 
 		public void setPositionMethod(CV4B.Positions position) {
 			cv4b.setPosition(position);
+		}
+	}
+
+	public class ClawActions {
+		private Claw claw;
+	
+		public ClawActions(HardwareMap hardwareMap) {
+			claw = new Claw(hardwareMap);
+		}
+
+
+		public Action open() {
+			return new Action() {
+				private boolean initialized = false;
+				private ElapsedTime timer = new ElapsedTime();
+
+				@Override
+				public boolean run(@NonNull TelemetryPacket packet) {
+					if (!initialized) {
+						claw.setPosition(Claw.Positions.OPEN);
+						
+						initialized = true;
+						return true;
+					}
+
+					if (timer.time() < 0.3) {
+						return true;
+					}
+					return false;
+				}
+			};
+		}
+
+		public Action close() {
+			return new Action() {
+				private boolean initialized = false;
+				private ElapsedTime timer = new ElapsedTime();
+
+				@Override
+				public boolean run(@NonNull TelemetryPacket packet) {
+					if (!initialized) {
+						claw.setPosition(Claw.Positions.CLOSED);
+						
+						initialized = true;
+						return true;
+					}
+
+					if (timer.time() < 0.3) {
+						return true;
+					}
+					return false;
+				}
+			};
+		}
+
+		public void setPositionMethod(Claw.Positions position) {
+			claw.setPosition(position);
 		}
 	}
 }
