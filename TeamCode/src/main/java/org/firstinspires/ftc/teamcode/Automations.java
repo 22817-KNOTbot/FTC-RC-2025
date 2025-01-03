@@ -331,7 +331,7 @@ public class Automations {
 	
 	public void ascendInit() {
 		// Extend linear slides		
-		slides.setPosition(Slides.Positions.ASCEND_PRE);
+		slides.setPosition(Slides.Positions.ASCEND_TWO_PRE);
 		timer.reset();
 
 		automationState = State.ASCEND_LOW_EXTENDING;
@@ -344,7 +344,7 @@ public class Automations {
 	}
 
 	public void ascendLowRetract() {
-		slides.setPosition(Slides.Positions.ASCEND_RETRACT);
+		slides.setPosition(Slides.Positions.ASCEND_TWO_RETRACT);
 	
 		// TODO: Change state and put proper code
 		// automationState = State.ASCEND_HIGH_EXTENDING;

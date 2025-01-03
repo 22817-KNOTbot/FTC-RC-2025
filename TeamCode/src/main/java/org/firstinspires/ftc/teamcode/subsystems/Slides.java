@@ -20,8 +20,10 @@ public class Slides {
 	public static int HIGH_CHAMBER_PREHANG_POSITION = 1500;
 	public static int HIGH_CHAMBER_HANG_POSITION = 2100;
 
-	public static int ASCEND_PRE_POSITION = 3600;
-	public static int ASCEND_RETRACT_POSITION = 2600;
+	public static int ASCEND_ONE_POSITION = 2000;
+
+	public static int ASCEND_TWO_PRE_POSITION = 3600;
+	public static int ASCEND_TWO_RETRACT_POSITION = 2600;
 
 	/*
 	 * DO NOT change the below code unless necessary
@@ -39,8 +41,9 @@ public class Slides {
 		HIGH_BASKET,
 		HIGH_CHAMBER_PREHANG,
 		HIGH_CHAMBER_HANG,
-		ASCEND_PRE,
-		ASCEND_RETRACT,
+		ASCEND_ONE,
+		ASCEND_TWO_PRE,
+		ASCEND_TWO_RETRACT,
 		MANUAL
 	}
 
@@ -89,11 +92,14 @@ public class Slides {
 			case HIGH_CHAMBER_HANG:
 				target = HIGH_CHAMBER_HANG_POSITION;
 				break;
-			case ASCEND_PRE:
-				target = ASCEND_PRE_POSITION;
+			case ASCEND_ONE:
+				target = ASCEND_ONE_POSITION;
 				break;
-			case ASCEND_RETRACT:
-				target = ASCEND_RETRACT_POSITION;
+			case ASCEND_TWO_PRE:
+				target = ASCEND_TWO_PRE_POSITION;
+				break;
+			case ASCEND_TWO_RETRACT:
+				target = ASCEND_TWO_RETRACT_POSITION;
 				break;
 		}
 		slideMotorLeft.setPower(1);
@@ -123,7 +129,7 @@ public class Slides {
 		return slideMotorRight.getCurrentPosition();
 	}
 
-	public boolean slideIsBusy() {
+	public boolean isSlideBusy() {
 		return slideMotorLeft.isBusy() || slideMotorRight.isBusy();
 	}
 }
