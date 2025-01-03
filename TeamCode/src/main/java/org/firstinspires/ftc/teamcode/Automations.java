@@ -134,7 +134,7 @@ public class Automations {
 	public void intakeInit(SamplePurpose samplePurpose) {
 		this.samplePurpose = samplePurpose;
 		intake.setPosition(Intake.Positions.INTAKE);
-		intake.setPower(0.5);
+		intake.setPower(0.75);
 		intakeFirstMoving = true;
 
 		automationState = State.INTAKE_WAIT;
@@ -195,9 +195,9 @@ public class Automations {
 	}
 
 	public void intakeDumping() {
-		intake.setPower(-0.5);
+		intake.setPower(-0.75);
 		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 30) /* && !intake.isTouched() */) {
-			intake.setPower(0.5);
+			intake.setPower(0.75);
 			automationState = State.INTAKE_WAIT;
 		}
 		if (DEBUG) {
@@ -264,7 +264,7 @@ public class Automations {
 	}
 
 	public void sampleEjectInit() {
-		intake.setPower(-0.5);
+		intake.setPower(-0.75);
 		automationState = State.SAMPLE_EJECT_WAIT;
 	}
 

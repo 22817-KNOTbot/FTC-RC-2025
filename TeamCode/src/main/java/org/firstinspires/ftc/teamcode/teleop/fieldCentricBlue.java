@@ -209,7 +209,7 @@ public class fieldCentricBlue extends LinearOpMode {
 				// Sample intake
 				case INTAKE_WAIT:
 					automationHandler.intakePosition(gamepad2.right_trigger, gamepad2.dpad_up, gamepad2.dpad_down);
-					automationHandler.setIntakePower(gamepad2.left_trigger > 0.9 ? -0.5 : 0.5);
+					automationHandler.setIntakePower(gamepad2.left_trigger > 0.9 ? -0.75 : 0.75);
 					automationHandler.intakeWait();
 					break;
 				case INTAKE_FILLED:
