@@ -63,6 +63,7 @@ public class Intake {
 		flipServoLeft.setDirection(Servo.Direction.FORWARD);
 		flipServoRight.setDirection(Servo.Direction.REVERSE);
 
+		// 0.012287150712598427 inPerTick
 		intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
 		if (resetEncoder) intakeSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		intakeSlides.setTargetPosition(0);
@@ -75,7 +76,7 @@ public class Intake {
 
 		colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
 
-		// intakeTouch = hardwareMap.get(TouchSensor.class, "intakeTouch");
+		intakeTouch = hardwareMap.get(TouchSensor.class, "intakeTouch");
 	}
 
 	public void abort() {
@@ -216,7 +217,6 @@ public class Intake {
 	}
 
 	public boolean isTouched() {
-		return false;
-		// return intakeTouch.isPressed();
+		return intakeTouch.isPressed();
 	}
 }
