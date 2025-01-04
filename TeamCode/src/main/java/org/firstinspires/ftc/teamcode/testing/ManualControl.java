@@ -19,8 +19,8 @@ import org.firstinspires.ftc.teamcode.subsystems.Slides;
 @Config
 @TeleOp(name="Manual Control", group="Debug")
 public class ManualControl extends LinearOpMode {
-	public static Intake.Positions BUCKET_POSITION = Intake.Positions.INTAKE;
-	public static double SCOOP_POWER = 0;
+	public static Claw.Positions CLAW_POSITION = Claw.Positions.CLOSED;
+	public static boolean CV4B_ENABLED = true;
 	public static CV4B.Positions CV4B_POSITION = CV4B.Positions.TRANSFER;
 	public static boolean MANUAL_CV4B = false;
 	public static double POSITION_V4B = 0;
@@ -28,11 +28,12 @@ public class ManualControl extends LinearOpMode {
 	public static Slides.Positions SLIDE_POSITION = Slides.Positions.RETRACTED;
 	public static int SLIDE_POSITION_MANUAL = -1;
 	public static double SLIDE_POWER = 1;
+	public static Intake.Positions BUCKET_POSITION = Intake.Positions.INTAKE;
+	public static double BUCKET_POSITION_MANUAL = -1;
+	public static double SCOOP_POWER = 0;
 	public static Intake.Positions INTAKE_POSITION = Intake.Positions.TRANSFER;
 	public static int INTAKE_POSITION_MANUAL = -1;
 	public static double INTAKE_SLIDE_POWER = 1;
-	public static Claw.Positions CLAW_POSITION = Claw.Positions.CLOSED;
-	public static boolean CV4B_ENABLED = true;
 
 	private Intake intake;
 	private Slides slides;
@@ -69,7 +70,11 @@ public class ManualControl extends LinearOpMode {
 				slides.setPosition(SLIDE_POSITION_MANUAL);
 			}
 
-			intake.setBucketPosition(BUCKET_POSITION);
+			if (BUCKET_POSITION_MANUAL == -1) {
+				intake.setBucketPosition(BUCKET_POSITION);
+			} else {
+				intake.setBucketPosition(BUCKET_POSITION_MANUAL);
+			}
 			intake.setPower(SCOOP_POWER);
 			intake.setSlidePower(INTAKE_SLIDE_POWER);
 			if (INTAKE_POSITION_MANUAL == -1) {
