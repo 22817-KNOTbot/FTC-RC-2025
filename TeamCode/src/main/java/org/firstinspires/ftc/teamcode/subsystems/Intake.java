@@ -72,7 +72,6 @@ public class Intake {
 
 		intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
 		intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-		intakeMotor.setDirection(DcMotor.Direction.REVERSE);
 
 		colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
 
