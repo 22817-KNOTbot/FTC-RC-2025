@@ -51,6 +51,7 @@ public class Automations {
 		TRANSFER_WAIT,
 		TRANSFERRING,
 		TRANSFERRED,
+		DEPOSIT_EXTENDING,
 		DEPOSIT_EXTENDED,
 		DEPOSITED,
 		// NO_TRANSFER for intake but no transfer (specimens)
@@ -128,7 +129,7 @@ public class Automations {
 	public void retract() {
 		slides.setPosition(Slides.Positions.RETRACTED);
 		intake.setPosition(Intake.Positions.TRANSFER);
-		cv4b.setPosition(CV4B.Positions.TRANSFER);
+		cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
 	}
 
 	public void intakeInit(SamplePurpose samplePurpose) {
@@ -141,7 +142,7 @@ public class Automations {
 	}
 	
 	public void intakeWait() {
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 50) /* && intake.isTouched() */) {
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 50) && intake.isTouched()) {
 			vibrateControllers();
 			automationState = State.INTAKE_FILLED;
 		}	
@@ -196,7 +197,7 @@ public class Automations {
 
 	public void intakeDumping() {
 		intake.setPower(-0.75);
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 30) /* && !intake.isTouched() */) {
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 30) && !intake.isTouched()) {
 			intake.setPower(0.75);
 			automationState = State.INTAKE_WAIT;
 		}
@@ -238,6 +239,14 @@ public class Automations {
 		claw.setPosition(Claw.Positions.CLOSED);
 		// Extend linear slide
 		slides.setPosition(basket == Basket.HIGH ? Slides.Positions.HIGH_BASKET : Slides.Positions.LOW_BASKET);
+		timer.reset();
+
+		automationState = State.DEPOSIT_EXTENDING;
+	}
+
+	public void depositExtending() {
+		if (timer.time() < 0.5) return;
+
 		cv4b.setPosition(CV4B.Positions.DEPOSIT);
 
 		automationState = State.DEPOSIT_EXTENDED;
@@ -250,7 +259,7 @@ public class Automations {
 	}
 
 	public void resetDeposit() {
-		cv4b.setPosition(CV4B.Positions.TRANSFER);
+		cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
 		slides.setPosition(Slides.Positions.RETRACTED);
 
 		automationState = State.IDLE;
@@ -269,7 +278,7 @@ public class Automations {
 	}
 
 	public void sampleEject() {
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 75) /* && !intake.isTouched() */) {
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 75) && !intake.isTouched()) {
 			intake.setPower(0);
 			automationState = State.IDLE;
 		}
@@ -324,7 +333,7 @@ public class Automations {
 
 	public void resetSpecimen() {
 		slides.setPosition(Slides.Positions.RETRACTED);
-		cv4b.setPosition(CV4B.Positions.TRANSFER);
+		cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
 
 		automationState = State.IDLE;
 	}

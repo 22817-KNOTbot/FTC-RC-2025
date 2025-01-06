@@ -234,6 +234,9 @@ public class fieldCentricBlue extends LinearOpMode {
 						automationHandler.depositInit(targetBasket);
 					}
 					break;
+				case DEPOSIT_EXTENDING:
+					automationHandler.depositExtending();
+					break;
 				case DEPOSIT_EXTENDED:
 					if (gamepad2.b && !buttonPressed) {
 						automationHandler.depositSample();
