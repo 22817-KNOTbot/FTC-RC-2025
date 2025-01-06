@@ -18,10 +18,10 @@ public class Intake {
 	 * Most positions/values can be changed here.
 	 */
 	// Bucket
-	public static double BUCKET_INTAKE_HIGH = 0.765;
-	public static double BUCKET_INTAKE_LOW = 0.745;
+	public static double BUCKET_INTAKE_HIGH = 0.79;
+	public static double BUCKET_INTAKE_LOW = 0.775;
 
-	public static double BUCKET_TRANSFER_POSITION = 0.77;
+	public static double BUCKET_TRANSFER_POSITION = 0.8;
 
 	// Slides
 	public static int SLIDE_POSITION_MIN = 600;
