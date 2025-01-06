@@ -64,7 +64,7 @@ public class fieldCentricRed extends LinearOpMode {
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry()); 
 		GamepadStorage.gamepad1 = gamepad1;
 		GamepadStorage.gamepad2 = gamepad2;
-		automationHandler = new Automations(hardwareMap, DEBUG);
+		automationHandler = new Automations(hardwareMap, OpModeStorage.mode == null ? Automations.Modes.SPECIMEN : OpModeStorage.mode, DEBUG);
 		ControlTheory.PID xVelocityController = new ControlTheory.PID(Kp, Ki, Kd, true);
 		ControlTheory.PID yVelocityController = new ControlTheory.PID(Kp, Ki, Kd, false);
 		targetBasket = Automations.Basket.HIGH;
@@ -187,18 +187,34 @@ public class fieldCentricRed extends LinearOpMode {
 					automationHandler.abort();
 					break;
 				case IDLE:
-					if (gamepad2.a) {
-						automationHandler.intakeInit(Automations.SamplePurpose.SAMPLE);
-					} else if (gamepad2.x) {
-						automationHandler.intakeInit(Automations.SamplePurpose.SPECIMEN);
-					} else if (gamepad2.y) {
-						automationHandler.specimenInit();
-					} else if (gamepad1.left_trigger > 0.9 && (runtime.time() > 90 || DEBUG)) {
+					// Sample mode
+					if (automationHandler.getMode() == Automations.Modes.SAMPLE) {
+						if (gamepad2.a) {
+							automationHandler.intakeInit(Automations.SamplePurpose.SAMPLE);
+						} else if (gamepad2.b) {
+							automationHandler.depositInit(targetBasket);
+						} else if (gamepad2.x) {
+							automationHandler.intakeInit(Automations.SamplePurpose.SPECIMEN);	
+						}
+
+					// Specimen mode
+					} else if (automationHandler.getMode() == Automations.Modes.SPECIMEN) {
+						if (gamepad2.y) {
+							automationHandler.specimenInit();
+						}
+					}
+
+					// Switch modes
+					if (gamepad2.dpad_left) {
+						automationHandler.setMode(Automations.Modes.SAMPLE);
+					} else if (gamepad2.dpad_right) {
+						automationHandler.setMode(Automations.Modes.SPECIMEN);
+					}
+
+					if (gamepad1.left_trigger > 0.9 && (runtime.time() > 90 || DEBUG)) {
 						automationHandler.ascendInit();
 					} else if (gamepad1.right_bumper) {
 						automationHandler.retract();
-					} else if (gamepad2.b) {
-						automationHandler.depositInit(targetBasket);
 					} else {
 						if (automationHandler.getSlideLeftPosition() < 5 && automationHandler.getSlideRightPosition() < 5) {
 							automationHandler.setSlidesPower(0);
@@ -233,6 +249,9 @@ public class fieldCentricRed extends LinearOpMode {
 					if (gamepad2.b) {
 						automationHandler.depositInit(targetBasket);
 					}
+					break;
+				case DEPOSIT_EXTENDING:
+					automationHandler.depositExtending();
 					break;
 				case DEPOSIT_EXTENDED:
 					if (gamepad2.b && !buttonPressed) {
@@ -292,6 +311,14 @@ public class fieldCentricRed extends LinearOpMode {
 						automationHandler.ascendLowRetract();
 					}
 					break;
+				
+				// Mode switching
+				case SPECIMEN_TO_SAMPLE:
+					automationHandler.specimenToSample();
+					break;
+				case SAMPLE_TO_SPECIMEN:
+					automationHandler.sampleToSpecimen();
+					break;
 				default:
 					break;
 			}
@@ -313,6 +340,7 @@ public class fieldCentricRed extends LinearOpMode {
 
 			telemetry.addData("Time", runtime.time());
 			telemetry.addData("State", automationHandler.automationState);
+			telemetry.addData("Mode", automationHandler.getMode());
 			if (!automationHandler.colourSensorResponding()) {
 				telemetry.addLine("********************");
 				telemetry.addLine("WARNING: COLOUR SENSOR");

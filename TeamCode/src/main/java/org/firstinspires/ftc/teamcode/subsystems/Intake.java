@@ -23,6 +23,8 @@ public class Intake {
 
 	public static double BUCKET_TRANSFER_POSITION = 0.8;
 
+	public static double BUCKET_RETRACTED_POSITION = 0.87;
+
 	// Slides
 	public static int SLIDE_POSITION_MIN = 600;
 	public static int SLIDE_POSITION_DEFAULT = 800;
@@ -46,6 +48,7 @@ public class Intake {
 	public static Positions slidePosition = Positions.TRANSFER;
 
 	public enum Positions {
+		RETRACTED,
 		INTAKE,
 		TRANSFER,
 		MANUAL
@@ -105,11 +108,14 @@ public class Intake {
 		Intake.bucketPosition = position;
 		double target = 0;
 		switch (position) {
+			case RETRACTED:
+				target = BUCKET_RETRACTED_POSITION;
+				break;
 			case INTAKE:
-			default:
 				target = BUCKET_INTAKE_LOW;
 				break;
 			case TRANSFER:
+			default:
 				target = BUCKET_TRANSFER_POSITION;
 				break;
 		}

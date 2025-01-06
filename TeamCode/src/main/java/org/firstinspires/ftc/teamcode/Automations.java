@@ -20,6 +20,7 @@ import org.firstinspires.ftc.teamcode.util.GamepadStorage;
 
 public class Automations {
 	public State automationState;
+	private Modes mode;
 	private SamplePurpose samplePurpose;
 	private HardwareMap hardwareMap;
 	private boolean DEBUG = false;
@@ -69,7 +70,16 @@ public class Automations {
 		ASCEND_LOW_EXTENDING,
 		ASCEND_LOW_EXTENDED,
 		ASCEND_LOW_RETRACTING,
-		ASCENDED
+		ASCENDED,
+
+		// Mode switching
+		SAMPLE_TO_SPECIMEN,
+		SPECIMEN_TO_SAMPLE
+	}
+
+	public enum Modes {
+		SAMPLE,
+		SPECIMEN,
 	}
 
 	public enum Alliance {
@@ -87,13 +97,14 @@ public class Automations {
 		SPECIMEN
 	}
 
-	public Automations(HardwareMap hardwareMap) {
-		this(hardwareMap, false);
+	public Automations(HardwareMap hardwareMap, Modes mode) {
+		this(hardwareMap, mode, false);
 	}
 
-	public Automations(HardwareMap inputHardwareMap, boolean DEBUG) {
+	public Automations(HardwareMap hardwareMap, Modes mode, boolean DEBUG) {
 		this.automationState = State.IDLE;
-		this.hardwareMap = inputHardwareMap;
+		this.mode = mode;
+		this.hardwareMap = hardwareMap;
 		this.DEBUG = DEBUG;
 		this.timer = new ElapsedTime();
 		this.dashboard = FtcDashboard.getInstance();
@@ -128,8 +139,13 @@ public class Automations {
 
 	public void retract() {
 		slides.setPosition(Slides.Positions.RETRACTED);
-		intake.setPosition(Intake.Positions.TRANSFER);
-		cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+		if (mode == Modes.SAMPLE) {
+			intake.setPosition(Intake.Positions.TRANSFER);
+			cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+		} else if (mode == Modes.SPECIMEN) {
+			intake.setPosition(Intake.Positions.RETRACTED);
+			cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
+		}
 	}
 
 	public void intakeInit(SamplePurpose samplePurpose) {
@@ -333,7 +349,7 @@ public class Automations {
 
 	public void resetSpecimen() {
 		slides.setPosition(Slides.Positions.RETRACTED);
-		cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+		cv4b.setPosition(CV4B.Positions.SAMPLE_GRAB);
 
 		automationState = State.IDLE;
 	}
@@ -360,6 +376,54 @@ public class Automations {
 		automationState = State.ASCENDED;
 	}
 
+	/*
+	 * Mode handling
+	 */
+	public Modes getMode() {
+		return mode;
+	}
+
+	public void setMode(Modes targetMode) {
+		if (targetMode == Modes.SAMPLE && mode == Modes.SPECIMEN) {
+			timer.reset();
+			specimenToSample();
+			automationState = State.SPECIMEN_TO_SAMPLE;
+		} else if (targetMode == Modes.SPECIMEN && mode == Modes.SAMPLE) {
+			timer.reset();
+			sampleToSpecimen();
+			automationState = State.SAMPLE_TO_SPECIMEN;
+		}
+	}
+
+	public void specimenToSample() {
+		if (timer.time() < 0.5) {
+			cv4b.setPosition(CV4B.Positions.DEPOSIT);
+		} else if (timer.time() < 1.5) {
+			intake.setBucketPosition(Intake.Positions.TRANSFER);
+		} else if (timer.time() < 2) {
+			cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+		} else {
+			mode = Modes.SAMPLE;
+			automationState = State.IDLE;
+		}
+	}
+
+	public void sampleToSpecimen() {
+		if (timer.time() < 0.5) {
+			cv4b.setPosition(CV4B.Positions.DEPOSIT);
+		} else if (timer.time() < 1.5) {
+			intake.setBucketPosition(Intake.Positions.RETRACTED);
+		} else if (timer.time() < 2) {
+			cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
+		} else {
+			mode = Modes.SPECIMEN;
+			automationState = State.IDLE;
+		}
+	}
+ 
+	/*
+	 * Util functions
+	 */
 	public int getSlideLeftPosition() {
 		return slides.getSlideLeftPosition();
 	}
