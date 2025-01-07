@@ -349,7 +349,7 @@ public class Automations {
 
 	public void resetSpecimen() {
 		slides.setPosition(Slides.Positions.RETRACTED);
-		cv4b.setPosition(CV4B.Positions.SAMPLE_GRAB);
+		cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
 
 		automationState = State.IDLE;
 	}
