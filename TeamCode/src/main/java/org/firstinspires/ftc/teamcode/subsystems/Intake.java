@@ -19,7 +19,7 @@ public class Intake {
 	 */
 	// Bucket
 	public static double BUCKET_INTAKE_HIGH = 0.82;
-	public static double BUCKET_INTAKE_LOW = 0.81;
+	public static double BUCKET_INTAKE_LOW = 0.813;
 
 	public static double BUCKET_TRANSFER_POSITION = 0.835;
 
