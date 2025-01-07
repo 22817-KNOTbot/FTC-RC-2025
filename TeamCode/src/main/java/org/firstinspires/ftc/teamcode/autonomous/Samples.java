@@ -25,6 +25,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 // import org.firstinspires.ftc.teamode.AprilTagDrive;
+import org.firstinspires.ftc.teamcode.Automations;
 import org.firstinspires.ftc.teamcode.subsystems.Claw;
 import org.firstinspires.ftc.teamcode.subsystems.CV4B;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
@@ -98,13 +99,9 @@ public class Samples extends LinearOpMode {
 			new SequentialAction(
 				new ParallelAction(
 					// firstSample,
-					new SequentialAction(
-						intakeActions.init(),
-						new ParallelAction(
-							slidesActions.raiseSlides(), // Raise slides
-							cv4bActions.setPosition(CV4B.Positions.DEPOSIT, 1.5) // Extend CV4B
-						)
-					)
+					slidesActions.raiseSlides(), // Raise slides
+					cv4bActions.setPosition(CV4B.Positions.DEPOSIT, 1.5), // Extend CV4B
+					intakeActions.init()
 				),
 				// basket,
 				clawActions.open(), // Dump
@@ -169,6 +166,7 @@ public class Samples extends LinearOpMode {
 
 		// Store pose for future use
 		OpModeStorage.pose = drive.pose;
+		OpModeStorage.mode = Automations.Modes.SAMPLE;
 	}
 
 	public class IntakeActions {
@@ -180,18 +178,13 @@ public class Samples extends LinearOpMode {
 
 		public Action init() {
 			return new Action() {
-				private boolean initialized = false;
 				private ElapsedTime timer = new ElapsedTime();
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
-					if (!initialized) {
-						intake.setPosition(Intake.Positions.TRANSFER);
-
-						initialized = true;
+					if (timer.time() < 0.3 && timer.time() < 0.6) {
+						intake.setBucketPosition(Intake.Positions.TRANSFER);
 					} else {
-						if (timer.time() > 0.5) {
-							return false;
-						}
+						return false;
 					}
 					return true;
 				}
