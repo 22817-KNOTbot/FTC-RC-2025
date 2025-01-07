@@ -245,7 +245,7 @@ public class Automations {
 	}
 
 	public void transferring() {
-		if (timer.time() > 0.3 && timer.time() < 0.6) {
+		if (timer.time() > 0.5 && timer.time() < 0.6) {
 			claw.setPosition(Claw.Positions.CLOSED);
 		} else if (timer.time() > 0.6) {
 			intake.setPosition(Intake.Positions.POST_TRANSFER);
@@ -400,11 +400,11 @@ public class Automations {
 	}
 
 	public void specimenToSample() {
-		if (timer.time() < 0.5) {
+		if (timer.time() < 0.3) {
 			cv4b.setPosition(CV4B.Positions.DEPOSIT);
-		} else if (timer.time() < 1.5) {
+		} else if (timer.time() < 0.6) {
 			intake.setBucketPosition(Intake.Positions.TRANSFER);
-		} else if (timer.time() < 2) {
+		} else if (timer.time() < 1) {
 			cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
 		} else {
 			mode = Modes.SAMPLE;
@@ -413,11 +413,11 @@ public class Automations {
 	}
 
 	public void sampleToSpecimen() {
-		if (timer.time() < 0.5) {
+		if (timer.time() < 0.3) {
 			cv4b.setPosition(CV4B.Positions.DEPOSIT);
-		} else if (timer.time() < 1.5) {
+		} else if (timer.time() < 0.6) {
 			intake.setBucketPosition(Intake.Positions.RETRACTED);
-		} else if (timer.time() < 2) {
+		} else if (timer.time() < 1) {
 			cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
 		} else {
 			mode = Modes.SPECIMEN;
