@@ -158,12 +158,13 @@ public class Automations {
 	}
 	
 	public void intakeWait() {
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 50) && intake.isTouched()) {
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 50) /* && intake.isTouched() */) {
 			vibrateControllers();
 			automationState = State.INTAKE_FILLED;
 		}	
 		if (DEBUG) {
 			telemetryPacket.put("Distance", intake.getDistance(DistanceUnit.MM));
+			telemetryPacket.put("Touched", intake.isTouched());
 		}
 	}
 
@@ -213,12 +214,13 @@ public class Automations {
 
 	public void intakeDumping() {
 		intake.setPower(-0.75);
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 30) && !intake.isTouched()) {
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 30) /* && !intake.isTouched() */) {
 			intake.setPower(0.75);
 			automationState = State.INTAKE_WAIT;
 		}
 		if (DEBUG) {
 			telemetryPacket.put("Distance", intake.getDistance(DistanceUnit.MM));
+			telemetryPacket.put("Touched", intake.isTouched());
 		}
 	}
 
@@ -294,7 +296,7 @@ public class Automations {
 	}
 
 	public void sampleEject() {
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 75) && !intake.isTouched()) {
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 75) /* && !intake.isTouched() */) {
 			intake.setPower(0);
 			automationState = State.IDLE;
 		}
