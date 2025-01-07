@@ -245,8 +245,10 @@ public class Automations {
 	}
 
 	public void transferring() {
-		if (timer.time() > 0.3) {
+		if (timer.time() > 0.3 && timer.time() < 0.6) {
 			claw.setPosition(Claw.Positions.CLOSED);
+		} else if (timer.time() > 0.6) {
+			intake.setPosition(Intake.Positions.POST_TRANSFER);
 			vibrateControllers();
 
 			automationState = State.TRANSFERRED;

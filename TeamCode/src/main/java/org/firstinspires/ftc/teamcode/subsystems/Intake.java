@@ -23,6 +23,8 @@ public class Intake {
 
 	public static double BUCKET_TRANSFER_POSITION = 0.8;
 
+	public static double BUCKET_POST_TRANSFER_POSITION = 0.83;
+
 	public static double BUCKET_RETRACTED_POSITION = 0.87;
 
 	// Slides
@@ -51,6 +53,7 @@ public class Intake {
 		RETRACTED,
 		INTAKE,
 		TRANSFER,
+		POST_TRANSFER,
 		MANUAL
 	}
 
@@ -118,6 +121,9 @@ public class Intake {
 			default:
 				target = BUCKET_TRANSFER_POSITION;
 				break;
+			case POST_TRANSFER:
+				target = BUCKET_POST_TRANSFER_POSITION;
+				break;
 		}
 
 		flipServoLeft.setPosition(target);
@@ -138,6 +144,7 @@ public class Intake {
 				target = SLIDE_POSITION_DEFAULT;
 				break;
 			case TRANSFER:
+			case POST_TRANSFER:
 			default:
 				target = SLIDE_TRANSFER_POSITION;
 				break;
