@@ -79,7 +79,7 @@ public class Automations {
 
 	public enum Modes {
 		SAMPLE,
-		SPECIMEN,
+		SPECIMEN
 	}
 
 	public enum Alliance {
@@ -158,7 +158,7 @@ public class Automations {
 	}
 	
 	public void intakeWait() {
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 50) /* && intake.isTouched() */) {
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 50) && intake.isTouched()) {
 			vibrateControllers();
 			automationState = State.INTAKE_FILLED;
 		}	
@@ -214,7 +214,7 @@ public class Automations {
 
 	public void intakeDumping() {
 		intake.setPower(-0.75);
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 30) /* && !intake.isTouched() */) {
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 95) && !intake.isTouched()) {
 			intake.setPower(0.75);
 			automationState = State.INTAKE_WAIT;
 		}
@@ -298,7 +298,7 @@ public class Automations {
 	}
 
 	public void sampleEject() {
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 75) /* && !intake.isTouched() */) {
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 95) && !intake.isTouched()) {
 			intake.setPower(0);
 			automationState = State.IDLE;
 		}
