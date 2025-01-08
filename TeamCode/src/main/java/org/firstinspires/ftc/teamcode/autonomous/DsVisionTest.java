@@ -12,7 +12,7 @@ public class DsVisionTest extends LinearOpMode { // NameOfClass must be the name
      */
     //public boolean variable = true;
     //private boolean another = false;
-    //private final int ZERO = 0;
+    private final int ZERO = 0;
 
     @Override // Because we extended LinearOpMode, we need to override its runOpMode() function and put our own code
     public void runOpMode() {
