@@ -285,7 +285,7 @@ public class MecanumDrive {
             }
 
             if ((t >= timeTrajectory.duration 
-                && error.heading.toDouble() < 0.5)
+                /*&& error.heading.toDouble() < 0.5*/)
                 || t >= timeTrajectory.duration + 2) {
                 leftFront.setPower(0);
                 leftBack.setPower(0);
