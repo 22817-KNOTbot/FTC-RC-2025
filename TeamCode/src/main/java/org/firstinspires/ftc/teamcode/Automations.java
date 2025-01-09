@@ -150,9 +150,10 @@ public class Automations {
 
 	public void intakeInit(SamplePurpose samplePurpose) {
 		this.samplePurpose = samplePurpose;
-		intake.setPosition(Intake.Positions.INTAKE);
+		intake.setSlidePosition(Intake.Positions.INTAKE);
 		intake.setPower(0.75);
 		intakeFirstMoving = true;
+		timer.reset();
 
 		automationState = State.INTAKE_WAIT;
 	}
@@ -169,6 +170,7 @@ public class Automations {
 	}
 
 	public void intakePosition(double input, boolean extend, boolean retract) {
+		if (timer.time() < 1) return;
 		final double up = Intake.BUCKET_INTAKE_HIGH;
 		final double down = Intake.BUCKET_INTAKE_LOW;
 		intake.setBucketPosition(down + input*(up-down));
@@ -287,6 +289,7 @@ public class Automations {
 
 	// Retract arms without transferring. Designed for samples to be given to HP
 	public void noTransfer() {
+		// TODO: Don't retract
 		intake.setSlidePosition(Intake.Positions.TRANSFER);
 
 		automationState = State.SAMPLE_LOADED;
