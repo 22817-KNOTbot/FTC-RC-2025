@@ -26,6 +26,7 @@ public class Vision extends LinearOpMode {
     private int closestY;
     private int screenWidth = 320;
     private int screenHeight = 240;
+    private int MAX_SPEED = 1;
 
     @Override
     public void runOpMode() {
@@ -72,11 +73,10 @@ public class Vision extends LinearOpMode {
                 If the Y values happen to be the same, it will choose the one closest to the center */
             }
 
-            if (closestX > (screenWidth/2)) {
-                moveRobot(1, 0, 0);
-            } else if (closestX < (screenWidth/2)) { 
-                moveRobot(-1, 0, 0);
-            }
+                int distX = closestX - (screenWidth/2);
+                int speedX = Math.max((((double) distX/160) * MAX_SPEED), 0.25);
+                moveRobot(speedX, 0, 0);
+
             // If the box is on the right of the robot, it moves right, and vise versa
 
             telemetry.update();
