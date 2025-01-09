@@ -21,8 +21,12 @@ import java.util.List;
 
 @Autonomous (name = "VisionPortal", group = "Testing")
 public class Vision extends LinearOpMode {
+
     private int closestX;
     private int closestY;
+    private int screenWidth = 320;
+    private int screenHeight = 240;
+
     @Override
     public void runOpMode() {
         ColorBlobLocatorProcessor colorLocator = new ColorBlobLocatorProcessor.Builder()  //builds locator thingie
@@ -34,7 +38,7 @@ public class Vision extends LinearOpMode {
     
         VisionPortal portal = new VisionPortal.Builder() //makes the VisionPortal
                 .addProcessor(colorLocator)
-                .setCameraResolution(new Size(320, 240))
+                .setCameraResolution(new Size(screenWidth, screenHeight))
                 .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1")) //insert camera name
                 .build();
 
@@ -42,11 +46,13 @@ public class Vision extends LinearOpMode {
         telemetry.setDisplayFormat(Telemetry.DisplayFormat.MONOSPACE);  //type of screen?
         telemetry.addData("preview on/off", "... Camera Stream\n");
 
-        closestY = 240;
-        closestX = 320;
+        
 
-        while (opModeIsActive() || opModeInInit())
-        {
+        while (opModeIsActive() || opModeInInit()) {
+
+            closestX = 0;
+            closestY = 0;
+            
             List<ColorBlobLocatorProcessor.Blob> blobs = colorLocator.getBlobs(); //lists all of blobss
             
             ColorBlobLocatorProcessor.Util.filterByArea(50, 20000, blobs); //filter
@@ -55,18 +61,23 @@ public class Vision extends LinearOpMode {
                 RotatedRect boxFit = b.getBoxFit();
                 /*telemetry.addLine(String.format("%5d  %4.2f   %5.2f  (%3d,%3d)",
                     b.getContourArea(), b.getDensity(), b.getAspectRatio(), (int) boxFit.center.x, (int) boxFit.center.y));*/
-                if ((boxFit.center.y < closestY)
-                    || (boxFit.center.y == closestY && boxFit.center.x < closestX)) {
-                    closestX = (int) boxFit.center.x;
+                
+                if ((boxFit.center.y > closestY) 
+                    || (boxFit.center.y == closestY && Math.abs((screenWidth/2) - boxFit.center.x) < Math.abs((screenWidth/2) - closestX)) ) 
+                {
                     closestY = (int) boxFit.center.y;
-
+                    closestX = (int) boxFit.center.x;
                 }
+                /*  This replaces another blue box's Y value if it is closer to the robot.
+                If the Y values happen to be the same, it will choose the one closest to the center */
             }
-            if (closestX > 160) {
+
+            if (closestX > (screenWidth/2)) {
                 moveRobot(1, 0, 0);
-            } else if (closestX < 160) {
+            } else if (closestX < (screenWidth/2)) { 
                 moveRobot(-1, 0, 0);
             }
+            // If the box is on the right of the robot, it moves right, and vise versa
 
             telemetry.update();
         }
