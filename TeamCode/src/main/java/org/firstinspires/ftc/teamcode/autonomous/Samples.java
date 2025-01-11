@@ -183,7 +183,7 @@ public class Samples extends LinearOpMode {
 				public boolean run(@NonNull TelemetryPacket packet) {
 					if (timer.time() < 0.3 && timer.time() < 0.6) {
 						intake.setBucketPosition(Intake.Positions.TRANSFER);
-					} else {
+					} else if (timer.time() > 0.6) {
 						return false;
 					}
 					return true;
@@ -199,7 +199,7 @@ public class Samples extends LinearOpMode {
 				public boolean run(@NonNull TelemetryPacket packet) {
 					if (!initialized) {
 						intake.setSlidePosition(Intake.Positions.INTAKE);
-					intake.setPower(0.5);
+						intake.setPower(0.5);
 					} else if (timer.time() > 0.5) {
 						intake.setBucketPosition(Intake.Positions.INTAKE);
 						return false;
