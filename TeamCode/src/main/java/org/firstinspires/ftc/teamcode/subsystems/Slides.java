@@ -15,15 +15,15 @@ public class Slides {
 	public static int RETRACTED_POSITION = 0;
 
 	public static int LOW_BASKET_POSITION = 2000;
-	public static int HIGH_BASKET_POSITION = 2300;
+	public static int HIGH_BASKET_POSITION = 2200;
 
-	public static int HIGH_CHAMBER_PREHANG_POSITION = 1500;
-	public static int HIGH_CHAMBER_HANG_POSITION = 2100;
+	public static int HIGH_CHAMBER_PREHANG_POSITION = 500;
+	public static int HIGH_CHAMBER_HANG_POSITION = 800;
 
 	public static int ASCEND_ONE_POSITION = 2000;
 
-	public static int ASCEND_TWO_PRE_POSITION = 3600;
-	public static int ASCEND_TWO_RETRACT_POSITION = 2600;
+	public static int ASCEND_TWO_PRE_POSITION = 2100;
+	public static int ASCEND_TWO_RETRACT_POSITION = 1100;
 
 	/*
 	 * DO NOT change the below code unless necessary
