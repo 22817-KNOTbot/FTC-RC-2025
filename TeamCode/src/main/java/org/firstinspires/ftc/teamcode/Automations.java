@@ -170,7 +170,7 @@ public class Automations {
 	}
 
 	public void intakePosition(double input, boolean extend, boolean retract) {
-		if (timer.time() < 1) return;
+		if (timer.time() < 0.5) return;
 		final double up = Intake.BUCKET_INTAKE_HIGH;
 		final double down = Intake.BUCKET_INTAKE_LOW;
 		intake.setBucketPosition(down + input*(up-down));

@@ -193,12 +193,19 @@ public class Samples extends LinearOpMode {
 
 		public Action start() {
 			return new Action() {
+				private boolean initialized = false;
+				private ElapsedTime timer = new ElapsedTime();
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
-					intake.setPosition(Intake.Positions.INTAKE);
+					if (!initialized) {
+						intake.setSlidePosition(Intake.Positions.INTAKE);
 					intake.setPower(0.5);
+					} else if (timer.time() > 0.5) {
+						intake.setBucketPosition(Intake.Positions.INTAKE);
+						return false;
+					}
 					
-					return false;
+					return true;
 				}
 			};
 		}
