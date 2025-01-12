@@ -3,6 +3,7 @@ package com.example.meepmeeptesting;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.noahbres.meepmeep.MeepMeep;
 import com.noahbres.meepmeep.roadrunner.DefaultBotBuilder;
@@ -19,58 +20,63 @@ public class Samples {
 				.build();
 
 		if (OPTION == 1) {
-			Action firstSample = myBot.getDrive().actionBuilder(new Pose2d(-23, -62, Math.toRadians(0)))
+			TrajectoryActionBuilder firstSample = myBot.getDrive().actionBuilder(new Pose2d(-23, -62, Math.toRadians(0)))
 				.setReversed(true)
 				.splineToConstantHeading(new Vector2d(-40, -50), Math.toRadians(180))
-				.splineToSplineHeading(new Pose2d(-50, -50, Math.toRadians(45)), Math.toRadians(180))
-				.build();
+				.splineToSplineHeading(new Pose2d(-50, -50, Math.toRadians(45)), Math.toRadians(180));
 
-			Action basket = myBot.getDrive().actionBuilder(new Pose2d(-50, -50, Math.toRadians(45)))
-				.strafeTo(new Vector2d(-55, -55))
-				.build();
+			TrajectoryActionBuilder basket = myBot.getDrive().actionBuilder(new Pose2d(-50, -50, Math.toRadians(45)))
+				.strafeTo(new Vector2d(-55, -55));
 			
-			Action intakeFirst = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-				.splineToSplineHeading(new Pose2d(-50, -50, Math.toRadians(85)), Math.toRadians(45))
-				.build();
+			TrajectoryActionBuilder intakeFirst = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
+				.splineToSplineHeading(new Pose2d(-50, -50, Math.toRadians(85)), Math.toRadians(45));
 
-			Action depositFirst = myBot.getDrive().actionBuilder(new Pose2d(-50, -50, Math.toRadians(85)))
+			TrajectoryActionBuilder depositFirst = myBot.getDrive().actionBuilder(new Pose2d(-50, -50, Math.toRadians(85)))
 				.setReversed(true)
-				.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(225))
-				.build();
+				.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(225));
 
-			Action intakeSecond = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-				.splineToSplineHeading(new Pose2d(-50, -50, Math.toRadians(105)), Math.toRadians(45))
-				.build();
+			TrajectoryActionBuilder intakeSecond = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
+				.splineToSplineHeading(new Pose2d(-50, -50, Math.toRadians(105)), Math.toRadians(45));
 
-			Action depositSecond = myBot.getDrive().actionBuilder(new Pose2d(-50, -50, Math.toRadians(105)))
+			TrajectoryActionBuilder depositSecond = myBot.getDrive().actionBuilder(new Pose2d(-50, -50, Math.toRadians(105)))
 				.setReversed(true)
-				.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(225))
-				.build();
+				.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(225));
 
-			Action intakeThird = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-				.splineToSplineHeading(new Pose2d(-48, -41, Math.toRadians(145)), Math.toRadians(145))
-				.build();
+			TrajectoryActionBuilder intakeThird = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
+				.splineToSplineHeading(new Pose2d(-48, -41, Math.toRadians(145)), Math.toRadians(145));
 
-			Action depositThird = myBot.getDrive().actionBuilder(new Pose2d(-48, -41, Math.toRadians(145)))
+			TrajectoryActionBuilder depositThird = myBot.getDrive().actionBuilder(new Pose2d(-48, -41, Math.toRadians(145)))
 				.setReversed(true)
-				.splineToLinearHeading(new Pose2d(-50, -50, Math.toRadians(45)), Math.toRadians(225))
-				.build();
+				.splineToLinearHeading(new Pose2d(-50, -50, Math.toRadians(45)), Math.toRadians(225));
+				
+			TrajectoryActionBuilder intakeFourth = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
+				.splineToLinearHeading(new Pose2d(-25, -10, Math.toRadians(0)), Math.toRadians(0));
 
-			Action park = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
-				.splineToLinearHeading(new Pose2d(-25, -10, Math.toRadians(180)), Math.toRadians(0))
-				.build();
+			TrajectoryActionBuilder intakeSweep = myBot.getDrive().actionBuilder(new Pose2d(-25, -10, Math.toRadians(0)))
+				.strafeTo(new Vector2d(-25, 10))
+				.strafeTo(new Vector2d(-25, -10));
+				
+			TrajectoryActionBuilder depositFourth = myBot.getDrive().actionBuilder(new Pose2d(-25, -10, Math.toRadians(0)))
+				.setReversed(true)
+				.splineToLinearHeading(new Pose2d(-55, -55, Math.toRadians(45)), Math.toRadians(225));
+ 
+			TrajectoryActionBuilder park = myBot.getDrive().actionBuilder(new Pose2d(-55, -55, Math.toRadians(45)))
+				.splineToLinearHeading(new Pose2d(-25, -10, Math.toRadians(180)), Math.toRadians(0));
 
 			myBot.runAction(new SequentialAction(
-				firstSample,
-				basket,
-				intakeFirst,
-				depositFirst,
-				intakeSecond,
-				depositSecond,
-				intakeThird,
-				depositThird,
-				basket,
-				park
+				firstSample.build(),
+				basket.build(),
+				intakeFirst.build(),
+				depositFirst.build(),
+				intakeSecond.build(),
+				depositSecond.build(),
+				intakeThird.build(),
+				depositThird.build(),
+				basket.build(),
+				intakeFourth.build(),
+				intakeSweep.build(),
+				depositFourth.build(),
+				park.build()
 			));
 		} else if (OPTION == 2) {
 			Action first = myBot.getDrive().actionBuilder(new Pose2d(23, -62, Math.toRadians(90)))
