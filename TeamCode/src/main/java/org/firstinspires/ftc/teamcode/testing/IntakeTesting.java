@@ -11,12 +11,15 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake;
 @Config
 @TeleOp(name="Intake testing", group="Debug")
 public class IntakeTesting extends LinearOpMode {
-	public static Intake.Positions BUCKET_POSITION = Intake.Positions.TRANSFER;
-	public static double BUCKET_POSITION_MANUAL = -1;
+	public static Intake.Positions INTAKE_POSITION = Intake.Positions.TRANSFER;
+	public static boolean INTAKE_POSITION_MANUAL = false;
+	public static double INTAKE_POSITION_DRIVE = 0;
+	public static double INTAKE_POSITION_COAX = 0;
 	public static double SLIDE_POWER = 1;
 	public static Intake.Positions SLIDE_POSITION = Intake.Positions.TRANSFER;
 	public static int SLIDE_POSITION_MANUAL = -1;
-	public static double INTAKE_POWER = 0;
+	public static double INTAKE_WRIST = Intake.WRIST_MIDDLE_POSITION;
+	public static boolean INTAKE_CLAW_CLOSED = false;
 	public Intake intake;
 
 	@Override
@@ -28,18 +31,19 @@ public class IntakeTesting extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
-			intake.setPower(INTAKE_POWER);
 			intake.setSlidePower(SLIDE_POWER);
-			if (BUCKET_POSITION_MANUAL == -1) {
-				intake.setBucketPosition(BUCKET_POSITION);
+			if (INTAKE_POSITION_MANUAL) {
+				intake.setIntakePosition(INTAKE_POSITION_DRIVE, INTAKE_POSITION_COAX);
 			} else {
-				intake.setBucketPosition(BUCKET_POSITION_MANUAL);
+				intake.setIntakePosition(INTAKE_POSITION);
 			}
 			if (SLIDE_POSITION_MANUAL == -1) {
 				intake.setSlidePosition(SLIDE_POSITION);
 			} else {
 				intake.setSlidePosition(SLIDE_POSITION_MANUAL);
 			}
+			intake.setWristRotation(INTAKE_WRIST);
+			if (INTAKE_CLAW_CLOSED) intake.closeClaw(); else intake.openClaw();
 		}
 	}
 }

@@ -17,8 +17,6 @@ public class CV4B {
 	 * Drive: Higher = back
 	 * Coax: Higher = back
 	 */
-	public static double PRE_TRANSFER_DRIVE = 0.55;
-	public static double PRE_TRANSFER_COAX = 0.4;
 	public static double TRANSFER_DRIVE = 0.44;
 	public static double TRANSFER_COAX = 0.365;
 	public static double DEPOSIT_DRIVE = 0.85;
@@ -48,7 +46,6 @@ public class CV4B {
 	public enum Positions {
 		BASE,
 		TRANSFER,
-		PRE_TRANSFER,
 		SPECIMEN_GRAB,
 		SPECIMEN_HANG,
 		DEPOSIT,
@@ -83,10 +80,6 @@ public class CV4B {
 			default:
 				driveTarget = TRANSFER_DRIVE + offset_drive;
 				coaxTarget = TRANSFER_COAX + offset_coax;
-				break;
-			case PRE_TRANSFER:
-				driveTarget = PRE_TRANSFER_DRIVE + offset_drive;
-				coaxTarget = PRE_TRANSFER_COAX + offset_coax;
 				break;
 			case DEPOSIT:
 				driveTarget = DEPOSIT_DRIVE + offset_drive;

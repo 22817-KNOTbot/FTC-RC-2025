@@ -37,15 +37,15 @@ public class RobotInspection extends LinearOpMode {
 
 		while (opModeIsActive()) {
 			if (!extended) {
-				cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+				cv4b.setPosition(CV4B.Positions.TRANSFER);
 				slides.setPosition(Slides.Positions.RETRACTED);
 				intake.setSlidePosition(0);
-				intake.setBucketPosition(Intake.Positions.TRANSFER);
+				intake.setIntakePosition(Intake.Positions.TRANSFER);
 			} else {
 				cv4b.setPosition(CV4B_POSITION);
 				slides.setPosition(SLIDE_POSITION);
 				intake.setSlidePosition(INTAKE_POSITION);
-				intake.setBucketPosition(Intake.Positions.TRANSFER);
+				intake.setIntakePosition(Intake.Positions.TRANSFER);
 			}
 
 			if (gamepad1.left_bumper) {

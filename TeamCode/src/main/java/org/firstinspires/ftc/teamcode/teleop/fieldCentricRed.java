@@ -199,7 +199,6 @@ public class fieldCentricRed extends LinearOpMode {
 						} else if (gamepad2.x) {
 							automationHandler.intakeInit(Automations.SamplePurpose.SPECIMEN);
 						}
-						automationHandler.setIntakePower(gamepad2.left_trigger > 0.9 ? -0.5 : 0);
 
 						// Specimen mode
 					} else if (automationHandler.getMode() == Automations.Modes.SPECIMEN) {
@@ -228,20 +227,20 @@ public class fieldCentricRed extends LinearOpMode {
 					break;
 
 				// Sample intake
-				case INTAKE_WAIT:
-					if (gamepad2.right_bumper) {
-						automationHandler.manualIntakePosition(Intake.BUCKET_SUB_BARRIER, gamepad2.dpad_up, gamepad2.dpad_down);
-					} else {
-						automationHandler.intakePosition(gamepad2.right_trigger, gamepad2.dpad_up, gamepad2.dpad_down);
+				case INTAKE_READY:
+					automationHandler.intakePosition(gamepad2.left_stick_x, -gamepad2.left_stick_y, heading, gamepad2.dpad_up, gamepad2.dpad_down);
+					if (gamepad2.a) {
+						automationHandler.intakeGrab();
 					}
-					automationHandler.setIntakePower(gamepad2.left_trigger > 0.9 ? -0.5 : 0.6);
-					automationHandler.intakeWait();
 					break;
-				case INTAKE_FILLED:
-					automationHandler.intakeFilled(Automations.Alliance.RED, true);
+				case INTAKE_GRABBING:
+					automationHandler.intakeGrabbing();
 					break;
-				case INTAKE_DUMPING:
-					automationHandler.intakeDumping();
+				case INTAKE_GRABBED:
+					automationHandler.intakeGrabbed(Automations.Alliance.RED, true);
+					break;
+				case INTAKE_RELEASE:
+					automationHandler.intakeRelease();
 					break;
 				// Transfer
 				case TRANSFER:
@@ -280,11 +279,11 @@ public class fieldCentricRed extends LinearOpMode {
 					break;
 				case SAMPLE_LOADED:
 					if (gamepad2.x) {
-						automationHandler.sampleEjectInit();
+						automationHandler.sampleEject();
 					}
-					break;
-				case SAMPLE_EJECT_WAIT:
-					automationHandler.sampleEject();
+					break;		
+				case SAMPLE_EJECTED:
+					automationHandler.resetSampleEject();
 					break;
 				// Grabbing specimen
 				case SPECIMEN_INIT_WAIT:

@@ -17,46 +17,56 @@ public class Intake {
 	 *
 	 * Most positions/values can be changed here.
 	 */
-	// Bucket
-	public static double BUCKET_INTAKE_HIGH = 0.925;
-	public static double BUCKET_INTAKE_LOW = 0.91;
+	// Intake
+	public static double RETRACTED_DRIVE = 0.985;
+	public static double RETRACTED_COAX = 0;
 
-	public static double BUCKET_SUB_BARRIER = 0.965;
+	public static double PRE_INTAKE_DRIVE = 0.915;
+	public static double PRE_INTAKE_COAX = 0;
 
-	public static double BUCKET_TRANSFER_POSITION = 0.935;
+	public static double INTAKE_DRIVE = 0.9025;
+	public static double INTAKE_COAX = 0;
 
-	public static double BUCKET_POST_TRANSFER_POSITION = 0.92;
+	public static double TRANSFER_DRIVE = 0.925;
+	public static double TRANSFER_COAX = 0;
 
-	public static double BUCKET_RETRACTED_POSITION = 1;
+	public static double offset_coax = 0;
 
 	// Slides
 	public static int SLIDE_POSITION_MIN = 0;
 	public static int SLIDE_POSITION_DEFAULT = 800;
 	public static int SLIDE_POSITION_MAX = 1200;
 
-	public static int SLIDE_TRANSFER_POSITION = 100;
+	public static int SLIDE_TRANSFER_POSITION = 0;
 
+	// Wrist
+	public static double WRIST_MIDDLE_POSITION = 0.5;
+
+	// Claw
+	public static double CLAW_OPEN = 0.6;
+	public static double CLAW_CLOSED = 0.4;
+	
 	/*
 	 * DO NOT change the below code unless necessary
 	 * or you know what you are doing
 	 */
 
-	private Servo flipServoLeft;
-	private Servo flipServoRight;
+	private Servo intakeDriveServoLeft;
+	private Servo intakeDriveServoRight;
+	private Servo intakeCoaxServo;
+	private Servo intakeClaw;
+	private Servo intakeWrist;
 	private DcMotor intakeSlides;
-	private DcMotor intakeMotor;
-	private TouchSensor intakeTouch;
 	private ColorRangeSensor colourRangeSensor;
 
-	public static Positions bucketPosition = Positions.INTAKE;
+	public static Positions intakePosition = Positions.INTAKE;
 	public static Positions slidePosition = Positions.TRANSFER;
 
 	public enum Positions {
 		RETRACTED,
-		SUB_BARRIER,
+		PRE_INTAKE,
 		INTAKE,
 		TRANSFER,
-		POST_TRANSFER,
 		MANUAL
 	}
 
@@ -67,10 +77,16 @@ public class Intake {
 	}
 
 	public Intake(HardwareMap hardwareMap, boolean resetEncoder) {
-		flipServoLeft = hardwareMap.get(Servo.class, "flipServoLeft");
-		flipServoRight = hardwareMap.get(Servo.class, "flipServoRight");
-		flipServoLeft.setDirection(Servo.Direction.FORWARD);
-		flipServoRight.setDirection(Servo.Direction.REVERSE);
+		intakeDriveServoLeft = hardwareMap.get(Servo.class, "intakeDriveServoLeft");
+		intakeDriveServoRight = hardwareMap.get(Servo.class, "intakeDriveServoRight");
+		intakeDriveServoLeft.setDirection(Servo.Direction.FORWARD);
+		intakeDriveServoRight.setDirection(Servo.Direction.REVERSE);
+
+		intakeCoaxServo = hardwareMap.get(Servo.class, "intakeCoaxServo");
+
+		intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
+
+		intakeWrist = hardwareMap.get(Servo.class, "intakeWrist");
 
 		// 0.012287150712598427 inPerTick
 		intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
@@ -79,16 +95,10 @@ public class Intake {
 		intakeSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		intakeSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-		intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
-		intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
 		colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
-
-		intakeTouch = hardwareMap.get(TouchSensor.class, "intakeTouch");
 	}
 
 	public void abort() {
-		intakeMotor.setPower(0);
 		intakeSlides.setPower(0);
 	}
 
@@ -97,8 +107,8 @@ public class Intake {
 	 * 
 	 * There are 5 methods: 
 	 * 	 master, (changes everything) 
-	 * 	 enum bucket, 
-	 * 	 manual bucket, 
+	 * 	 enum intake, 
+	 * 	 manual intake, 
 	 * 	 enum slides, 
 	 * 	 manual slides
 	 * Also some misc. get functions
@@ -106,54 +116,60 @@ public class Intake {
 	 * To change positions, set the configurable constants at the top
 	 */
 	public void setPosition(Positions position) {
-		setBucketPosition(position);
+		setIntakePosition(position);
 		setSlidePosition(position);
 	}
 
-	public void setBucketPosition(Positions position) {
-		Intake.bucketPosition = position;
-		double target = 0;
+	public void setIntakePosition(Positions position) {
+		Intake.intakePosition = position;
+		double driveTarget = 0;
+		double coaxTarget = 0;
 		switch (position) {
 			case RETRACTED:
-				target = BUCKET_RETRACTED_POSITION;
+				driveTarget = RETRACTED_DRIVE;
+				coaxTarget = RETRACTED_COAX;
 				break;
-			case SUB_BARRIER:
-				target = BUCKET_SUB_BARRIER;
+			case PRE_INTAKE:
+				driveTarget = PRE_INTAKE_DRIVE;
+				coaxTarget = PRE_INTAKE_COAX;
+				break;
 			case INTAKE:
-				target = BUCKET_INTAKE_LOW;
+				driveTarget = INTAKE_DRIVE;
+				coaxTarget = INTAKE_COAX;
 				break;
 			case TRANSFER:
 			default:
-				target = BUCKET_TRANSFER_POSITION;
-				break;
-			case POST_TRANSFER:
-				target = BUCKET_POST_TRANSFER_POSITION;
+				driveTarget = TRANSFER_DRIVE;
+				coaxTarget = TRANSFER_COAX;
 				break;
 		}
 
-		flipServoLeft.setPosition(target);
-		flipServoRight.setPosition(target);
+		intakeDriveServoLeft.setPosition(driveTarget);
+		intakeDriveServoRight.setPosition(driveTarget);
+		intakeCoaxServo.setPosition(coaxTarget);
 	}
-
-	public void setBucketPosition(double position) {
-		Intake.bucketPosition = Intake.Positions.MANUAL;
-		flipServoLeft.setPosition(position);
-		flipServoRight.setPosition(position);
+	
+	public void setIntakePosition(double driveTarget, double coaxTarget) {
+		Intake.intakePosition = Intake.Positions.MANUAL;
+		intakeDriveServoLeft.setPosition(driveTarget);
+		intakeDriveServoRight.setPosition(driveTarget);
+		intakeCoaxServo.setPosition(coaxTarget);
 	}
 
 	public void setSlidePosition(Positions position) {
 		Intake.slidePosition = position;
 		int target = 0;
 		switch (position) {
-			case INTAKE:
+			case PRE_INTAKE:
 				target = SLIDE_POSITION_DEFAULT;
 				break;
 			case TRANSFER:
-			case POST_TRANSFER:
-			case SUB_BARRIER:
+			case RETRACTED:
 			default:
 				target = SLIDE_TRANSFER_POSITION;
 				break;
+			case INTAKE:
+				return;
 		}
 		intakeSlides.setPower(1);
 		intakeSlides.setTargetPosition(target);
@@ -178,10 +194,21 @@ public class Intake {
 	}
 
 	/*
-	 * Sets power of intake motor
+	 * Rotates wrist
 	 */
-	public void setPower(double power) {
-		intakeMotor.setPower(power);
+	public void setWristRotation(double target) {
+		intakeWrist.setPosition(target);
+	}
+
+	/*
+	 * Open/closes claw
+	 */
+	public void openClaw() {
+		intakeClaw.setPosition(CLAW_OPEN);
+	}
+
+	public void closeClaw() {
+		intakeClaw.setPosition(CLAW_CLOSED);
 	}
 
 	/*
@@ -232,9 +259,5 @@ public class Intake {
 	public boolean colourSensorResponding() {
 		// TODO: Find better way to detect disconnect
 		return !(colourRangeSensor == null || (getRed() == 0 && getGreen() == 0 && getBlue() == 0));
-	}
-
-	public boolean isTouched() {
-		return intakeTouch.isPressed();
 	}
 }

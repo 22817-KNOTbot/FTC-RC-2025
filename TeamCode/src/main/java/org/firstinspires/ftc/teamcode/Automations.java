@@ -44,9 +44,10 @@ public class Automations {
 		ABORT,
 		IDLE,
 		// Intake
-		INTAKE_WAIT,
-		INTAKE_FILLED,
-		INTAKE_DUMPING,
+		INTAKE_READY,
+		INTAKE_GRABBING,
+		INTAKE_GRABBED,
+		INTAKE_RELEASE,
 		// Transfer (Variant NO_TRANSFER found below)
 		TRANSFER,
 		TRANSFER_WAIT,
@@ -58,7 +59,7 @@ public class Automations {
 		// NO_TRANSFER for intake but no transfer (specimens)
 		NO_TRANSFER,
 		SAMPLE_LOADED,
-		SAMPLE_EJECT_WAIT,
+		SAMPLE_EJECTED,
 		// Specimens
 		SPECIMEN_INIT_WAIT,
 		SPECIMEN_GRAB_READY,
@@ -121,7 +122,7 @@ public class Automations {
 
 	public void updateDashboardTelemetry() {
 		if (DEBUG) {
-			telemetryPacket.put("Intake Bucket", Intake.bucketPosition);
+			telemetryPacket.put("Intake Bucket", Intake.intakePosition);
 			telemetryPacket.put("Intake Slides", Intake.slidePosition);
 			telemetryPacket.put("CV4B", CV4B.position);
 		}
@@ -141,7 +142,7 @@ public class Automations {
 		slides.setPosition(Slides.Positions.RETRACTED);
 		if (mode == Modes.SAMPLE) {
 			intake.setPosition(Intake.Positions.TRANSFER);
-			cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+			cv4b.setPosition(CV4B.Positions.TRANSFER);
 		} else if (mode == Modes.SPECIMEN) {
 			intake.setPosition(Intake.Positions.RETRACTED);
 			cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
@@ -150,35 +151,25 @@ public class Automations {
 
 	public void intakeInit(SamplePurpose samplePurpose) {
 		this.samplePurpose = samplePurpose;
-		intake.setSlidePosition(Intake.Positions.INTAKE);
-		intake.setPower(0.6);
+		intake.setPosition(Intake.Positions.PRE_INTAKE);
+		intake.setWristRotation(Intake.WRIST_MIDDLE_POSITION);
+		intake.openClaw();
 		intakeFirstMoving = true;
 		timer.reset();
 
-		automationState = State.INTAKE_WAIT;
+		automationState = State.INTAKE_READY;
 	}
-
-	public void intakeWait() {
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 50) || intake.isTouched()) {
-			vibrateControllers();
-			automationState = State.INTAKE_FILLED;
+	
+	public void intakePosition(double x, double y, double heading, boolean extend, boolean retract) {
+		if (x != 0 && y != 0) {
+			x = x * Math.cos(heading) - y * Math.sin(heading);
+			y = x * Math.sin(heading) + y * Math.cos(heading);
+			// This formula clips the angle to the range -90deg to 90.
+			// Values outside this range are clipped to their opposite (ex: 135deg becomes -45deg)
+			double clippedAngle = ((Math.toDegrees(Math.atan2(x * (y / Math.abs(y)), Math.abs(y))) + 180) % 360) - 180;
+			double wristTarget = Intake.WRIST_MIDDLE_POSITION - (clippedAngle * (0.0005555556)); // The number is servo position value per degree
+			intake.setWristRotation(wristTarget);
 		}
-		if (DEBUG) {
-			telemetryPacket.put("Distance", intake.getDistance(DistanceUnit.MM));
-			telemetryPacket.put("Touched", intake.isTouched());
-		}
-	}
-
-	public void intakePosition(double input, boolean extend, boolean retract) {
-		if (timer.time() < 0.5) return;
-		final double up = Intake.BUCKET_INTAKE_HIGH;
-		final double down = Intake.BUCKET_INTAKE_LOW;
-		manualIntakePosition(down + input * (up - down), extend, retract);
-	}
-
-	public void manualIntakePosition(double input, boolean extend, boolean retract) {
-		intake.setBucketPosition(input);
-
 		if (intakeFirstMoving) {
 			if (!intake.isSlideBusy()) {
 				intakeFirstMoving = false;
@@ -192,11 +183,22 @@ public class Automations {
 		}
 	}
 
-	public void setIntakePower(double power) {
-		intake.setPower(power);
+	public void intakeGrab() {
+		intake.setIntakePosition(Intake.Positions.INTAKE);
+
+		timer.reset();
+
+		automationState = State.INTAKE_GRABBING;
 	}
 
-	public void intakeFilled(Alliance alliance, boolean yellowAllowed) {
+	public void intakeGrabbing() {
+		if (timer.time() < 0.3) return;
+		intake.closeClaw();
+
+		automationState = State.INTAKE_GRABBED;
+	}
+	
+	public void intakeGrabbed(Alliance alliance, boolean yellowAllowed) {
 		if (samplePurpose == SamplePurpose.SPECIMEN) yellowAllowed = false;
 		// Check sample colour
 		if (DEBUG) {
@@ -214,56 +216,48 @@ public class Automations {
 			automationState = (samplePurpose == SamplePurpose.SAMPLE) ? State.TRANSFER : State.NO_TRANSFER;
 		} else {
 			// If other alliance, dump
-			automationState = State.INTAKE_DUMPING;
+			automationState = State.INTAKE_RELEASE;
 		}
 	}
 
-	public void intakeDumping() {
-		intake.setPower(-0.5);
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 95) && !intake.isTouched()) {
-			intake.setPower(0.6);
-			automationState = State.INTAKE_WAIT;
-		}
-		if (DEBUG) {
-			telemetryPacket.put("Distance", intake.getDistance(DistanceUnit.MM));
-			telemetryPacket.put("Touched", intake.isTouched());
-		}
+	public void intakeRelease() {
+		intake.openClaw();
+		intake.setIntakePosition(Intake.Positions.PRE_INTAKE);
+		
+		automationState = State.INTAKE_READY;
 	}
 
 	public void transferInit() {		
 		// Retract intake slides
-		intake.setBucketPosition(Intake.BUCKET_SUB_BARRIER);
 		intake.setSlidePosition(Intake.Positions.TRANSFER);
-		intake.setPower(0);
-		cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+		intake.setIntakePosition(Intake.Positions.PRE_INTAKE);
+		intake.setWristRotation(Intake.WRIST_MIDDLE_POSITION);
+		cv4b.setPosition(CV4B.Positions.TRANSFER);
 		claw.setPosition(Claw.Positions.OPEN);
-		timer.reset();
 		
 		automationState = State.TRANSFER_WAIT;
 	}
 
 	public void transferWait() {
-		if (intake.getSlidePosition() < 110 && timer.time() > 1) {
-			if (timer.time() > 2) {
-				cv4b.setPosition(CV4B.Positions.TRANSFER);
-				timer.reset();
-	
-				automationState = State.TRANSFERRING;
-			} else {
-				intake.setPosition(Intake.Positions.TRANSFER);
-			}
+		if (intake.getSlidePosition() < 10) {
+			intake.setPosition(Intake.Positions.TRANSFER);
+			timer.reset();
+
+			automationState = State.TRANSFERRING;
 		}
 	}
 
 	public void transferring() {
-		if (timer.time() > 0.5 && timer.time() < 0.8) {
-			claw.setPosition(Claw.Positions.CLOSED);
-		} else if (timer.time() > 0.8) {
-			intake.setPosition(Intake.Positions.POST_TRANSFER);
-			vibrateControllers();
+		if (timer.time() > 1) {
+			if (timer.time() < 1.2) {
+				claw.setPosition(Claw.Positions.CLOSED);
+			} else {
+				intake.openClaw();
+				vibrateControllers();
 
-			automationState = State.TRANSFERRED;
-		}
+				automationState = State.TRANSFERRED;
+			}
+		}	
 	}
 
 	public void depositInit(Basket basket) {
@@ -290,7 +284,7 @@ public class Automations {
 	}
 
 	public void resetDeposit() {
-		cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+		cv4b.setPosition(CV4B.Positions.TRANSFER);
 		slides.setPosition(Slides.Positions.RETRACTED);
 
 		automationState = State.IDLE;
@@ -299,26 +293,21 @@ public class Automations {
 	// Retract arms without transferring. Designed for samples to be given to HP
 	public void noTransfer() {
 		// TODO: Don't retract
-		// intake.setSlidePosition(Intake.Positions.TRANSFER);
-		if (intake.getSlidePosition() < 10 && timer.time() > 1) {
-			intake.setBucketPosition(Intake.BUCKET_TRANSFER_POSITION);
-			automationState = State.SAMPLE_LOADED;
-		} else {
-			intake.setSlidePosition(0);
-			intake.setBucketPosition(Intake.BUCKET_SUB_BARRIER);	
-		}
-	}
+		intake.setSlidePosition(Intake.Positions.TRANSFER);
+		intake.setIntakePosition(Intake.Positions.PRE_INTAKE);
 
-	public void sampleEjectInit() {
-		intake.setPower(-0.5);
-		automationState = State.SAMPLE_EJECT_WAIT;
+		automationState = State.SAMPLE_LOADED;
 	}
 
 	public void sampleEject() {
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 95) && !intake.isTouched()) {
-			intake.setPower(0);
-			automationState = State.IDLE;
-		}
+		intake.openClaw();
+		automationState = State.SAMPLE_EJECTED;
+	}
+
+	public void resetSampleEject() {
+		intake.setPosition(Intake.Positions.TRANSFER);
+
+		automationState = State.IDLE;
 	}
 
 	public void specimenInit() {
@@ -421,9 +410,9 @@ public class Automations {
 		if (timer.time() < 0.3) {
 			cv4b.setPosition(CV4B.Positions.DEPOSIT);
 		} else if (timer.time() < 0.6) {
-			intake.setBucketPosition(Intake.Positions.TRANSFER);
+			intake.setIntakePosition(Intake.Positions.TRANSFER);
 		} else if (timer.time() < 1) {
-			cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+			cv4b.setPosition(CV4B.Positions.TRANSFER);
 		} else {
 			mode = Modes.SAMPLE;
 			automationState = State.IDLE;
@@ -434,7 +423,7 @@ public class Automations {
 		if (timer.time() < 0.3) {
 			cv4b.setPosition(CV4B.Positions.DEPOSIT);
 		} else if (timer.time() < 0.6) {
-			intake.setBucketPosition(Intake.Positions.RETRACTED);
+			intake.setIntakePosition(Intake.Positions.RETRACTED);
 		} else if (timer.time() < 1) {
 			cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
 		} else {
