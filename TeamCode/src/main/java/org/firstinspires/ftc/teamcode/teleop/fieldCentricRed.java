@@ -223,16 +223,20 @@ public class fieldCentricRed extends LinearOpMode {
 					break;
 
 				// Sample intake
-				case INTAKE_WAIT:
-					automationHandler.intakePosition(gamepad2.right_trigger, gamepad2.dpad_up, gamepad2.dpad_down);
-					automationHandler.setIntakePower(gamepad2.left_trigger > 0.9 ? -0.75 : 0.75);
-					automationHandler.intakeWait();
+				case INTAKE_READY:
+					automationHandler.intakePosition(gamepad2.left_stick_x, -gamepad2.left_stick_y, heading, gamepad2.dpad_up, gamepad2.dpad_down);
+					if (gamepad2.a) {
+						automationHandler.intakeGrab();
+					}
 					break;
-				case INTAKE_FILLED:
-					automationHandler.intakeFilled(Automations.Alliance.RED, true);
+				case INTAKE_GRABBING:
+					automationHandler.intakeGrabbing();
 					break;
-				case INTAKE_DUMPING:
-					automationHandler.intakeDumping();
+				case INTAKE_GRABBED:
+					automationHandler.intakeGrabbed(Automations.Alliance.RED, true);
+					break;
+				case INTAKE_RELEASE:
+					automationHandler.intakeRelease();
 					break;
 				// Transfer
 				case TRANSFER:
@@ -271,11 +275,11 @@ public class fieldCentricRed extends LinearOpMode {
 					break;
 				case SAMPLE_LOADED:
 					if (gamepad2.x) {
-						automationHandler.sampleEjectInit();
+						automationHandler.sampleEject();
 					}
 					break;		
-				case SAMPLE_EJECT_WAIT:
-					automationHandler.sampleEject();
+				case SAMPLE_EJECTED:
+					automationHandler.resetSampleEject();
 					break;
 				// Grabbing specimen
 				case SPECIMEN_INIT_WAIT:

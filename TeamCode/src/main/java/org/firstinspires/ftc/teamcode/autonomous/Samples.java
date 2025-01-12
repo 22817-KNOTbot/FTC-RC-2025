@@ -110,7 +110,7 @@ public class Samples extends LinearOpMode {
 				new ParallelAction(
 					// firstSample.build(),
 					slidesActions.raiseSlides(), // Raise slides
-					cv4bActions.setPosition(CV4B.Positions.DEPOSIT, 1.5), // Extend CV4B
+					cv4bActions.setPosition(CV4B.Positions.DEPOSIT, 1), // Extend CV4B
 					intakeActions.init()
 				),
 				// basket.build(),
@@ -118,41 +118,44 @@ public class Samples extends LinearOpMode {
 				
 				new ParallelAction(
 					// intakeFirst.build(),
-					cv4bActions.setPosition(CV4B.Positions.PRE_TRANSFER, 1.5), // Retract CV4B
+					cv4bActions.setPosition(CV4B.Positions.TRANSFER, 1), // Retract CV4B
 					slidesActions.lowerSlides(), // Lower slides
-					intakeActions.start() // Start intake
+					intakeActions.start(-5) // Start intake
 				),
-				intakeActions.retract(), // Stop and retract intake
+				intakeActions.grab(), // Grab sample
+				intakeActions.retract(0), // Stop and retract intake
 				intakeActions.transfer(), // Transfer
 				new ParallelAction(
 					slidesActions.raiseSlides(), // Raise slides
-					cv4bActions.setPosition(CV4B.Positions.DEPOSIT, 1.5) // Extend CV4B
+					cv4bActions.setPosition(CV4B.Positions.DEPOSIT, 1) // Extend CV4B
 				),
 				// depositFirst.build(),
 				clawActions.open(), // Dump
 				
 				new ParallelAction(
 					// intakeSecond.build(),
-					cv4bActions.setPosition(CV4B.Positions.PRE_TRANSFER, 1.5), // Retract CV4B
+					cv4bActions.setPosition(CV4B.Positions.TRANSFER, 1), // Retract CV4B
 					slidesActions.lowerSlides(), // Lower slides
-					intakeActions.start() // Start intake
+					intakeActions.start(15) // Start intake
 				),
-				intakeActions.retract(), // Stop and retract intake
+				intakeActions.grab(), // Grab sample
+				intakeActions.retract(0), // Stop and retract intake
 				intakeActions.transfer(), // Transfer
 				new ParallelAction(
 					slidesActions.raiseSlides(), // Raise slides
-					cv4bActions.setPosition(CV4B.Positions.DEPOSIT, 1.5) // Extend CV4B
+					cv4bActions.setPosition(CV4B.Positions.DEPOSIT, 1) // Extend CV4B
 				),
 				// depositSecond.build(),
 				clawActions.open(), // Dump
 				
 				new ParallelAction(
 					// intakeThird.build(),
-					cv4bActions.setPosition(CV4B.Positions.PRE_TRANSFER, 1.5), // Retract CV4B
+					cv4bActions.setPosition(CV4B.Positions.TRANSFER, 1), // Retract CV4B
 					slidesActions.lowerSlides(), // Lower slides
-					intakeActions.start() // Start intake
+					intakeActions.start(55) // Start intake
 				),
-				intakeActions.retract(), // Stop and retract intake
+				intakeActions.grab(), // Grab sample
+				intakeActions.retract(0), // Stop and retract intake
 				new ParallelAction(
 					// depositThird.build(),
 					new SequentialAction(
@@ -168,22 +171,23 @@ public class Samples extends LinearOpMode {
 
 				new ParallelAction(
 					// intakeFourth.build(),
-					cv4bActions.setPosition(CV4B.Positions.PRE_TRANSFER, 1.5), // Retract CV4B
+					cv4bActions.setPosition(CV4B.Positions.TRANSFER, 1), // Retract CV4B
 					slidesActions.lowerSlides() // Lower slides
 				),
-				intakeActions.start(), // Start intake
+				intakeActions.start(0), // Start intake
 				new RaceAction(
 					// intakeSweep.build(),
 					intakeActions.intakeWait()
 				),
-				intakeActions.retract(), // Stop and retract intake
+				intakeActions.grab(),
+				intakeActions.retract(0), // Stop and retract intake
 				new ParallelAction(
 					// depositFourth.build(),
 					new SequentialAction(
 						intakeActions.transfer(), // Transfer
 						new ParallelAction(
 							slidesActions.raiseSlides(), // Raise slides
-							cv4bActions.setPosition(CV4B.Positions.DEPOSIT, 1.5) // Extend CV4B
+							cv4bActions.setPosition(CV4B.Positions.DEPOSIT, 1) // Extend CV4B
 						)
 					)
 				),
@@ -192,7 +196,7 @@ public class Samples extends LinearOpMode {
 				
 				new ParallelAction(
 					// park.build(),
-					cv4bActions.setPosition(CV4B.Positions.PRE_TRANSFER, 1.5), // Retract CV4B
+					cv4bActions.setPosition(CV4B.Positions.TRANSFER, 1), // Retract CV4B
 					slidesActions.slidesToAscend() // Lower slides
 				)
 			)
@@ -216,7 +220,7 @@ public class Samples extends LinearOpMode {
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
 					if (timer.time() < 0.3 && timer.time() < 0.6) {
-						intake.setBucketPosition(Intake.Positions.TRANSFER);
+						intake.setIntakePosition(Intake.Positions.TRANSFER);
 					} else if (timer.time() > 0.6) {
 						return false;
 					}
@@ -225,20 +229,34 @@ public class Samples extends LinearOpMode {
 			};
 		}
 
-		public Action start() {
+		public Action start(double target) {
 			return new Action() {
-				private boolean initialized = false;
+				@Override
+				public boolean run(@NonNull TelemetryPacket packet) {
+					intake.setPosition(Intake.Positions.PRE_INTAKE);
+					intake.setWristRotation(Intake.WRIST_MIDDLE_POSITION - (target * (0.0005555556)));
+					intake.openClaw();
+					
+					return false;
+				}
+			};
+		}
+
+		public Action grab() {
+			return new Action() {
 				private ElapsedTime timer = new ElapsedTime();
+				private boolean initialized = false;
+
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
 					if (!initialized) {
-						intake.setSlidePosition(Intake.Positions.INTAKE);
-						intake.setPower(0.5);
-					} else if (timer.time() > 0.5) {
-						intake.setBucketPosition(Intake.Positions.INTAKE);
+						intake.setIntakePosition(Intake.Positions.INTAKE);
+					} else if (timer.time() > 0.3) {
+						intake.closeClaw();
+
 						return false;
 					}
-					
+
 					return true;
 				}
 			};
@@ -249,7 +267,6 @@ public class Samples extends LinearOpMode {
 				// private boolean initialized = false;
 				private boolean extending = true;
 				private ElapsedTime timer = new ElapsedTime();
-				private boolean dumping = false;
 
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
@@ -260,41 +277,39 @@ public class Samples extends LinearOpMode {
 					}
 					if (timer.time() > 0.5) extending = !extending;
 
-					if ((!intake.colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 50) && intake.isTouched()) {
-						if ((
+					if ((!intake.colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 50)
+						&& (
 							intake.checkSample(Intake.SampleColours.YELLOW)
 						) || (ALLIANCE == Alliances.RED ? (
 							intake.checkSample(Intake.SampleColours.RED)
 						) : (
 							intake.checkSample(Intake.SampleColours.BLUE)
-						))) {
-							return false;
-						} else {
-							intake.setPower(-0.75);
-							dumping = true;
-						}
-					} else if (dumping) {
-						intake.setPower(0.75);
-						dumping = false;
+						))
+					) {
+						return false;
 					}
 					return true;
 				}
 			};
 		}
 
-		public Action retract() {
+		public Action retract(double delay) {
 			return new Action() {
 				private ElapsedTime timer = new ElapsedTime();
+				private boolean initialized = false;
 
 				@Override
 				public boolean run(@NonNull TelemetryPacket packet) {
-					intake.setPosition(Intake.Positions.TRANSFER);
-					intake.setPower(0);
-					cv4bActions.setPositionMethod(CV4B.Positions.PRE_TRANSFER);
-					clawActions.setPositionMethod(Claw.Positions.OPEN);
-
-					if (timer.time() > 1.5 && !intake.isSlideBusy()) {
-						return false;
+					if (!initialized) {
+						intake.setSlidePosition(Intake.Positions.TRANSFER);
+						cv4bActions.setPositionMethod(CV4B.Positions.TRANSFER);
+						clawActions.setPositionMethod(Claw.Positions.OPEN);	
+					}
+					if (timer.time() > delay) {
+						intake.setIntakePosition(Intake.Positions.TRANSFER);
+						if (intake.getSlidePosition() < 10) {
+							return false;
+						}	
 					}
 					return true;
 				}
@@ -312,7 +327,10 @@ public class Samples extends LinearOpMode {
 						initialized = true;
 					} else if (timer.time() > 0.3) {
 						clawActions.setPositionMethod(Claw.Positions.CLOSED);
-						return false;
+						if (timer.time() > 0.4) {
+							intake.openClaw();
+							return false;
+						}
 					}
 
 					return true;
