@@ -23,7 +23,7 @@ public class Intake {
 
 	public static double BUCKET_TRANSFER_POSITION = 0.925;
 
-	public static double BUCKET_POST_TRANSFER_POSITION = 0.915;
+	public static double BUCKET_POST_TRANSFER_POSITION = 0.91;
 
 	public static double BUCKET_RETRACTED_POSITION = 0.985;
 
@@ -33,7 +33,7 @@ public class Intake {
 	public static int SLIDE_POSITION_MAX = 1200;
 
 	public static int SLIDE_TRANSFER_POSITION = 0;
-	
+
 	/*
 	 * DO NOT change the below code unless necessary
 	 * or you know what you are doing
@@ -129,7 +129,7 @@ public class Intake {
 		flipServoLeft.setPosition(target);
 		flipServoRight.setPosition(target);
 	}
-	
+
 	public void setBucketPosition(double position) {
 		Intake.bucketPosition = Intake.Positions.MANUAL;
 		flipServoLeft.setPosition(position);
@@ -152,7 +152,7 @@ public class Intake {
 		intakeSlides.setPower(1);
 		intakeSlides.setTargetPosition(target);
 	}
-	
+
 	public void setSlidePosition(int position) {
 		Intake.slidePosition = Intake.Positions.MANUAL;
 		intakeSlides.setPower(1);
@@ -192,13 +192,13 @@ public class Intake {
 		if (colourSensorResponding()) {
 			switch (colour) {
 				case RED:
-					correct = (red / green > 1.6) && (red / blue > 2);
+					correct = (red / green > 1.3) && (red / blue > 1.8);
 					break;
 				case BLUE:
-					correct = (blue / red > 3.5) && (blue / green > 1.2);
+					correct = (blue / red > 0.85) && (blue / green > 1.25);
 					break;
 				case YELLOW:
-					correct = (red / blue > 2.5) && (green / blue > 3);
+					correct = (red / blue > 1.5) && (green / blue > 0.9);
 					break;
 			}
 		} else {

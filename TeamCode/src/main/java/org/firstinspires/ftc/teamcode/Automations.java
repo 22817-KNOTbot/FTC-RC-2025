@@ -83,7 +83,7 @@ public class Automations {
 	}
 
 	public enum Alliance {
-		RED, 
+		RED,
 		BLUE
 	}
 
@@ -151,18 +151,18 @@ public class Automations {
 	public void intakeInit(SamplePurpose samplePurpose) {
 		this.samplePurpose = samplePurpose;
 		intake.setSlidePosition(Intake.Positions.INTAKE);
-		intake.setPower(0.75);
+		intake.setPower(0.6);
 		intakeFirstMoving = true;
 		timer.reset();
 
 		automationState = State.INTAKE_WAIT;
 	}
-	
+
 	public void intakeWait() {
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 50) && intake.isTouched()) {
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 50) || intake.isTouched()) {
 			vibrateControllers();
 			automationState = State.INTAKE_FILLED;
-		}	
+		}
 		if (DEBUG) {
 			telemetryPacket.put("Distance", intake.getDistance(DistanceUnit.MM));
 			telemetryPacket.put("Touched", intake.isTouched());
@@ -173,7 +173,7 @@ public class Automations {
 		if (timer.time() < 0.5) return;
 		final double up = Intake.BUCKET_INTAKE_HIGH;
 		final double down = Intake.BUCKET_INTAKE_LOW;
-		intake.setBucketPosition(down + input*(up-down));
+		intake.setBucketPosition(down + input * (up - down));
 
 		if (intakeFirstMoving) {
 			if (!intake.isSlideBusy()) {
@@ -191,7 +191,7 @@ public class Automations {
 	public void setIntakePower(double power) {
 		intake.setPower(power);
 	}
-	
+
 	public void intakeFilled(Alliance alliance, boolean yellowAllowed) {
 		if (samplePurpose == SamplePurpose.SPECIMEN) yellowAllowed = false;
 		// Check sample colour
@@ -215,9 +215,9 @@ public class Automations {
 	}
 
 	public void intakeDumping() {
-		intake.setPower(-0.75);
+		intake.setPower(-0.5);
 		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 95) && !intake.isTouched()) {
-			intake.setPower(0.75);
+			intake.setPower(0.6);
 			automationState = State.INTAKE_WAIT;
 		}
 		if (DEBUG) {
@@ -238,7 +238,7 @@ public class Automations {
 	}
 
 	public void transferWait() {
-		if ((timer.time() > 1.5 && !intake.isSlideBusy())) {
+		if (timer.time() > 1 && intake.getSlidePosition() < 10) {
 			cv4b.setPosition(CV4B.Positions.TRANSFER);
 			timer.reset();
 
@@ -276,7 +276,7 @@ public class Automations {
 
 	public void depositSample() {
 		claw.setPosition(Claw.Positions.OPEN);
-		
+
 		automationState = State.DEPOSITED;
 	}
 
@@ -296,7 +296,7 @@ public class Automations {
 	}
 
 	public void sampleEjectInit() {
-		intake.setPower(-0.75);
+		intake.setPower(-0.5);
 		automationState = State.SAMPLE_EJECT_WAIT;
 	}
 
@@ -306,7 +306,7 @@ public class Automations {
 			automationState = State.IDLE;
 		}
 	}
-	
+
 	public void specimenInit() {
 		cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
 		claw.setPosition(Claw.Positions.OPEN);
@@ -360,15 +360,15 @@ public class Automations {
 
 		automationState = State.IDLE;
 	}
-	
+
 	public void ascendInit() {
-		// Extend linear slides		
+		// Extend linear slides
 		slides.setPosition(Slides.Positions.ASCEND_TWO_PRE);
 		timer.reset();
 
 		automationState = State.ASCEND_LOW_EXTENDING;
 	}
-	
+
 	public void ascendLowExtending() {
 		if (timer.time() > 0.5) {
 			automationState = State.ASCEND_LOW_EXTENDED;
@@ -377,7 +377,7 @@ public class Automations {
 
 	public void ascendLowRetract() {
 		slides.setPosition(Slides.Positions.ASCEND_TWO_RETRACT);
-	
+
 		// TODO: Change state and put proper code
 		// automationState = State.ASCEND_HIGH_EXTENDING;
 		automationState = State.ASCENDED;
@@ -427,14 +427,14 @@ public class Automations {
 			automationState = State.IDLE;
 		}
 	}
- 
+
 	/*
 	 * Util functions
 	 */
 	public int getSlideLeftPosition() {
 		return slides.getSlideLeftPosition();
 	}
-	
+
 	public int getSlideRightPosition() {
 		return slides.getSlideRightPosition();
 	}
