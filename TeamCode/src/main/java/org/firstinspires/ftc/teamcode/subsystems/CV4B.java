@@ -19,14 +19,16 @@ public class CV4B {
 	 */
 	public static double PRE_TRANSFER_DRIVE = 0.4;
 	public static double PRE_TRANSFER_COAX = 0.4;
-	public static double TRANSFER_DRIVE = 0.37;
-	public static double TRANSFER_COAX = 0.36;
+	public static double TRANSFER_DRIVE = 0.4;
+	public static double TRANSFER_COAX = 0.365;
 	public static double DEPOSIT_DRIVE = 0.8;
 	public static double DEPOSIT_COAX = 0.5;
 	public static double SPECIMEN_GRAB_DRIVE = 0.35;
 	public static double SPECIMEN_GRAB_COAX = 0.4;
 	public static double SPECIMEN_HANG_DRIVE = 0.75;
 	public static double SPECIMEN_HANG_COAX = 0.5;
+	public static double ASCENT_DRIVE = 0.85;
+	public static double ASCENT_COAX = 0.5;
 	// Offsets are added to all positions.
 	// Use them to fix positions after slips
 	public static double offset_drive = 0;
@@ -50,6 +52,7 @@ public class CV4B {
 		SPECIMEN_GRAB,
 		SPECIMEN_HANG,
 		DEPOSIT,
+		LEVEL_ONE_ASCENT,
 		MANUAL
 	}
 
@@ -96,6 +99,10 @@ public class CV4B {
 			case SPECIMEN_HANG:
 				driveTarget = SPECIMEN_HANG_DRIVE + offset_drive;
 				coaxTarget = SPECIMEN_HANG_COAX + offset_coax;
+				break;
+			case LEVEL_ONE_ASCENT:
+				driveTarget = ASCENT_DRIVE + offset_drive;
+				coaxTarget = ASCENT_COAX + offset_coax;
 				break;
 		}
 		cv4bLeftServo.setPosition(driveTarget);

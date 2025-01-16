@@ -19,7 +19,7 @@ public class Intake {
 	 */
 	// Bucket
 	public static double BUCKET_INTAKE_HIGH = 0.925;
-	public static double BUCKET_INTAKE_LOW = 0.9025;
+	public static double BUCKET_INTAKE_LOW = 0.9015;
 
 	public static double BUCKET_TRANSFER_POSITION = 0.925;
 
@@ -32,7 +32,7 @@ public class Intake {
 	public static int SLIDE_POSITION_DEFAULT = 800;
 	public static int SLIDE_POSITION_MAX = 1200;
 
-	public static int SLIDE_TRANSFER_POSITION = 0;
+	public static int SLIDE_TRANSFER_POSITION = 100;
 
 	/*
 	 * DO NOT change the below code unless necessary
