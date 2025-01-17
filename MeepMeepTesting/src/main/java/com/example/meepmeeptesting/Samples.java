@@ -20,22 +20,22 @@ public class Samples {
 				.build();
 
 		if (OPTION == 1) {
-			TrajectoryActionBuilder firstSample = myBot.getDrive().actionBuilder(new Pose2d(-23, -62, Math.toRadians(0)))
+			TrajectoryActionBuilder firstSample = myBot.getDrive().actionBuilder(new Pose2d(-23, -62, 0))
 				.setTangent(90)
 				.splineToSplineHeading(new Pose2d(-54, -54, Math.toRadians(45)), Math.toRadians(200));
-			
-			TrajectoryActionBuilder intakeFirst = myBot.getDrive().actionBuilder(new Pose2d(-54, -54, Math.toRadians(45)))
-				.splineTo(new Vector2d(-49, -40), Math.toRadians(90));
 
-			TrajectoryActionBuilder depositFirst = myBot.getDrive().actionBuilder(new Pose2d(-49, -40, Math.toRadians(90)))
+			TrajectoryActionBuilder intakeFirst = myBot.getDrive().actionBuilder(new Pose2d(-54, -54, Math.toRadians(45)))
+				.splineTo(new Vector2d(-49, -43), Math.toRadians(90));
+
+			TrajectoryActionBuilder depositFirst = myBot.getDrive().actionBuilder(new Pose2d(-49, -43, Math.toRadians(90)))
 				.setReversed(true)
 				.splineTo(new Vector2d(-54, -54), Math.toRadians(225));
 
 			TrajectoryActionBuilder intakeSecond = myBot.getDrive().actionBuilder(new Pose2d(-54, -54, Math.toRadians(45)))
 				.splineToSplineHeading(new Pose2d(-58, -48, Math.toRadians(90)), Math.toRadians(90))
-				.splineToConstantHeading(new Vector2d(-58, -42), Math.toRadians(90));
+				.splineToConstantHeading(new Vector2d(-58, -43), Math.toRadians(90));
 
-			TrajectoryActionBuilder depositSecond = myBot.getDrive().actionBuilder(new Pose2d(-58, -42, Math.toRadians(90)))
+			TrajectoryActionBuilder depositSecond = myBot.getDrive().actionBuilder(new Pose2d(-58, -43, Math.toRadians(90)))
 				.setReversed(true)
 				.splineTo(new Vector2d(-54, -54), Math.toRadians(225));
 
@@ -59,7 +59,6 @@ public class Samples {
 
 			TrajectoryActionBuilder park = myBot.getDrive().actionBuilder(new Pose2d(-54, -54, Math.toRadians(45)))
 				.splineToLinearHeading(new Pose2d(-25, 0, Math.toRadians(180)), Math.toRadians(0));
-
 
 			myBot.runAction(new SequentialAction(
 				firstSample.build(),
