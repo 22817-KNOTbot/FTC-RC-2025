@@ -238,7 +238,7 @@ public class Automations {
 	}
 
 	public void transferWait() {
-		if (timer.time() > 1 && intake.getSlidePosition() < 10) {
+		if (timer.time() > 1 && intake.getSlidePosition() < 110) {
 			cv4b.setPosition(CV4B.Positions.TRANSFER);
 			timer.reset();
 
