@@ -247,9 +247,9 @@ public class Automations {
 	}
 
 	public void transferring() {
-		if (timer.time() > 0.5 && timer.time() < 0.6) {
+		if (timer.time() > 0.5 && timer.time() < 0.8) {
 			claw.setPosition(Claw.Positions.CLOSED);
-		} else if (timer.time() > 0.6) {
+		} else if (timer.time() > 0.8) {
 			intake.setPosition(Intake.Positions.POST_TRANSFER);
 			vibrateControllers();
 

@@ -17,11 +17,11 @@ public class CV4B {
 	 * Drive: Higher = back
 	 * Coax: Higher = back
 	 */
-	public static double PRE_TRANSFER_DRIVE = 0.4;
+	public static double PRE_TRANSFER_DRIVE = 0.43;
 	public static double PRE_TRANSFER_COAX = 0.4;
-	public static double TRANSFER_DRIVE = 0.4;
+	public static double TRANSFER_DRIVE = 0.45;
 	public static double TRANSFER_COAX = 0.365;
-	public static double DEPOSIT_DRIVE = 0.8;
+	public static double DEPOSIT_DRIVE = 0.85;
 	public static double DEPOSIT_COAX = 0.5;
 	public static double SPECIMEN_GRAB_DRIVE = 0.35;
 	public static double SPECIMEN_GRAB_COAX = 0.4;

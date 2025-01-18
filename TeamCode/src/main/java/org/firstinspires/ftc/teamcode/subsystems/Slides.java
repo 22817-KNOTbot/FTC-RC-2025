@@ -23,7 +23,7 @@ public class Slides {
 	public static int ASCEND_ONE_POSITION = 2000;
 
 	public static int ASCEND_TWO_PRE_POSITION = 2100;
-	public static int ASCEND_TWO_RETRACT_POSITION = 1100;
+	public static int ASCEND_TWO_RETRACT_POSITION = 900;
 
 	/*
 	 * DO NOT change the below code unless necessary
