@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 @Disabled
 @Config
-@TeleOp(name="PWM Servo testing", group="Debug")
+// @TeleOp(name="PWM Servo testing", group="Debug")
 public class PwmTesting extends LinearOpMode {
 	public static double POSITION = 0;
 	public static int MIN_PWM = 600;

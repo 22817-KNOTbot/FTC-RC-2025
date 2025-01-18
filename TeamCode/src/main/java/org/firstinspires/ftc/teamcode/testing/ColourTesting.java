@@ -7,9 +7,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 
-@Disabled
+// @Disabled
 @Config
-@TeleOp(name="Color testing", group="Debug")
+// @TeleOp(name="Color testing", group="Debug")
 public class ColourTesting extends LinearOpMode {
     public static double COLOUR_THRESHOLD_1 = 2.5;
     public static double COLOUR_THRESHOLD_2 = 3;

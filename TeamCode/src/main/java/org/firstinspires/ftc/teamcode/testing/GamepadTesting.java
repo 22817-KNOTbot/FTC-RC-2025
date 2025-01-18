@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.Drawing;
 
 @Config
 @Disabled
-@TeleOp(name="Gamepad Testing", group="Debug")
+// @TeleOp(name="Gamepad Testing", group="Debug")
 public class GamepadTesting extends LinearOpMode {
 	public static int RUMBLE_DURATION = 500;
 	public static int COLOUR_RED = 255;

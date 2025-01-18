@@ -17,7 +17,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.PtzCont
 
 @Disabled
 @Config
-@TeleOp(name="Camera Setting", group="Debug")
+// @TeleOp(name="Camera Setting", group="Debug")
 public class CameraSetting extends LinearOpMode {
 	public static int EXPOSURE = 15;
 	public static int GAIN = 100;

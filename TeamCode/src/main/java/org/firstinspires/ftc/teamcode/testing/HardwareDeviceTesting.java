@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.HardwareDevice;
 
 @Disabled
 @Config
-@TeleOp(name="Hardare Device Testing", group="Debug")
+// @TeleOp(name="Hardare Device Testing", group="Debug")
 public class HardwareDeviceTesting extends LinearOpMode {
 	public static String DEVICE_NAME = "testDevice"; 
 

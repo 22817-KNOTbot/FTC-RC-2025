@@ -6,13 +6,15 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+@Disabled
 @Config
-@TeleOp(name="Touch sensor testing", group="Debug")
+// @TeleOp(name="Touch sensor testing", group="Debug")
 public class TouchSensorTesting extends LinearOpMode {
 	public static String TOUCH_SENSOR_NAME = "intakeTouch";
 	public static String DIGITAL_CHANNEL_NAME = "intakeTouch";
