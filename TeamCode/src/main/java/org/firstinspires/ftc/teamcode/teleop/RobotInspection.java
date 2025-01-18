@@ -11,54 +11,41 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.subsystems.CV4B;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Slides;
 
 @Config
 @TeleOp(name="Robot Inspection", group="Debug")
 public class RobotInspection extends LinearOpMode {
-	public static CV4B.Positions CV4B_POSITION = CV4B.Positions.SPECIMEN_GRAB;
-	public static int SLIDE_POSITION = 4100;
-	public static int INTAKE_POSITION = 800;
+	public static CV4B.Positions CV4B_POSITION = CV4B.Positions.DEPOSIT;
+	public static Slides.Positions SLIDE_POSITION = Slides.Positions.HIGH_BASKET;
+	public static int INTAKE_POSITION = Intake.SLIDE_POSITION_MAX;
 	private static boolean extended = false;
-	public DcMotor slideMotorLeft;
-	public DcMotor slideMotorRight;
 	private CV4B cv4b;
+	private Intake intake;
+	private Slides slides;
 
 	@Override
 	public void runOpMode() {
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
 		cv4b = new CV4B(hardwareMap);
-
-		slideMotorLeft = hardwareMap.get(DcMotor.class, "slideMotorLeft");
-		slideMotorRight = hardwareMap.get(DcMotor.class, "slideMotorRight");
-		slideMotorLeft.setPower(1);
-		slideMotorRight.setPower(1);
-		slideMotorLeft.setTargetPosition(0);
-		slideMotorRight.setTargetPosition(0);
-		slideMotorLeft.setDirection(DcMotor.Direction.REVERSE);
-		slideMotorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-		slideMotorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-		slideMotorLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		slideMotorRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-		DcMotor intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
-		intakeSlides.setPower(1);
-		intakeSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-		intakeSlides.setTargetPosition(0);
-		intakeSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		intakeSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		intake = new Intake(hardwareMap, false);
+		slides = new Slides(hardwareMap, false);
 
 		waitForStart();
 
 		while (opModeIsActive()) {
 			if (!extended) {
-				cv4b.setPosition(CV4B.Positions.TRANSFER);
-				setSlidePosition(0);
-				intakeSlides.setTargetPosition(0);
+				cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+				slides.setPosition(Slides.Positions.RETRACTED);
+				intake.setSlidePosition(0);
+				intake.setBucketPosition(Intake.Positions.TRANSFER);
 			} else {
 				cv4b.setPosition(CV4B_POSITION);
-				setSlidePosition(SLIDE_POSITION);
-				intakeSlides.setTargetPosition(INTAKE_POSITION);
+				slides.setPosition(SLIDE_POSITION);
+				intake.setSlidePosition(INTAKE_POSITION);
+				intake.setBucketPosition(Intake.Positions.TRANSFER);
 			}
 
 			if (gamepad1.left_bumper) {
@@ -67,11 +54,5 @@ public class RobotInspection extends LinearOpMode {
 				extended = true;
 			}
 		}
-	}
-
-	public void setSlidePosition(int targetPos) {
-		// Max 4200
-		slideMotorLeft.setTargetPosition(targetPos);
-		slideMotorRight.setTargetPosition(targetPos);
 	}
 }
