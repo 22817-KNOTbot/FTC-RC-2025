@@ -21,11 +21,13 @@ public class Intake {
 	public static double BUCKET_INTAKE_HIGH = 0.925;
 	public static double BUCKET_INTAKE_LOW = 0.91;
 
-	public static double BUCKET_TRANSFER_POSITION = 0.932;
+	public static double BUCKET_SUB_BARRIER = 0.965;
+
+	public static double BUCKET_TRANSFER_POSITION = 0.935;
 
 	public static double BUCKET_POST_TRANSFER_POSITION = 0.92;
 
-	public static double BUCKET_RETRACTED_POSITION = 0.985;
+	public static double BUCKET_RETRACTED_POSITION = 1;
 
 	// Slides
 	public static int SLIDE_POSITION_MIN = 0;
@@ -51,6 +53,7 @@ public class Intake {
 
 	public enum Positions {
 		RETRACTED,
+		SUB_BARRIER,
 		INTAKE,
 		TRANSFER,
 		POST_TRANSFER,
@@ -114,6 +117,8 @@ public class Intake {
 			case RETRACTED:
 				target = BUCKET_RETRACTED_POSITION;
 				break;
+			case SUB_BARRIER:
+				target = BUCKET_SUB_BARRIER;
 			case INTAKE:
 				target = BUCKET_INTAKE_LOW;
 				break;
@@ -145,6 +150,7 @@ public class Intake {
 				break;
 			case TRANSFER:
 			case POST_TRANSFER:
+			case SUB_BARRIER:
 			default:
 				target = SLIDE_TRANSFER_POSITION;
 				break;
@@ -192,13 +198,13 @@ public class Intake {
 		if (colourSensorResponding()) {
 			switch (colour) {
 				case RED:
-					correct = (red / green > 0.86) && (red / blue > 1.13);
+					correct = (red / green >= 0.7) && (red / blue >= 0.9);
 					break;
 				case BLUE:
-					correct = (blue / red > 2.2) && (blue / green > 1.2);
+					correct = (blue / red >= 1.8) && (blue / green >= 0.8);
 					break;
 				case YELLOW:
-					correct = (red / blue > 1.25) && (green / blue > 1.9);
+					correct = (red / blue >= 1) && (green / blue >= 1.6);
 					break;
 			}
 		} else {

@@ -66,27 +66,27 @@ public class Samples extends LinearOpMode {
 
 		TrajectoryActionBuilder firstSample = drive.actionBuilder(initialPose)
 			.setTangent(90)
-			.splineToSplineHeading(new Pose2d(-54, -54, Math.toRadians(45)), Math.toRadians(200));
+			.splineToSplineHeading(new Pose2d(-57, -57, Math.toRadians(45)), Math.toRadians(200));
 
 		TrajectoryActionBuilder intakeFirst = drive.actionBuilder(new Pose2d(-54, -54, Math.toRadians(45)))
 			.splineToLinearHeading(new Pose2d(-48.5, -49, Math.toRadians(90)), Math.toRadians(0));
 
 		TrajectoryActionBuilder depositFirst = drive.actionBuilder(new Pose2d(-48.5, -49, Math.toRadians(90)))
 			.setReversed(true)
-			.splineTo(new Vector2d(-54, -54), Math.toRadians(225));
+			.splineTo(new Vector2d(-56, -56), Math.toRadians(225));
 
 		TrajectoryActionBuilder intakeSecond = drive.actionBuilder(new Pose2d(-54, -54, Math.toRadians(45)))
 			.splineToLinearHeading(new Pose2d(-58, -49, Math.toRadians(90)), Math.toRadians(90));
 
 		TrajectoryActionBuilder depositSecond = drive.actionBuilder(new Pose2d(-58, -49, Math.toRadians(90)))
-			.splineToLinearHeading(new Pose2d(-54, -54, Math.toRadians(45)), Math.toRadians(270));
+			.splineToLinearHeading(new Pose2d(-56, -56, Math.toRadians(45)), Math.toRadians(270));
 
 		TrajectoryActionBuilder intakeThird = drive.actionBuilder(new Pose2d(-54, -54, Math.toRadians(45)))
 			.splineToSplineHeading(new Pose2d(-52, -38, Math.toRadians(140)), Math.toRadians(145));
 
 		TrajectoryActionBuilder depositThird = drive.actionBuilder(new Pose2d(-52, -38, Math.toRadians(140)))
 			.setReversed(true)
-			.splineTo(new Vector2d(-54, -54), Math.toRadians(225));
+			.splineTo(new Vector2d(-56, -56), Math.toRadians(225));
 			
 		TrajectoryActionBuilder intakeFourth = drive.actionBuilder(new Pose2d(-54, -54, Math.toRadians(45)))
 			.splineTo(new Vector2d(-25, -10), Math.toRadians(0));
@@ -124,7 +124,7 @@ public class Samples extends LinearOpMode {
 					slidesActions.lowerSlides(), // Lower slides
 					new SequentialAction(
 						intakeFirst.build(),
-						intakeActions.start(Intake.SLIDE_POSITION_MAX, 0.3) // Start intake
+						intakeActions.start(Intake.SLIDE_POSITION_MAX, 0) // Start intake
 					)
 				),
 				new RaceAction(
@@ -151,7 +151,7 @@ public class Samples extends LinearOpMode {
 					slidesActions.lowerSlides(), // Lower slides
 					new SequentialAction(
 						intakeSecond.build(),
-						intakeActions.start(Intake.SLIDE_POSITION_MAX,0.3) // Start intake
+						intakeActions.start(Intake.SLIDE_POSITION_MAX,0) // Start intake
 					)
 				),
 				new RaceAction(
@@ -178,7 +178,7 @@ public class Samples extends LinearOpMode {
 					slidesActions.lowerSlides(), // Lower slides
 					new SequentialAction(
 						intakeThird.build(),
-						intakeActions.start(700, 0.1) // Start intake
+						intakeActions.start(700, 0) // Start intake
 					)
 				),
 				new RaceAction(
@@ -232,7 +232,8 @@ public class Samples extends LinearOpMode {
 					)
 				),
 
-				cv4bActions.setPosition(CV4B.Positions.LEVEL_ONE_ASCENT, 1) // Retract CV4B
+				cv4bActions.setPosition(CV4B.Positions.LEVEL_ONE_ASCENT, 0.2), // Retract CV4B
+				clawActions.close()
 
 				
 				// firstSample.build(),
@@ -397,7 +398,7 @@ public class Samples extends LinearOpMode {
 						initialized = true;
 					}
 
-					if ((timer.time() > 1 && intake.getSlidePosition() < 110)/* || timer.time() > 3*/) {
+					if ((timer.time() > 1.5 && intake.getSlidePosition() < 110)/* || timer.time() > 3*/) {
 						return false;
 					}
 					return true;

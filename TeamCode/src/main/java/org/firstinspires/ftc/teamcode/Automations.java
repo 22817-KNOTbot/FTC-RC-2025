@@ -173,7 +173,11 @@ public class Automations {
 		if (timer.time() < 0.5) return;
 		final double up = Intake.BUCKET_INTAKE_HIGH;
 		final double down = Intake.BUCKET_INTAKE_LOW;
-		intake.setBucketPosition(down + input * (up - down));
+		manualIntakePosition(down + input * (up - down), extend, retract);
+	}
+
+	public void manualIntakePosition(double input, boolean extend, boolean retract) {
+		intake.setBucketPosition(input);
 
 		if (intakeFirstMoving) {
 			if (!intake.isSlideBusy()) {
@@ -199,7 +203,7 @@ public class Automations {
 			telemetryPacket.put("Color", String.format("%d|%d|%d", intake.getRed(), intake.getGreen(), intake.getBlue()));
 		}
 
-		if ((yellowAllowed ? (
+		if (true || (yellowAllowed ? (
 			intake.checkSample(Intake.SampleColours.YELLOW)
 		) : false) || (alliance == Alliance.RED ? (
 			intake.checkSample(Intake.SampleColours.RED)
@@ -228,7 +232,8 @@ public class Automations {
 
 	public void transferInit() {		
 		// Retract intake slides
-		intake.setPosition(Intake.Positions.TRANSFER);
+		intake.setBucketPosition(Intake.BUCKET_SUB_BARRIER);
+		intake.setSlidePosition(Intake.Positions.TRANSFER);
 		intake.setPower(0);
 		cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
 		claw.setPosition(Claw.Positions.OPEN);
@@ -238,11 +243,15 @@ public class Automations {
 	}
 
 	public void transferWait() {
-		if (timer.time() > 1 && intake.getSlidePosition() < 110) {
-			cv4b.setPosition(CV4B.Positions.TRANSFER);
-			timer.reset();
-
-			automationState = State.TRANSFERRING;
+		if (intake.getSlidePosition() < 110 && timer.time() > 1) {
+			if (timer.time() > 2) {
+				cv4b.setPosition(CV4B.Positions.TRANSFER);
+				timer.reset();
+	
+				automationState = State.TRANSFERRING;
+			} else {
+				intake.setPosition(Intake.Positions.TRANSFER);
+			}
 		}
 	}
 
@@ -290,9 +299,14 @@ public class Automations {
 	// Retract arms without transferring. Designed for samples to be given to HP
 	public void noTransfer() {
 		// TODO: Don't retract
-		intake.setSlidePosition(Intake.Positions.TRANSFER);
-
-		automationState = State.SAMPLE_LOADED;
+		// intake.setSlidePosition(Intake.Positions.TRANSFER);
+		if (intake.getSlidePosition() < 10 && timer.time() > 1) {
+			intake.setBucketPosition(Intake.BUCKET_TRANSFER_POSITION);
+			automationState = State.SAMPLE_LOADED;
+		} else {
+			intake.setSlidePosition(0);
+			intake.setBucketPosition(Intake.BUCKET_SUB_BARRIER);	
+		}
 	}
 
 	public void sampleEjectInit() {
@@ -310,6 +324,7 @@ public class Automations {
 	public void specimenInit() {
 		cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
 		claw.setPosition(Claw.Positions.OPEN);
+		intake.setSlidePosition(0);
 
 		timer.reset();
 

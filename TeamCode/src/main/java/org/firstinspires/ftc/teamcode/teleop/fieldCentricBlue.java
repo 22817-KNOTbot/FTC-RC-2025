@@ -29,6 +29,7 @@ import org.firstinspires.ftc.teamcode.Localizer;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.ThreeDeadWheelLocalizer;
 import org.firstinspires.ftc.teamcode.subsystems.CV4B;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.util.ControlTheory;
 import org.firstinspires.ftc.teamcode.util.OpModeStorage;
 import org.firstinspires.ftc.teamcode.util.GamepadStorage;
@@ -198,6 +199,7 @@ public class fieldCentricBlue extends LinearOpMode {
 						} else if (gamepad2.x) {
 							automationHandler.intakeInit(Automations.SamplePurpose.SPECIMEN);
 						}
+						automationHandler.setIntakePower(gamepad2.left_trigger > 0.9 ? -0.5 : 0);
 
 						// Specimen mode
 					} else if (automationHandler.getMode() == Automations.Modes.SPECIMEN) {
@@ -227,7 +229,11 @@ public class fieldCentricBlue extends LinearOpMode {
 
 				// Sample intake
 				case INTAKE_WAIT:
-					automationHandler.intakePosition(gamepad2.right_trigger, gamepad2.dpad_up, gamepad2.dpad_down);
+					if (gamepad2.right_bumper) {
+						automationHandler.manualIntakePosition(Intake.BUCKET_SUB_BARRIER, gamepad2.dpad_up, gamepad2.dpad_down);
+					} else {
+						automationHandler.intakePosition(gamepad2.right_trigger, gamepad2.dpad_up, gamepad2.dpad_down);
+					}
 					automationHandler.setIntakePower(gamepad2.left_trigger > 0.9 ? -0.5 : 0.6);
 					automationHandler.intakeWait();
 					break;
@@ -338,6 +344,12 @@ public class fieldCentricBlue extends LinearOpMode {
 			if (gamepad1.a) {
 				targetBasket = targetBasket == Automations.Basket.HIGH ? Automations.Basket.LOW
 						: Automations.Basket.HIGH;
+			}
+
+			if (gamepad1.dpad_up) {
+				CV4B.offset_drive += 0.05;
+			} else if (gamepad1.dpad_down) {
+				CV4B.offset_drive -= 0.05;
 			}
 
 			buttonPressed = gamepad2.y || gamepad2.b || gamepad1.left_trigger > 0.9;
