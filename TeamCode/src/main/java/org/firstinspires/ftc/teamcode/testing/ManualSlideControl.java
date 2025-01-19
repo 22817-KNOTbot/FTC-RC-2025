@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 @Config
-@TeleOp(name="Manual slide control", group="Debug")
+// @TeleOp(name="Manual slide control", group="Debug")
 // Design for control of intake slides
 // Set power = 0 to manually get encoder limits
 // Set power = 1 to set position

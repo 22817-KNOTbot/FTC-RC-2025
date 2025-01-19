@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.vision.VisionPortal;
 
@@ -14,8 +15,9 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.Exposur
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.PtzControl;
 
+@Disabled
 @Config
-@TeleOp(name="Camera Setting", group="Debug")
+// @TeleOp(name="Camera Setting", group="Debug")
 public class CameraSetting extends LinearOpMode {
 	public static int EXPOSURE = 15;
 	public static int GAIN = 100;

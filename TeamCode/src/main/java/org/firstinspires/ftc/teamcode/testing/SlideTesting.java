@@ -7,7 +7,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 @Config
-@TeleOp(name="Linear slide testing", group="Debug")
+// @TeleOp(name="Linear slide testing", group="Debug")
 public class SlideTesting extends LinearOpMode {
 	public static String MOTOR1 = "slideMotorLeft";
 	public static String MOTOR2 = "slideMotorRight";

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -10,10 +11,16 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
+import org.firstinspires.ftc.teamcode.subsystems.Claw;
 import org.firstinspires.ftc.teamcode.subsystems.CV4B;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Slides;
+
+import org.firstinspires.ftc.teamcode.util.GamepadStorage;
 
 public class Automations {
 	public State automationState;
+	private Modes mode;
 	private SamplePurpose samplePurpose;
 	private HardwareMap hardwareMap;
 	private boolean DEBUG = false;
@@ -21,15 +28,17 @@ public class Automations {
 	private FtcDashboard dashboard;
 	public TelemetryPacket telemetryPacket;
 
+	private Gamepad gamepad1;
+	private Gamepad gamepad2;
+
 	// Hardware mapping
-	public CV4B cv4b;
-	private DcMotor intakeSlides;
-	private DcMotor scoopMotor;
-	private Servo flipServo;
-	private ColorRangeSensor colourRangeSensor;
-	private Servo clawServo;
-	public DcMotor slideMotorLeft;
-	public DcMotor slideMotorRight;
+	private Intake intake;
+	private Slides slides;
+	private CV4B cv4b;
+	private Claw claw;
+
+	// Misc
+	private boolean intakeFirstMoving = false;
 
 	public enum State {
 		ABORT,
@@ -53,6 +62,7 @@ public class Automations {
 		// Specimens
 		SPECIMEN_INIT_WAIT,
 		SPECIMEN_GRAB_READY,
+		SPECIMEN_GRABBING,
 		SPECIMEN_GRABBED,
 		SPECIMEN_HANGING,
 		SPECIMEN_HUNG,
@@ -60,10 +70,20 @@ public class Automations {
 		ASCEND_LOW_EXTENDING,
 		ASCEND_LOW_EXTENDED,
 		ASCEND_LOW_RETRACTING,
+		ASCENDED,
+
+		// Mode switching
+		SAMPLE_TO_SPECIMEN,
+		SPECIMEN_TO_SAMPLE
+	}
+
+	public enum Modes {
+		SAMPLE,
+		SPECIMEN
 	}
 
 	public enum Alliance {
-		RED, 
+		RED,
 		BLUE
 	}
 
@@ -77,134 +97,120 @@ public class Automations {
 		SPECIMEN
 	}
 
-	public Automations(HardwareMap hardwareMap) {
-		this(hardwareMap, false);
+	public Automations(HardwareMap hardwareMap, Modes mode) {
+		this(hardwareMap, mode, false);
 	}
 
-	public Automations(HardwareMap inputHardwareMap, boolean DEBUG) {
+	public Automations(HardwareMap hardwareMap, Modes mode, boolean DEBUG) {
 		this.automationState = State.IDLE;
-		this.hardwareMap = inputHardwareMap;
+		this.mode = mode;
+		this.hardwareMap = hardwareMap;
 		this.DEBUG = DEBUG;
 		this.timer = new ElapsedTime();
 		this.dashboard = FtcDashboard.getInstance();
 		this.telemetryPacket = new TelemetryPacket();
 
+		if (GamepadStorage.gamepad1 != null) this.gamepad1 = GamepadStorage.gamepad1;
+		if (GamepadStorage.gamepad2 != null) this.gamepad2 = GamepadStorage.gamepad2;
+
+		intake = new Intake(hardwareMap, false);
+		slides = new Slides(hardwareMap, false);
 		cv4b = new CV4B(hardwareMap);
-		intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
-		// intakeSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-		intakeSlides.setTargetPosition(0);
-		intakeSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		intakeSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-		scoopMotor = hardwareMap.get(DcMotor.class, "scoopMotor");
-		scoopMotor.setDirection(DcMotor.Direction.REVERSE);
-		scoopMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-		// Bucket: 0.76 = transfer, 0.887 = intake, 0.78 = post-transfer, 0.81 = ascent, 0.84 = beginning of spec auto
-		flipServo = hardwareMap.get(Servo.class, "flipServo");
-
-		colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
-
-		// Claw: 0 = open, 1 = closed
-		clawServo = hardwareMap.get(Servo.class, "clawServo");
-		clawServo.setDirection(Servo.Direction.REVERSE);
-		clawServo.scaleRange(0, 0.01);
-
-		slideMotorLeft = hardwareMap.get(DcMotor.class, "slideMotorLeft");
-		slideMotorRight = hardwareMap.get(DcMotor.class, "slideMotorRight");
-		slideMotorLeft.setTargetPosition(0);
-		slideMotorRight.setTargetPosition(0);
-		slideMotorLeft.setDirection(DcMotor.Direction.REVERSE);
-		// slideMotorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-		// slideMotorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-		slideMotorLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		slideMotorRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		slideMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-		slideMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		claw = new Claw(hardwareMap);
 	}
 
 	public void updateDashboardTelemetry() {
+		if (DEBUG) {
+			telemetryPacket.put("Intake Bucket", Intake.bucketPosition);
+			telemetryPacket.put("Intake Slides", Intake.slidePosition);
+			telemetryPacket.put("CV4B", CV4B.position);
+		}
+
 		dashboard.sendTelemetryPacket(telemetryPacket);
 		telemetryPacket = new TelemetryPacket();
 	}
 
 	public void abort() {
-		scoopMotor.setPower(0);
-		slideMotorLeft.setPower(0);
-		slideMotorRight.setPower(0);
-		intakeSlides.setPower(0);
+		intake.abort();
+		slides.setPower(0);
 
 		automationState = State.IDLE;
 	}
 
+	public void retract() {
+		slides.setPosition(Slides.Positions.RETRACTED);
+		if (mode == Modes.SAMPLE) {
+			intake.setPosition(Intake.Positions.TRANSFER);
+			cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+		} else if (mode == Modes.SPECIMEN) {
+			intake.setPosition(Intake.Positions.RETRACTED);
+			cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
+		}
+	}
+
 	public void intakeInit(SamplePurpose samplePurpose) {
 		this.samplePurpose = samplePurpose;
-		// Extend intake slides
-		setIntakeSlidePosition(800);
-
-		if (DEBUG) {
-			telemetryPacket.put("intakeSlides", intakeSlides.getCurrentPosition());
-		}
-		// Start intake motor
-		scoopMotor.setPower(0.5);
+		intake.setSlidePosition(Intake.Positions.INTAKE);
+		intake.setPower(0.6);
+		intakeFirstMoving = true;
+		timer.reset();
 
 		automationState = State.INTAKE_WAIT;
 	}
-	
+
 	public void intakeWait() {
-		// Do nothing until distance <15mm
-		if (colourRangeSensor.getDistance(DistanceUnit.MM) <= 50) {
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 50) || intake.isTouched()) {
+			vibrateControllers();
 			automationState = State.INTAKE_FILLED;
-		}	
+		}
 		if (DEBUG) {
-			telemetryPacket.put("Distance", colourRangeSensor.getDistance(DistanceUnit.MM));
+			telemetryPacket.put("Distance", intake.getDistance(DistanceUnit.MM));
+			telemetryPacket.put("Touched", intake.isTouched());
 		}
 	}
 
 	public void intakePosition(double input, boolean extend, boolean retract) {
-		final double up = 0.79;
-		final double down = 0.865;
-		flipServo.setPosition(down + input*(up-down));
+		if (timer.time() < 0.5) return;
+		final double up = Intake.BUCKET_INTAKE_HIGH;
+		final double down = Intake.BUCKET_INTAKE_LOW;
+		manualIntakePosition(down + input * (up - down), extend, retract);
+	}
 
-		if (extend == retract || (600 >= intakeSlides.getCurrentPosition() && intakeSlides.getCurrentPosition() >= 800)) {
-			if (!intakeSlides.isBusy()) {
-				setIntakeSlidePosition(intakeSlides.getCurrentPosition());
+	public void manualIntakePosition(double input, boolean extend, boolean retract) {
+		intake.setBucketPosition(input);
+
+		if (intakeFirstMoving) {
+			if (!intake.isSlideBusy()) {
+				intakeFirstMoving = false;
 			}
+			return;
+		}
+		if (extend != retract) {
+			intake.setSlidePosition(extend ? Intake.SLIDE_POSITION_MAX : Intake.SLIDE_POSITION_MIN);
 		} else {
-			setIntakeSlidePosition(intakeSlides.getCurrentPosition() + (extend ? 100 : -100));
+			intake.setSlidePosition(intake.getSlidePosition());
 		}
 	}
 
-	public void manualEject() {
-		scoopMotor.setPower(-0.5);
-	}
-
-	public void stopManualEject() {
-		scoopMotor.setPower(0.5);
+	public void setIntakePower(double power) {
+		intake.setPower(power);
 	}
 
 	public void intakeFilled(Alliance alliance, boolean yellowAllowed) {
 		if (samplePurpose == SamplePurpose.SPECIMEN) yellowAllowed = false;
 		// Check sample colour
-		int red = colourRangeSensor.red();
-		int green = colourRangeSensor.green();
-		int blue = colourRangeSensor.blue();
 		if (DEBUG) {
-			telemetryPacket.put("Color", String.format("%d|%d|%d", red, green, blue));
+			telemetryPacket.put("Color", String.format("%d|%d|%d", intake.getRed(), intake.getGreen(), intake.getBlue()));
 		}
 
-		if ((yellowAllowed ? (
-			// Yellow check (if yellow is allowed)
-			(red / blue > 2.5) && (green / blue > 3)
+		if (true || (yellowAllowed ? (
+			intake.checkSample(Intake.SampleColours.YELLOW)
 		) : false) || (alliance == Alliance.RED ? (
-			// Red check
-			(red / green > 0) && (red / blue > 0)
+			intake.checkSample(Intake.SampleColours.RED)
 		) : (
-			// Blue check
-			(blue / red > 3.5) && (blue / green > 1.2)
+			intake.checkSample(Intake.SampleColours.BLUE)
 		))) {
 			// If our alliance, transfer
-			// scoopMotor.setPower(0);
 			automationState = (samplePurpose == SamplePurpose.SAMPLE) ? State.TRANSFER : State.NO_TRANSFER;
 		} else {
 			// If other alliance, dump
@@ -213,99 +219,112 @@ public class Automations {
 	}
 
 	public void intakeDumping() {
-		// reverse intake motor until proximity > 15mm
-		scoopMotor.setPower(-0.5);
-		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 20) {
-			scoopMotor.setPower(0.5);
+		intake.setPower(-0.5);
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 95) && !intake.isTouched()) {
+			intake.setPower(0.6);
 			automationState = State.INTAKE_WAIT;
 		}
 		if (DEBUG) {
-			telemetryPacket.put("Distance", colourRangeSensor.getDistance(DistanceUnit.MM));
+			telemetryPacket.put("Distance", intake.getDistance(DistanceUnit.MM));
+			telemetryPacket.put("Touched", intake.isTouched());
 		}
 	}
 
 	public void transferInit() {		
 		// Retract intake slides
-		setIntakeSlidePosition(600);
-		flipServo.setPosition(0.745);
-		cv4b.setPosition(CV4B.Positions.TRANSFER);
+		intake.setBucketPosition(Intake.BUCKET_SUB_BARRIER);
+		intake.setSlidePosition(Intake.Positions.TRANSFER);
+		intake.setPower(0);
+		cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+		claw.setPosition(Claw.Positions.OPEN);
 		timer.reset();
 		
 		automationState = State.TRANSFER_WAIT;
 	}
 
 	public void transferWait() {
-		if (timer.time() > 1.5 && !intakeSlides.isBusy()) {
-			scoopMotor.setPower(-0.5);
-
-			automationState = State.TRANSFERRING;
+		if (intake.getSlidePosition() < 110 && timer.time() > 1) {
+			if (timer.time() > 2) {
+				cv4b.setPosition(CV4B.Positions.TRANSFER);
+				timer.reset();
+	
+				automationState = State.TRANSFERRING;
+			} else {
+				intake.setPosition(Intake.Positions.TRANSFER);
+			}
 		}
 	}
 
 	public void transferring() {
-		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 75) {
-			scoopMotor.setPower(0);
-			flipServo.setPosition(0.77);
+		if (timer.time() > 0.5 && timer.time() < 0.8) {
+			claw.setPosition(Claw.Positions.CLOSED);
+		} else if (timer.time() > 0.8) {
+			intake.setPosition(Intake.Positions.POST_TRANSFER);
+			vibrateControllers();
 
 			automationState = State.TRANSFERRED;
 		}
 	}
 
-	public void changeTransferSpeed(double power) {
-		scoopMotor.setPower(power);
-	}
-
 	public void depositInit(Basket basket) {
+		claw.setPosition(Claw.Positions.CLOSED);
 		// Extend linear slide
-		setSlidePosition(basket == Basket.HIGH ? 4100 : 2000); // May be 4100 for high basket
-		cv4b.setPosition(CV4B.Positions.PRE_DEPOSIT);
-		clawServo.setPosition(1);
-
+		slides.setPosition(basket == Basket.HIGH ? Slides.Positions.HIGH_BASKET : Slides.Positions.LOW_BASKET);
 		timer.reset();
 
 		automationState = State.DEPOSIT_EXTENDING;
 	}
 
 	public void depositExtending() {
-		if (!slideMotorLeft.isBusy() && !slideMotorRight.isBusy()) {
-			automationState = State.DEPOSIT_EXTENDED;
-		}
+		if (timer.time() < 0.5) return;
+
+		cv4b.setPosition(CV4B.Positions.DEPOSIT);
+
+		automationState = State.DEPOSIT_EXTENDED;
 	}
 
 	public void depositSample() {
-		cv4b.setPosition(CV4B.Positions.DUMP);
-		
+		claw.setPosition(Claw.Positions.OPEN);
+
 		automationState = State.DEPOSITED;
 	}
 
 	public void resetDeposit() {
-		cv4b.setPosition(CV4B.Positions.TRANSFER);
-		setSlidePosition(0);
+		cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+		slides.setPosition(Slides.Positions.RETRACTED);
 
 		automationState = State.IDLE;
 	}
 
 	// Retract arms without transferring. Designed for samples to be given to HP
 	public void noTransfer() {
-		setIntakeSlidePosition(800);
-
-		automationState = State.SAMPLE_LOADED;
+		// TODO: Don't retract
+		// intake.setSlidePosition(Intake.Positions.TRANSFER);
+		if (intake.getSlidePosition() < 10 && timer.time() > 1) {
+			intake.setBucketPosition(Intake.BUCKET_TRANSFER_POSITION);
+			automationState = State.SAMPLE_LOADED;
+		} else {
+			intake.setSlidePosition(0);
+			intake.setBucketPosition(Intake.BUCKET_SUB_BARRIER);	
+		}
 	}
 
 	public void sampleEjectInit() {
-		scoopMotor.setPower(-0.5);
+		intake.setPower(-0.5);
 		automationState = State.SAMPLE_EJECT_WAIT;
 	}
 
 	public void sampleEject() {
-		if (colourRangeSensor.getDistance(DistanceUnit.MM) > 75) {
-			scoopMotor.setPower(0);
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 95) && !intake.isTouched()) {
+			intake.setPower(0);
 			automationState = State.IDLE;
 		}
 	}
-	
+
 	public void specimenInit() {
 		cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
+		claw.setPosition(Claw.Positions.OPEN);
+		intake.setSlidePosition(0);
 
 		timer.reset();
 
@@ -313,87 +332,142 @@ public class Automations {
 	}
 
 	public void specimenInitWait() {
-		if (timer.time() < 2) return;
-		clawServo.setPosition(0);
+		if (timer.time() < 0.5) return;
+		vibrateControllers();
+
 		automationState = State.SPECIMEN_GRAB_READY;
 	}
 
 	public void grabSpecimen() {
-		clawServo.setPosition(1);
-		setSlidePosition(2100);
+		claw.setPosition(Claw.Positions.CLOSED);
+		timer.reset();
+
+		automationState = State.SPECIMEN_GRABBING;
+	}
+
+	public void grabSpecimenWait() {
+		if (timer.time() < 0.5) return;
+		cv4b.setPosition(CV4B.Positions.SPECIMEN_HANG);
+		slides.setPosition(Slides.Positions.HIGH_CHAMBER_PREHANG);
 
 		automationState = State.SPECIMEN_GRABBED;
 	}
 
 	public void hangSpecimen() {
-		setSlidePosition(1500);
-		cv4b.setPosition(CV4B.Positions.SPECIMEN_HANG);
+		slides.setPosition(Slides.Positions.HIGH_CHAMBER_HANG);
+		timer.reset();
 
 		automationState = State.SPECIMEN_HANGING;
 	}
 
 	public void hangSpecimenWait() {
-		if (!slideMotorLeft.isBusy() && !slideMotorRight.isBusy()) {
-			clawServo.setPosition(0);
-			setSlidePosition(0);
-			cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
+		if (timer.time() > 0.5) {
+			claw.setPosition(Claw.Positions.OPEN);
+			vibrateControllers();
+
+			automationState = State.SPECIMEN_HUNG;
 		}
 	}
 
 	public void resetSpecimen() {
-		clawServo.setPosition(1);
-		setSlidePosition(0);
-		cv4b.setPosition(CV4B.Positions.TRANSFER);
+		slides.setPosition(Slides.Positions.RETRACTED);
+		cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
 
 		automationState = State.IDLE;
 	}
-	
+
 	public void ascendInit() {
-		// Extend linear slides		
-		setSlidePosition(3600);
+		// Extend linear slides
+		slides.setPosition(Slides.Positions.ASCEND_TWO_PRE);
+		timer.reset();
 
 		automationState = State.ASCEND_LOW_EXTENDING;
 	}
-	
+
 	public void ascendLowExtending() {
-		if (!slideMotorLeft.isBusy() && !slideMotorRight.isBusy()) {
+		if (timer.time() > 0.5) {
 			automationState = State.ASCEND_LOW_EXTENDED;
 		}
 	}
 
 	public void ascendLowRetract() {
-		setSlidePosition(2600);
-	
+		slides.setPosition(Slides.Positions.ASCEND_TWO_RETRACT);
+
 		// TODO: Change state and put proper code
 		// automationState = State.ASCEND_HIGH_EXTENDING;
-		automationState = State.IDLE;
+		automationState = State.ASCENDED;
 	}
 
-	// Util functions
-	public void setSlidePosition(int targetPos) {
-		// Max 4100
-		slideMotorLeft.setPower(1);
-		slideMotorRight.setPower(1);
-		slideMotorLeft.setTargetPosition(targetPos);
-		slideMotorRight.setTargetPosition(targetPos);
+	/*
+	 * Mode handling
+	 */
+	public Modes getMode() {
+		return mode;
+	}
 
-		if (DEBUG) {
-			telemetryPacket.put("Slide 1", slideMotorLeft.getCurrentPosition());
-			telemetryPacket.put("Slide 2", slideMotorRight.getCurrentPosition());
+	public void setMode(Modes targetMode) {
+		if (targetMode == Modes.SAMPLE && mode == Modes.SPECIMEN) {
+			timer.reset();
+			specimenToSample();
+			automationState = State.SPECIMEN_TO_SAMPLE;
+		} else if (targetMode == Modes.SPECIMEN && mode == Modes.SAMPLE) {
+			timer.reset();
+			sampleToSpecimen();
+			automationState = State.SAMPLE_TO_SPECIMEN;
 		}
 	}
 
-	public void setIntakeSlidePosition(int targetPos) {
-		// Max ___
-		intakeSlides.setPower(1);
-		intakeSlides.setTargetPosition(targetPos);
-
-		if (DEBUG) {
-			telemetryPacket.put("Intake slides", intakeSlides.getCurrentPosition());
+	public void specimenToSample() {
+		if (timer.time() < 0.3) {
+			cv4b.setPosition(CV4B.Positions.DEPOSIT);
+		} else if (timer.time() < 0.6) {
+			intake.setBucketPosition(Intake.Positions.TRANSFER);
+		} else if (timer.time() < 1) {
+			cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+		} else {
+			mode = Modes.SAMPLE;
+			automationState = State.IDLE;
 		}
 	}
 
-	public void setCV4BPosition(CV4B.Positions position) {
-		cv4b.setPosition(position);
+	public void sampleToSpecimen() {
+		if (timer.time() < 0.3) {
+			cv4b.setPosition(CV4B.Positions.DEPOSIT);
+		} else if (timer.time() < 0.6) {
+			intake.setBucketPosition(Intake.Positions.RETRACTED);
+		} else if (timer.time() < 1) {
+			cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
+		} else {
+			mode = Modes.SPECIMEN;
+			automationState = State.IDLE;
+		}
+	}
+
+	/*
+	 * Util functions
+	 */
+	public int getSlideLeftPosition() {
+		return slides.getSlideLeftPosition();
+	}
+
+	public int getSlideRightPosition() {
+		return slides.getSlideRightPosition();
+	}
+
+	public void setSlidesPower(double power) {
+		slides.setPower(power);
+	}
+
+	public boolean colourSensorResponding() {
+		return intake.colourSensorResponding();
+	}
+
+	public void vibrateControllers() {
+		vibrateControllers(100);
+	}
+
+	public void vibrateControllers(int durationMs) {
+		if (gamepad1 != null) gamepad1.rumble(1, 1, durationMs);
+		if (gamepad2 != null) gamepad2.rumble(1, 1, durationMs);
 	}
 }
