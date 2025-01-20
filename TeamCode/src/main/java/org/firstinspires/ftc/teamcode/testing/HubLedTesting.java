@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.testing;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Blinker;
@@ -12,8 +13,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Disabled
 @Config
-@TeleOp(name="Hub LED Control", group="Debug")
+// @TeleOp(name="Hub LED Control", group="Debug")
 public class HubLedTesting extends LinearOpMode {
     public static int red = 255;
     public static int green = 255;

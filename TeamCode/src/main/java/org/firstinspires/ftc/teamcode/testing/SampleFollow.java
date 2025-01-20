@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.testing;
 
 import android.util.Size;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -26,7 +27,8 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import java.util.List;
 
 @Config
-@Autonomous(name = "Sample follow", group = "Subprograms")
+@Disabled
+// @Autonomous(name = "Sample follow", group = "Subprograms")
 public class SampleFollow extends LinearOpMode
 {
     private enum Sample_colour {

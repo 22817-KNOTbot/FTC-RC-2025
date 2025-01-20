@@ -174,7 +174,7 @@ public class Intake {
 		intakeSlides.setPower(1);
 		intakeSlides.setTargetPosition(target);
 	}
-	
+
 	public void setSlidePosition(int position) {
 		Intake.slidePosition = Intake.Positions.MANUAL;
 		intakeSlides.setPower(1);
@@ -225,13 +225,13 @@ public class Intake {
 		if (colourSensorResponding()) {
 			switch (colour) {
 				case RED:
-					correct = (red / green > 1.6) && (red / blue > 2);
+					correct = (red / green >= 0.7) && (red / blue >= 0.9);
 					break;
 				case BLUE:
-					correct = (blue / red > 3.5) && (blue / green > 1.2);
+					correct = (blue / red >= 1.8) && (blue / green >= 0.8);
 					break;
 				case YELLOW:
-					correct = (red / blue > 2.5) && (green / blue > 3);
+					correct = (red / blue >= 1) && (green / blue >= 1.6);
 					break;
 			}
 		} else {

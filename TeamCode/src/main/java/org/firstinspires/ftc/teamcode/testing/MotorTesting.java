@@ -7,7 +7,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 @Config
-@TeleOp(name="Motor testing", group="Debug")
+// @TeleOp(name="Motor testing", group="Debug")
 public class MotorTesting extends LinearOpMode {
 	public static double POWER = 0;
 	public static String MOTOR_NAME = "testMotor"; 

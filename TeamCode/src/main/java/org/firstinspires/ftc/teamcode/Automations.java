@@ -84,7 +84,7 @@ public class Automations {
 	}
 
 	public enum Alliance {
-		RED, 
+		RED,
 		BLUE
 	}
 
@@ -205,7 +205,7 @@ public class Automations {
 			telemetryPacket.put("Color", String.format("%d|%d|%d", intake.getRed(), intake.getGreen(), intake.getBlue()));
 		}
 
-		if ((yellowAllowed ? (
+		if (true || (yellowAllowed ? (
 			intake.checkSample(Intake.SampleColours.YELLOW)
 		) : false) || (alliance == Alliance.RED ? (
 			intake.checkSample(Intake.SampleColours.RED)
@@ -248,14 +248,14 @@ public class Automations {
 	}
 
 	public void transferring() {
-		if (timer.time() > 0.5) {
-			if (timer.time() < 0.6) {
+		if (timer.time() > 1) {
+			if (timer.time() < 1.2) {
 				claw.setPosition(Claw.Positions.CLOSED);
 			} else {
 				intake.openClaw();
 				vibrateControllers();
-				
-				automationState = State.TRANSFERRED;				
+
+				automationState = State.TRANSFERRED;
 			}
 		}	
 	}
@@ -279,7 +279,7 @@ public class Automations {
 
 	public void depositSample() {
 		claw.setPosition(Claw.Positions.OPEN);
-		
+
 		automationState = State.DEPOSITED;
 	}
 
@@ -306,11 +306,14 @@ public class Automations {
 
 	public void resetSampleEject() {
 		intake.setPosition(Intake.Positions.TRANSFER);
+
+		automationState = State.IDLE;
 	}
-	
+
 	public void specimenInit() {
 		cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
 		claw.setPosition(Claw.Positions.OPEN);
+		intake.setSlidePosition(0);
 
 		timer.reset();
 
@@ -361,15 +364,15 @@ public class Automations {
 
 		automationState = State.IDLE;
 	}
-	
+
 	public void ascendInit() {
-		// Extend linear slides		
+		// Extend linear slides
 		slides.setPosition(Slides.Positions.ASCEND_TWO_PRE);
 		timer.reset();
 
 		automationState = State.ASCEND_LOW_EXTENDING;
 	}
-	
+
 	public void ascendLowExtending() {
 		if (timer.time() > 0.5) {
 			automationState = State.ASCEND_LOW_EXTENDED;
@@ -378,7 +381,7 @@ public class Automations {
 
 	public void ascendLowRetract() {
 		slides.setPosition(Slides.Positions.ASCEND_TWO_RETRACT);
-	
+
 		// TODO: Change state and put proper code
 		// automationState = State.ASCEND_HIGH_EXTENDING;
 		automationState = State.ASCENDED;
@@ -428,14 +431,14 @@ public class Automations {
 			automationState = State.IDLE;
 		}
 	}
- 
+
 	/*
 	 * Util functions
 	 */
 	public int getSlideLeftPosition() {
 		return slides.getSlideLeftPosition();
 	}
-	
+
 	public int getSlideRightPosition() {
 		return slides.getSlideRightPosition();
 	}
