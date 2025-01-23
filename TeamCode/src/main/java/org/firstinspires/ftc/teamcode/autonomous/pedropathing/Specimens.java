@@ -39,6 +39,8 @@ public class Specimens extends LinearOpMode {
 	private Follower follower;
 	private Timer pathTimer, actionTimer, opmodeTimer;
 	private int pathState;
+	private boolean actionInit;
+	private boolean actionDone;
 
 private PathChain
 		hangSpecimenPre, 
@@ -54,12 +56,17 @@ private PathChain
 		startPose = new Pose(startPoseX, startPoseY, Math.toRadians(startPoseHeading));
 
 		pathTimer = new Timer();
+		actionTimer = new Timer();
 		opmodeTimer = new Timer();
 
 		Constants.setConstants(FConstants.class, LConstants.class);
 		follower = new Follower(hardwareMap);
 		follower.setStartingPose(startPose);
 		buildPaths();
+
+		slides = new Slides(hardwareMap, true);
+		cv4b = new CV4B(hardwareMap);
+		claw = new Claw(hardwareMap);
 
 		waitForStart();
 
@@ -68,11 +75,14 @@ private PathChain
 
 		while (opModeIsActive()) {
 			follower.update();
+			autonomousActionUpdate();
 			autonomousPathUpdate();
 
 			telemetry.addData("OpMode Timer", opmodeTimer.getElapsedTimeSeconds());
 			telemetry.addData("Path State", pathState);
 			telemetry.addData("Path Timer", pathTimer.getElapsedTimeSeconds());
+			telemetry.addData("Action Timer", actionTimer.getElapsedTimeSeconds());
+			telemetry.addData("Action Done", actionDone);
 			telemetry.addData("x", follower.getPose().getX());
 			telemetry.addData("y", follower.getPose().getY());
 			telemetry.addData("heading", follower.getPose().getHeading());
@@ -239,68 +249,146 @@ private PathChain
 	public void autonomousPathUpdate() {
 		switch (pathState) {
 			case 0:
-				follower.followPath(hangSpecimenPre, true);
-				setPathState(1);
+				if (!follower.isBusy() && actionDone) {
+					follower.followPath(hangSpecimenPre, true);
+					setPathState(1);
+				}
 				break;
 			case 1:
-				if (!follower.isBusy()) {
+				if (!follower.isBusy() && actionDone) {
 					follower.followPath(pushSamples, true);
 					setPathState(2);
 				}
 				break;
 			case 2:
-				if (!follower.isBusy()) {
+				if (!follower.isBusy() && actionDone) {
 					follower.followPath(hangSpecimen1, true);
 					setPathState(3);
 				}
 				break;
 			case 3:
-				if (!follower.isBusy()) {
+				if (!follower.isBusy() && actionDone) {
 					follower.followPath(grabSpecimen2, true);
 					setPathState(4);
 				}
 				break;
 			case 4:
-				if (!follower.isBusy()) {
+				if (!follower.isBusy() && actionDone) {
 					follower.followPath(hangSpecimen2, true);
 					setPathState(5);
 				}
 				break;
 			case 5:
-				if (!follower.isBusy()) {
+				if (!follower.isBusy() && actionDone) {
 					follower.followPath(grabSpecimen3, true);
 					setPathState(6);
 				}
 				break;
 			case 6:
-				if (!follower.isBusy()) {
+				if (!follower.isBusy() && actionDone) {
 					follower.followPath(hangSpecimen3, true);
 					setPathState(7);
 				}
 				break;
 			case 7:
-				if (!follower.isBusy()) {
+				if (!follower.isBusy() && actionDone) {
 					follower.followPath(grabSpecimen4, true);
 					setPathState(8);
 				}
 				break;
 			case 8:
-				if (!follower.isBusy()) {
+				if (!follower.isBusy() && actionDone) {
 					follower.followPath(hangSpecimen4, true);
 					setPathState(9);
 				}
 				break;
 			case 9:
-				if (!follower.isBusy()) {
+				if (!follower.isBusy() && actionDone) {
 					follower.followPath(park, true);
-					setPathState(-1);
+					setPathState(10);
 				}
 				break;
+			case 10:
+				if (!follower.isBusy() && actionDone) {
+					setPathState(-1);
+				}
+		}
+	}
+
+	public void autonomousActionUpdate() {
+		switch (pathState) {
+			case 0:
+				if (!actionInit) {
+					actionDone = grabSpecimen();
+					actionInit = true;
+				}
+				break;
+			case 1:
+				if (!follower.isBusy()) {
+					actionDone = hangSpecimen();
+				}
+				break;
+			case 2:
+			case 4:
+			case 6:
+			case 8:
+				if (!actionInit) {
+					grabSpecimenInit();
+					actionInit = true;
+				} else if (!follower.isBusy()) {
+					actionDone = grabSpecimen();
+				}
+				break;
+			case 3:
+			case 5:
+			case 7:
+			case 9:
+				if (!follower.isBusy()) {
+					actionDone = hangSpecimen();
+				}
+				break;
+			case 10:
+				actionDone = grabSpecimenInit();
 		}
 	}
 
 	public void setPathState(int pState) {
 		pathState = pState;
 		pathTimer.resetTimer();
+		actionTimer.resetTimer();
+		actionInit = false;
+		actionDone = false;
+	}
+
+	/*
+	 * Autonomous actions
+	 */
+
+	public boolean grabSpecimenInit() {
+		cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
+		claw.setPosition(Claw.Positions.OPEN);
+		slides.setPosition(Slides.Positions.RETRACTED);
+		if (!slides.isSlideBusy()) {
+			return true;
+		}
+		return false;
+	}
+
+	public boolean grabSpecimen() {
+		claw.setPosition(Claw.Positions.CLOSED);
+		slides.setPosition(Slides.Positions.HIGH_CHAMBER_PREHANG);
+		cv4b.setPosition(CV4B.Positions.SPECIMEN_HANG);
+
+		return true;
+	}
+
+	public boolean hangSpecimen() {
+		if (actionTimer.getElapsedTimeSeconds() < 0.5) {
+			slides.setPosition(Slides.Positions.HIGH_CHAMBER_HANG);
+			return false;
+		} else {
+			claw.setPosition(Claw.Positions.OPEN);
+			return true;
+		}
 	}
 }

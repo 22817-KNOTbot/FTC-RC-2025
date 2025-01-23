@@ -17,6 +17,7 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -31,6 +32,7 @@ import org.firstinspires.ftc.teamcode.subsystems.CV4B;
 import org.firstinspires.ftc.teamcode.util.OpModeStorage;
 
 @Config
+@Disabled
 @Autonomous(name = "4 Specimen Auto", group = "Official")
 public class Specimens extends LinearOpMode {
 	public static double initialPoseX = 24;
