@@ -12,7 +12,8 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake;
 @TeleOp(name="Intake testing", group="Debug")
 public class IntakeTesting extends LinearOpMode {
 	public static Intake.Positions BUCKET_POSITION = Intake.Positions.TRANSFER;
-	public static double BUCKET_POSITION_MANUAL = -1;
+	public static double BUCKET_POSITION_MANUAL_DRIVE = -1;
+	public static double BUCKET_POSITION_MANUAL_COAX = -1;
 	public static double SLIDE_POWER = 1;
 	public static Intake.Positions SLIDE_POSITION = Intake.Positions.TRANSFER;
 	public static int SLIDE_POSITION_MANUAL = -1;
@@ -29,17 +30,17 @@ public class IntakeTesting extends LinearOpMode {
 
 		while (opModeIsActive()) {
 			intake.setPower(INTAKE_POWER);
-			intake.setSlidePower(SLIDE_POWER);
-			if (BUCKET_POSITION_MANUAL == -1) {
+			// intake.setSlidePower(SLIDE_POWER);
+			if (BUCKET_POSITION_MANUAL_DRIVE == -1 || BUCKET_POSITION_MANUAL_COAX == -1) {
 				intake.setBucketPosition(BUCKET_POSITION);
 			} else {
-				intake.setBucketPosition(BUCKET_POSITION_MANUAL);
+				intake.setBucketPosition(BUCKET_POSITION_MANUAL_DRIVE, BUCKET_POSITION_MANUAL_COAX);
 			}
-			if (SLIDE_POSITION_MANUAL == -1) {
-				intake.setSlidePosition(SLIDE_POSITION);
-			} else {
-				intake.setSlidePosition(SLIDE_POSITION_MANUAL);
-			}
+			// if (SLIDE_POSITION_MANUAL == -1) {
+			// 	intake.setSlidePosition(SLIDE_POSITION);
+			// } else {
+			// 	intake.setSlidePosition(SLIDE_POSITION_MANUAL);
+			// }
 		}
 	}
 }

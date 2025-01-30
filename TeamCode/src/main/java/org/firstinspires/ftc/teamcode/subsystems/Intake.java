@@ -19,15 +19,20 @@ public class Intake {
 	 */
 	// Bucket
 	public static double BUCKET_INTAKE_HIGH = 0.925;
-	public static double BUCKET_INTAKE_LOW = 0.91;
+	public static double BUCKET_INTAKE_LOW = 0.445;
+	public static double BUCKET_INTAKE_COAX = 1;
 
 	public static double BUCKET_SUB_BARRIER = 0.965;
+	public static double BUCKET_SUB_BARRIER_COAX = 0.965;
 
-	public static double BUCKET_TRANSFER_POSITION = 0.935;
+	public static double BUCKET_TRANSFER_POSITION = 0.51;
+	public static double BUCKET_TRANSFER_POSITION_COAX = 0.56;
 
 	public static double BUCKET_POST_TRANSFER_POSITION = 0.92;
+	public static double BUCKET_POST_TRANSFER_POSITION_COAX = 0.92;
 
 	public static double BUCKET_RETRACTED_POSITION = 1;
+	public static double BUCKET_RETRACTED_POSITION_COAX = 1;
 
 	// Slides
 	public static int SLIDE_POSITION_MIN = 0;
@@ -43,6 +48,7 @@ public class Intake {
 
 	private Servo flipServoLeft;
 	private Servo flipServoRight;
+	private Servo intakeCoaxServo;
 	private DcMotor intakeSlides;
 	private DcMotor intakeMotor;
 	private TouchSensor intakeTouch;
@@ -69,8 +75,10 @@ public class Intake {
 	public Intake(HardwareMap hardwareMap, boolean resetEncoder) {
 		flipServoLeft = hardwareMap.get(Servo.class, "flipServoLeft");
 		flipServoRight = hardwareMap.get(Servo.class, "flipServoRight");
-		flipServoLeft.setDirection(Servo.Direction.FORWARD);
-		flipServoRight.setDirection(Servo.Direction.REVERSE);
+		intakeCoaxServo = hardwareMap.get(Servo.class, "intakeCoaxServo");
+		flipServoLeft.setDirection(Servo.Direction.REVERSE);
+		flipServoRight.setDirection(Servo.Direction.FORWARD);
+		intakeCoaxServo.setDirection(Servo.Direction.REVERSE);
 
 		// 0.012287150712598427 inPerTick
 		intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
@@ -81,6 +89,7 @@ public class Intake {
 
 		intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
 		intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		intakeMotor.setDirection(DcMotor.Direction.REVERSE);
 
 		colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
 
@@ -112,33 +121,41 @@ public class Intake {
 
 	public void setBucketPosition(Positions position) {
 		Intake.bucketPosition = position;
-		double target = 0;
+		double driveTarget = 0;
+		double coaxTarget = 0;
 		switch (position) {
 			case RETRACTED:
-				target = BUCKET_RETRACTED_POSITION;
+				driveTarget = BUCKET_RETRACTED_POSITION;
+				coaxTarget = BUCKET_RETRACTED_POSITION_COAX;
 				break;
 			case SUB_BARRIER:
-				target = BUCKET_SUB_BARRIER;
+				driveTarget = BUCKET_SUB_BARRIER;
+				coaxTarget = BUCKET_SUB_BARRIER_COAX;
 			case INTAKE:
-				target = BUCKET_INTAKE_LOW;
+				driveTarget = BUCKET_INTAKE_LOW;
+				coaxTarget = BUCKET_INTAKE_COAX;
 				break;
 			case TRANSFER:
 			default:
-				target = BUCKET_TRANSFER_POSITION;
+				driveTarget = BUCKET_TRANSFER_POSITION;
+				coaxTarget = BUCKET_TRANSFER_POSITION_COAX;
 				break;
 			case POST_TRANSFER:
-				target = BUCKET_POST_TRANSFER_POSITION;
+				driveTarget = BUCKET_POST_TRANSFER_POSITION;
+				coaxTarget = BUCKET_POST_TRANSFER_POSITION_COAX;
 				break;
 		}
 
-		flipServoLeft.setPosition(target);
-		flipServoRight.setPosition(target);
+		flipServoLeft.setPosition(driveTarget);
+		flipServoRight.setPosition(driveTarget);
+		intakeCoaxServo.setPosition(coaxTarget);
 	}
 
-	public void setBucketPosition(double position) {
+	public void setBucketPosition(double driveTarget, double coaxTarget) {
 		Intake.bucketPosition = Intake.Positions.MANUAL;
-		flipServoLeft.setPosition(position);
-		flipServoRight.setPosition(position);
+		flipServoLeft.setPosition(driveTarget);
+		flipServoRight.setPosition(driveTarget);
+		intakeCoaxServo.setPosition(coaxTarget);
 	}
 
 	public void setSlidePosition(Positions position) {

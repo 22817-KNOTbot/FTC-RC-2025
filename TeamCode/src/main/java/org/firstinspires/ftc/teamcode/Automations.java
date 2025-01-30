@@ -159,7 +159,7 @@ public class Automations {
 	}
 
 	public void intakeWait() {
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 50) || intake.isTouched()) {
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 20) || intake.isTouched()) {
 			vibrateControllers();
 			automationState = State.INTAKE_FILLED;
 		}
@@ -177,7 +177,7 @@ public class Automations {
 	}
 
 	public void manualIntakePosition(double input, boolean extend, boolean retract) {
-		intake.setBucketPosition(input);
+		intake.setBucketPosition(input, Intake.BUCKET_INTAKE_COAX);
 
 		if (intakeFirstMoving) {
 			if (!intake.isSlideBusy()) {
@@ -220,7 +220,7 @@ public class Automations {
 
 	public void intakeDumping() {
 		intake.setPower(-0.5);
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 95) && !intake.isTouched()) {
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 30) && !intake.isTouched()) {
 			intake.setPower(0.6);
 			automationState = State.INTAKE_WAIT;
 		}
@@ -232,7 +232,7 @@ public class Automations {
 
 	public void transferInit() {		
 		// Retract intake slides
-		intake.setBucketPosition(Intake.BUCKET_SUB_BARRIER);
+		intake.setBucketPosition(Intake.Positions.SUB_BARRIER);
 		intake.setSlidePosition(Intake.Positions.TRANSFER);
 		intake.setPower(0);
 		cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
@@ -301,11 +301,11 @@ public class Automations {
 		// TODO: Don't retract
 		// intake.setSlidePosition(Intake.Positions.TRANSFER);
 		if (intake.getSlidePosition() < 10 && timer.time() > 1) {
-			intake.setBucketPosition(Intake.BUCKET_TRANSFER_POSITION);
+			intake.setBucketPosition(Intake.Positions.TRANSFER);
 			automationState = State.SAMPLE_LOADED;
 		} else {
 			intake.setSlidePosition(0);
-			intake.setBucketPosition(Intake.BUCKET_SUB_BARRIER);	
+			intake.setBucketPosition(Intake.Positions.SUB_BARRIER);	
 		}
 	}
 
@@ -315,7 +315,7 @@ public class Automations {
 	}
 
 	public void sampleEject() {
-		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 95) && !intake.isTouched()) {
+		if ((!colourSensorResponding() || intake.getDistance(DistanceUnit.MM) > 30) && !intake.isTouched()) {
 			intake.setPower(0);
 			automationState = State.IDLE;
 		}

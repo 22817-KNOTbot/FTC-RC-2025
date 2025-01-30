@@ -29,7 +29,8 @@ public class ManualControl extends LinearOpMode {
 	public static int SLIDE_POSITION_MANUAL = -1;
 	public static double SLIDE_POWER = 1;
 	public static Intake.Positions BUCKET_POSITION = Intake.Positions.INTAKE;
-	public static double BUCKET_POSITION_MANUAL = -1;
+	public static double BUCKET_POSITION_MANUAL_DRIVE = -1;
+	public static double BUCKET_POSITION_MANUAL_COAX = -1;
 	public static double SCOOP_POWER = 0;
 	public static Intake.Positions INTAKE_POSITION = Intake.Positions.TRANSFER;
 	public static int INTAKE_POSITION_MANUAL = -1;
@@ -70,10 +71,10 @@ public class ManualControl extends LinearOpMode {
 				slides.setPosition(SLIDE_POSITION_MANUAL);
 			}
 
-			if (BUCKET_POSITION_MANUAL == -1) {
+			if (BUCKET_POSITION_MANUAL_DRIVE == -1 || BUCKET_POSITION_MANUAL_COAX == -1) {
 				intake.setBucketPosition(BUCKET_POSITION);
 			} else {
-				intake.setBucketPosition(BUCKET_POSITION_MANUAL);
+				intake.setBucketPosition(BUCKET_POSITION_MANUAL_DRIVE, BUCKET_POSITION_MANUAL_COAX);
 			}
 			intake.setPower(SCOOP_POWER);
 			intake.setSlidePower(INTAKE_SLIDE_POWER);
