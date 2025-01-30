@@ -1,11 +1,14 @@
 package org.firstinspires.ftc.teamcode.testing;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 // @Disabled
 @Config
@@ -19,7 +22,8 @@ public class ColourTesting extends LinearOpMode {
     public static double COLOUR_THRESHOLD_6 = 0.8;
 
 	@Override
-	public void runOpMode() {        
+	public void runOpMode() {
+		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 		ColorRangeSensor colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colorSensor");
 		
 		waitForStart();
@@ -34,9 +38,12 @@ public class ColourTesting extends LinearOpMode {
 			telemetry.addData("Green", green);
 			telemetry.addData("Blue", blue);
 			telemetry.addData("DIVIDER", "");
-			telemetry.addData("Yellow", (red / blue >= 1) && (green / blue >= 1.6));
-			telemetry.addData("Red", (red / green >= 0.7) && (red / blue >= 0.9));
-			telemetry.addData("Blue", (blue / red >= 1.8) && (blue / green >= 0.8));
+			telemetry.addData("Sample Yellow", (red / blue >= COLOUR_THRESHOLD_1) && (green / blue >= COLOUR_THRESHOLD_2));
+			telemetry.addData("Sample Red", (red / green >= COLOUR_THRESHOLD_3) && (red / blue >= COLOUR_THRESHOLD_4));
+			telemetry.addData("Sample Blue", (blue / red >= COLOUR_THRESHOLD_5) && (blue / green >= COLOUR_THRESHOLD_6));
+			telemetry.addData("2 - Sample Yellow", (green > 150) && (green > red) && (red > blue));
+			telemetry.addData("2 - Sample Red", (red > green) && (green > blue));
+			telemetry.addData("2 - Sample Blue", (blue > green) && (green > red));
 			telemetry.update();
 		}
 	}
