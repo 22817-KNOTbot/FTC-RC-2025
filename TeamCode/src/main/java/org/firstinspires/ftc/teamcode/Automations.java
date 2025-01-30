@@ -205,7 +205,8 @@ public class Automations {
 			telemetryPacket.put("Color", String.format("%d|%d|%d", intake.getRed(), intake.getGreen(), intake.getBlue()));
 		}
 
-		if (true || (yellowAllowed ? (
+		if (intake.getDistance(DistanceUnit.MM) <= 20 &&
+		(yellowAllowed ? (
 			intake.checkSample(Intake.SampleColours.YELLOW)
 		) : false) || (alliance == Alliance.RED ? (
 			intake.checkSample(Intake.SampleColours.RED)
@@ -300,8 +301,12 @@ public class Automations {
 	}
 
 	public void sampleEject() {
-		intake.openClaw();
-		automationState = State.SAMPLE_EJECTED;
+		intake.setSlidePosition(Intake.Positions.INTAKE);
+		
+		if (!intake.isSlideBusy()) {
+			intake.openClaw();
+			automationState = State.SAMPLE_EJECTED;
+		}
 	}
 
 	public void resetSampleEject() {

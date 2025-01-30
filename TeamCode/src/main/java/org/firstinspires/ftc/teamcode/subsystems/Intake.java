@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -55,7 +56,7 @@ public class Intake {
 	private Servo intakeDriveServoRight;
 	private Servo intakeCoaxServo;
 	private Servo intakeClaw;
-	private Servo intakeWrist;
+	private ServoImplEx intakeWrist;
 	private DcMotor intakeSlides;
 	private ColorRangeSensor colourRangeSensor;
 
@@ -85,8 +86,9 @@ public class Intake {
 		intakeCoaxServo = hardwareMap.get(Servo.class, "intakeCoaxServo");
 
 		intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
-
-		intakeWrist = hardwareMap.get(Servo.class, "intakeWrist");
+		
+		intakeWrist = hardwareMap.get(ServoImplEx.class, "intakeWrist");
+		intakeWrist.setPwmRange(new ServoImplEx.PwmRange(500, 2500));
 
 		// 0.012287150712598427 inPerTick
 		intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
