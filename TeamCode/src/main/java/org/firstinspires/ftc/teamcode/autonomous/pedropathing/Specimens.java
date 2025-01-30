@@ -31,6 +31,8 @@ public class Specimens extends LinearOpMode {
 	public static double startPoseX = 9;
 	public static double startPoseY = 63;
 	public static double startPoseHeading = 180;
+	public static boolean doMovement = true;
+	public static boolean doActions = true;
 	private Pose startPose;
 	private Slides slides;
 	private CV4B cv4b;
@@ -75,8 +77,8 @@ private PathChain
 
 		while (opModeIsActive()) {
 			follower.update();
-			autonomousActionUpdate();
-			autonomousPathUpdate();
+			if (doActions) autonomousActionUpdate();
+			if (doMovement) autonomousPathUpdate();
 
 			telemetry.addData("OpMode Timer", opmodeTimer.getElapsedTimeSeconds());
 			telemetry.addData("Path State", pathState);
@@ -357,7 +359,7 @@ private PathChain
 		pathTimer.resetTimer();
 		actionTimer.resetTimer();
 		actionInit = false;
-		actionDone = false;
+		actionDone = !doActions;
 	}
 
 	/*
