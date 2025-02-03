@@ -89,6 +89,7 @@ public class Intake {
 		
 		intakeWrist = hardwareMap.get(ServoImplEx.class, "intakeWrist");
 		intakeWrist.setPwmRange(new ServoImplEx.PwmRange(500, 2500));
+		intakeWrist.scaleRange(0.5, 0.7);
 
 		// 0.012287150712598427 inPerTick
 		intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");

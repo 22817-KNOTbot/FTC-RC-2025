@@ -162,14 +162,20 @@ public class Automations {
 	
 	public void intakePosition(double x, double y, double heading, boolean extend, boolean retract) {
 		if (x != 0 && y != 0) {
-			x = x * Math.cos(heading) - y * Math.sin(heading);
-			y = x * Math.sin(heading) + y * Math.cos(heading);
+			double rotatedX = x * Math.cos(heading) - y * Math.sin(heading);
+			double rotatedY = x * Math.sin(heading) + y * Math.cos(heading);
 			// This formula clips the angle to the range -90deg to 90.
 			// Values outside this range are clipped to their opposite (ex: 135deg becomes -45deg)
-			double clippedAngle = ((Math.toDegrees(Math.atan2(x * (y / Math.abs(y)), Math.abs(y))) + 180) % 360) - 180;
-			double wristTarget = Intake.WRIST_MIDDLE_POSITION - (clippedAngle * (0.0005555556)); // The number is servo position value per degree
+			double clippedAngle = ((Math.toDegrees(Math.atan2(rotatedX * (rotatedY / Math.abs(rotatedY)), Math.abs(rotatedY))) + 180) % 360) - 180;
+			double roundedAngle = Math.round(clippedAngle / 15) * 15;
+			double wristTarget = Intake.WRIST_MIDDLE_POSITION - (roundedAngle * (0.0027777778)); // The number is servo position value per degree
 			intake.setWristRotation(wristTarget);
+		} else if (x == 0) {
+			intake.setWristRotation(Intake.WRIST_MIDDLE_POSITION);
+		} else if (y == 0) {
+			intake.setWristRotation(Intake.WRIST_MIDDLE_POSITION + (90 * 0.0027777778));
 		}
+		
 		if (intakeFirstMoving) {
 			if (!intake.isSlideBusy()) {
 				intakeFirstMoving = false;
