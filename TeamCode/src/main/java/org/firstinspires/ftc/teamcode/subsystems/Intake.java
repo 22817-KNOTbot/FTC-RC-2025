@@ -228,13 +228,13 @@ public class Intake {
 		if (colourSensorResponding()) {
 			switch (colour) {
 				case RED:
-					correct = (red / green >= 0.7) && (red / blue >= 0.9);
+					correct = (red > green) && (green > blue);
 					break;
 				case BLUE:
-					correct = (blue / red >= 1.8) && (blue / green >= 0.8);
+					correct = (blue > green) && (green > red);
 					break;
 				case YELLOW:
-					correct = (red / blue >= 1) && (green / blue >= 1.6);
+					correct = (green > 150) && (green > red) && (red > blue);
 					break;
 			}
 		} else {
