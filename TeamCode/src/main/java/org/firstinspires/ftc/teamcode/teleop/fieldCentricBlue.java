@@ -229,7 +229,7 @@ public class fieldCentricBlue extends LinearOpMode {
 				// Sample intake
 				case INTAKE_READY:
 					automationHandler.intakePosition(gamepad2.left_stick_x, -gamepad2.left_stick_y, heading, gamepad2.dpad_up, gamepad2.dpad_down);
-					if (gamepad2.a) {
+					if ((gamepad2.a || gamepad2.x) && !buttonPressed) {
 						automationHandler.intakeGrab();
 					}
 					break;
@@ -281,7 +281,9 @@ public class fieldCentricBlue extends LinearOpMode {
 					if (gamepad2.x) {
 						automationHandler.sampleEject();
 					}
-					break;		
+					break;
+				case SAMPLE_EJECT_WAIT:
+					automationHandler.sampleEjectWait();
 				case SAMPLE_EJECTED:
 					automationHandler.resetSampleEject();
 					break;
@@ -351,7 +353,7 @@ public class fieldCentricBlue extends LinearOpMode {
 				CV4B.offset_drive -= 0.05;
 			}
 
-			buttonPressed = gamepad2.y || gamepad2.b || gamepad1.left_trigger > 0.9;
+			buttonPressed = gamepad2.y || gamepad2.b || gamepad2.a || gamepad2.x || gamepad1.left_trigger > 0.9;
 
 			telemetry.addData("Time", runtime.time());
 			telemetry.addData("State", automationHandler.automationState);

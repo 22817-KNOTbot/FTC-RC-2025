@@ -59,6 +59,7 @@ public class Automations {
 		// NO_TRANSFER for intake but no transfer (specimens)
 		NO_TRANSFER,
 		SAMPLE_LOADED,
+		SAMPLE_EJECT_WAIT,
 		SAMPLE_EJECTED,
 		// Specimens
 		SPECIMEN_INIT_WAIT,
@@ -300,7 +301,6 @@ public class Automations {
 
 	// Retract arms without transferring. Designed for samples to be given to HP
 	public void noTransfer() {
-		// TODO: Don't retract
 		intake.setSlidePosition(Intake.Positions.TRANSFER);
 		intake.setIntakePosition(Intake.Positions.PRE_INTAKE);
 
@@ -308,9 +308,13 @@ public class Automations {
 	}
 
 	public void sampleEject() {
-		intake.setSlidePosition(Intake.Positions.INTAKE);
+		intake.setSlidePosition(Intake.SLIDE_POSITION_MAX);
 		
-		if (!intake.isSlideBusy()) {
+		automationState = State.SAMPLE_EJECT_WAIT;
+	}
+
+	public void sampleEjectWait() {
+		if (!intake.isSlideBusyFast()) {
 			intake.openClaw();
 			automationState = State.SAMPLE_EJECTED;
 		}
