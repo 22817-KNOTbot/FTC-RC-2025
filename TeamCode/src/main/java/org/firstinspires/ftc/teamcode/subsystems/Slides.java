@@ -132,4 +132,16 @@ public class Slides {
 	public boolean isSlideBusy() {
 		return slideMotorLeft.isBusy() || slideMotorRight.isBusy();
 	}
+
+		// Alternate method which should be faster than the native isBusy()
+	// Compares current position to target position
+	public boolean isSlideBusyFast() {
+		return isSlideBusyFast(10);
+	}
+
+	public boolean isSlideBusyFast(int dist) {
+		boolean leftBusy = Math.abs(slideMotorLeft.getCurrentPosition() - slideMotorLeft.getTargetPosition()) > dist;
+		boolean rightBusy = Math.abs(slideMotorRight.getCurrentPosition() - slideMotorRight.getTargetPosition()) > dist;
+		return leftBusy || rightBusy;
+	}
 }

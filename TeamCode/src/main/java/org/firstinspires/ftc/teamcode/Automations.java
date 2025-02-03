@@ -246,7 +246,7 @@ public class Automations {
 	}
 
 	public void transferWait() {
-		if (intake.getSlidePosition() < 10) {
+		if (intake.isSlideBusyFast()) {
 			intake.setPosition(Intake.Positions.TRANSFER);
 			timer.reset();
 

@@ -191,6 +191,16 @@ public class Intake {
 	public boolean isSlideBusy() {
 		return intakeSlides.isBusy();
 	}
+	
+	// Alternate method which should be faster than the native isBusy()
+	// Compares current position to target position
+	public boolean isSlideBusyFast() {
+		return isSlideBusyFast(10);
+	}
+
+	public boolean isSlideBusyFast(int dist) {
+		return Math.abs(intakeSlides.getCurrentPosition() - intakeSlides.getTargetPosition()) > dist;
+	}
 
 	public void setSlidePower(double power) {
 		intakeSlides.setPower(power);
