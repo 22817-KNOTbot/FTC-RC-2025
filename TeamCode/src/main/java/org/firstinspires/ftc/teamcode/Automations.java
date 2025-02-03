@@ -241,6 +241,7 @@ public class Automations {
 		intake.setWristRotation(Intake.WRIST_MIDDLE_POSITION);
 		cv4b.setPosition(CV4B.Positions.TRANSFER);
 		claw.setPosition(Claw.Positions.OPEN);
+		vibrateControllers();
 		
 		automationState = State.TRANSFER_WAIT;
 	}
@@ -277,7 +278,7 @@ public class Automations {
 	}
 
 	public void depositExtending() {
-		if (timer.time() < 0.5) return;
+		if (timer.time() < 0.7) return;
 
 		cv4b.setPosition(CV4B.Positions.DEPOSIT);
 
