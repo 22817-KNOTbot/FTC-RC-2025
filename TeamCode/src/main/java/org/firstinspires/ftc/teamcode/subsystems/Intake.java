@@ -22,14 +22,14 @@ public class Intake {
 	public static double RETRACTED_DRIVE = 0.985;
 	public static double RETRACTED_COAX = 0;
 
-	public static double PRE_INTAKE_DRIVE = 0.915;
-	public static double PRE_INTAKE_COAX = 0;
+	public static double PRE_INTAKE_DRIVE = 0.51;
+	public static double PRE_INTAKE_COAX = 0.1;
 
-	public static double INTAKE_DRIVE = 0.9025;
-	public static double INTAKE_COAX = 0;
+	public static double INTAKE_DRIVE = 0.498;
+	public static double INTAKE_COAX = 0.1;
 
-	public static double TRANSFER_DRIVE = 0.925;
-	public static double TRANSFER_COAX = 0;
+	public static double TRANSFER_DRIVE = 0.53;
+	public static double TRANSFER_COAX = 0.525;
 
 	public static double offset_coax = 0;
 
@@ -44,8 +44,8 @@ public class Intake {
 	public static double WRIST_MIDDLE_POSITION = 0.5;
 
 	// Claw
-	public static double CLAW_OPEN = 0.6;
-	public static double CLAW_CLOSED = 0.4;
+	public static double CLAW_OPEN = 0.45;
+	public static double CLAW_CLOSED = 0.395;
 	
 	/*
 	 * DO NOT change the below code unless necessary
@@ -80,8 +80,8 @@ public class Intake {
 	public Intake(HardwareMap hardwareMap, boolean resetEncoder) {
 		intakeDriveServoLeft = hardwareMap.get(Servo.class, "intakeDriveServoLeft");
 		intakeDriveServoRight = hardwareMap.get(Servo.class, "intakeDriveServoRight");
-		intakeDriveServoLeft.setDirection(Servo.Direction.FORWARD);
-		intakeDriveServoRight.setDirection(Servo.Direction.REVERSE);
+		intakeDriveServoLeft.setDirection(Servo.Direction.REVERSE);
+		intakeDriveServoRight.setDirection(Servo.Direction.FORWARD);
 
 		intakeCoaxServo = hardwareMap.get(Servo.class, "intakeCoaxServo");
 
