@@ -203,7 +203,7 @@ public class fieldCentricRed extends LinearOpMode {
 						// Specimen mode
 					} else if (automationHandler.getMode() == Automations.Modes.SPECIMEN) {
 						if (gamepad2.y) {
-							automationHandler.specimenInit();
+							automationHandler.grabSpecimen();
 						}
 					}
 
@@ -218,11 +218,9 @@ public class fieldCentricRed extends LinearOpMode {
 						automationHandler.ascendInit();
 					} else if (gamepad1.right_bumper) {
 						automationHandler.retract();
-					} else {
-						if (automationHandler.getSlideLeftPosition() < 5
-								&& automationHandler.getSlideRightPosition() < 5) {
-							automationHandler.setSlidesPower(0);
-						}
+					} else if (automationHandler.getSlideLeftPosition() < 5
+							&& automationHandler.getSlideRightPosition() < 5) {
+						automationHandler.setSlidesPower(0);
 					}
 					break;
 
@@ -288,14 +286,6 @@ public class fieldCentricRed extends LinearOpMode {
 					automationHandler.resetSampleEject();
 					break;
 				// Grabbing specimen
-				case SPECIMEN_INIT_WAIT:
-					automationHandler.specimenInitWait();
-					break;
-				case SPECIMEN_GRAB_READY:
-					if (gamepad2.y && !buttonPressed) {
-						automationHandler.grabSpecimen();
-					}
-					break;
 				case SPECIMEN_GRABBING:
 					automationHandler.grabSpecimenWait();
 					break;

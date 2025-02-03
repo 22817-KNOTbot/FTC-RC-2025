@@ -62,8 +62,6 @@ public class Automations {
 		SAMPLE_EJECT_WAIT,
 		SAMPLE_EJECTED,
 		// Specimens
-		SPECIMEN_INIT_WAIT,
-		SPECIMEN_GRAB_READY,
 		SPECIMEN_GRABBING,
 		SPECIMEN_GRABBED,
 		SPECIMEN_HANGING,
@@ -141,6 +139,7 @@ public class Automations {
 
 	public void retract() {
 		slides.setPosition(Slides.Positions.RETRACTED);
+		claw.setPosition(Claw.Positions.OPEN);
 		if (mode == Modes.SAMPLE) {
 			intake.setPosition(Intake.Positions.TRANSFER);
 			cv4b.setPosition(CV4B.Positions.TRANSFER);
@@ -324,23 +323,6 @@ public class Automations {
 		intake.setPosition(Intake.Positions.TRANSFER);
 
 		automationState = State.IDLE;
-	}
-
-	public void specimenInit() {
-		cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
-		claw.setPosition(Claw.Positions.OPEN);
-		intake.setSlidePosition(0);
-
-		timer.reset();
-
-		automationState = State.SPECIMEN_INIT_WAIT;
-	}
-
-	public void specimenInitWait() {
-		if (timer.time() < 0.5) return;
-		vibrateControllers();
-
-		automationState = State.SPECIMEN_GRAB_READY;
 	}
 
 	public void grabSpecimen() {
