@@ -19,24 +19,24 @@ public class Intake {
 	 * Most positions/values can be changed here.
 	 */
 	// Intake
-	public static double RETRACTED_DRIVE = 0.985;
-	public static double RETRACTED_COAX = 0;
+	public static double RETRACTED_DRIVE = 0.565;
+	public static double RETRACTED_COAX = 0.435;
 
 	public static double PRE_INTAKE_DRIVE = 0.51;
-	public static double PRE_INTAKE_COAX = 0.1;
+	public static double PRE_INTAKE_COAX = 0;
 
-	public static double INTAKE_DRIVE = 0.498;
-	public static double INTAKE_COAX = 0.1;
+	public static double INTAKE_DRIVE = 0.5;
+	public static double INTAKE_COAX = 0;
 
-	public static double TRANSFER_DRIVE = 0.53;
-	public static double TRANSFER_COAX = 0.525;
+	public static double TRANSFER_DRIVE = 0.527;
+	public static double TRANSFER_COAX = 0.435;
 
 	public static double offset_coax = 0;
 
 	// Slides
 	public static int SLIDE_POSITION_MIN = 0;
-	public static int SLIDE_POSITION_DEFAULT = 800;
-	public static int SLIDE_POSITION_MAX = 1200;
+	public static int SLIDE_POSITION_DEFAULT = 130;
+	public static int SLIDE_POSITION_MAX = 130;
 
 	public static int SLIDE_TRANSFER_POSITION = 0;
 

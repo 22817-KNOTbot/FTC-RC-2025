@@ -21,8 +21,8 @@ public class CV4B {
 	public static double TRANSFER_COAX = 0.78;
 	public static double DEPOSIT_DRIVE = 0.85;
 	public static double DEPOSIT_COAX = 0.9;
-	public static double SPECIMEN_GRAB_DRIVE = 0.45;
-	public static double SPECIMEN_GRAB_COAX = 0.4;
+	public static double SPECIMEN_GRAB_DRIVE = 0.43;
+	public static double SPECIMEN_GRAB_COAX = 0.805;
 	public static double SPECIMEN_HANG_DRIVE = 0.85;
 	public static double SPECIMEN_HANG_COAX = 0.9;
 	public static double ASCENT_DRIVE = 0.85;
