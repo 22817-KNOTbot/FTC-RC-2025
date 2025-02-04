@@ -226,7 +226,7 @@ public class fieldCentricBlue extends LinearOpMode {
 
 				// Sample intake
 				case INTAKE_READY:
-					automationHandler.intakePosition(gamepad2.left_stick_x, -gamepad2.left_stick_y, heading, gamepad2.dpad_up, gamepad2.dpad_down);
+					automationHandler.intakePosition(gamepad2.left_stick_x, -gamepad2.left_stick_y, heading);
 					if ((gamepad2.a || gamepad2.x) && !buttonPressed) {
 						automationHandler.intakeGrab();
 					}

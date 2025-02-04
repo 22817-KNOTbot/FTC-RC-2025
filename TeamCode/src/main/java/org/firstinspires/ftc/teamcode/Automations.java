@@ -160,7 +160,7 @@ public class Automations {
 		automationState = State.INTAKE_READY;
 	}
 	
-	public void intakePosition(double x, double y, double heading, boolean extend, boolean retract) {
+	public void intakePosition(double x, double y, double heading) {
 		if (x != 0 && y != 0) {
 			double rotatedX = x * Math.cos(heading) - y * Math.sin(heading);
 			double rotatedY = x * Math.sin(heading) + y * Math.cos(heading);
@@ -175,18 +175,6 @@ public class Automations {
 		} else if (y == 0) {
 			intake.setWristRotation(Intake.WRIST_MIDDLE_POSITION + (90 * 0.0027777778));
 		}
-		
-		if (intakeFirstMoving) {
-			if (!intake.isSlideBusy()) {
-				intakeFirstMoving = false;
-			}
-			return;
-		}
-		if (extend != retract) {
-			intake.setSlidePosition(extend ? Intake.SLIDE_POSITION_MAX : Intake.SLIDE_POSITION_MIN);
-		} else {
-			intake.setSlidePosition(intake.getSlidePosition());
-		}
 	}
 
 	public void intakeGrab() {
@@ -200,6 +188,7 @@ public class Automations {
 	public void intakeGrabbing() {
 		if (timer.time() < 0.3) return;
 		intake.closeClaw();
+		if (timer.time() < 0.6) return;
 
 		automationState = State.INTAKE_GRABBED;
 	}
