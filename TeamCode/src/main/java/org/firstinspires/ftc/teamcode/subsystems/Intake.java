@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -19,33 +18,31 @@ public class Intake {
 	 * Most positions/values can be changed here.
 	 */
 	// Intake
-	public static double RETRACTED_DRIVE = 0.565;
-	public static double RETRACTED_COAX = 0.435;
+	public static double RETRACTED_DRIVE = 0.57;
+	public static double RETRACTED_WRIST = 0.56;
 
-	public static double PRE_INTAKE_DRIVE = 0.51;
-	public static double PRE_INTAKE_COAX = 0;
+	public static double PRE_INTAKE_DRIVE = 0.502;
+	public static double PRE_INTAKE_WRIST = 0.46;
 
-	public static double INTAKE_DRIVE = 0.5;
-	public static double INTAKE_COAX = 0;
+	public static double INTAKE_DRIVE = 0.49;
+	public static double INTAKE_WRIST = 0.46;
+
+	public static double POST_INTAKE_DRIVE = 0.52;
+	public static double POST_INTAKE_WRIST = 0.48;
 
 	public static double TRANSFER_DRIVE = 0.527;
-	public static double TRANSFER_COAX = 0.435;
+	public static double TRANSFER_WRIST = 0.553;
 
-	public static double offset_coax = 0;
+	public static double WRIST_VALUE_PER_DEG = 0.0007555556;
 
 	// Slides
-	public static int SLIDE_POSITION_MIN = 0;
-	public static int SLIDE_POSITION_DEFAULT = 130;
-	public static int SLIDE_POSITION_MAX = 130;
+	public static int INTAKE_SLIDE_POSITION = 350;
 
 	public static int SLIDE_TRANSFER_POSITION = 0;
 
-	// Wrist
-	public static double WRIST_MIDDLE_POSITION = 0.5;
-
 	// Claw
-	public static double CLAW_OPEN = 0.45;
-	public static double CLAW_CLOSED = 0.395;
+	public static double CLAW_OPEN = 0.395;
+	public static double CLAW_CLOSED = 0.05;
 	
 	/*
 	 * DO NOT change the below code unless necessary
@@ -54,11 +51,12 @@ public class Intake {
 
 	private Servo intakeDriveServoLeft;
 	private Servo intakeDriveServoRight;
-	private Servo intakeCoaxServo;
+	private Servo intakeWristServoLeft;
+	private Servo intakeWristServoRight;
 	private Servo intakeClaw;
-	private ServoImplEx intakeWrist;
 	private DcMotor intakeSlides;
 	private ColorRangeSensor colourRangeSensor;
+	public double wristPosition = 0;
 
 	public static Positions intakePosition = Positions.INTAKE;
 	public static Positions slidePosition = Positions.TRANSFER;
@@ -67,6 +65,7 @@ public class Intake {
 		RETRACTED,
 		PRE_INTAKE,
 		INTAKE,
+		POST_INTAKE,
 		TRANSFER,
 		MANUAL
 	}
@@ -83,13 +82,12 @@ public class Intake {
 		intakeDriveServoLeft.setDirection(Servo.Direction.REVERSE);
 		intakeDriveServoRight.setDirection(Servo.Direction.FORWARD);
 
-		intakeCoaxServo = hardwareMap.get(Servo.class, "intakeCoaxServo");
+		intakeWristServoLeft = hardwareMap.get(Servo.class, "intakeWristServoLeft");
+		intakeWristServoRight = hardwareMap.get(Servo.class, "intakeWristServoRight");
+		intakeWristServoLeft.setDirection(Servo.Direction.REVERSE);
+		intakeWristServoRight.setDirection(Servo.Direction.FORWARD);
 
 		intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
-		
-		intakeWrist = hardwareMap.get(ServoImplEx.class, "intakeWrist");
-		intakeWrist.setPwmRange(new ServoImplEx.PwmRange(500, 2500));
-		intakeWrist.scaleRange(0.5, 0.7);
 
 		// 0.012287150712598427 inPerTick
 		intakeSlides = hardwareMap.get(DcMotor.class, "intakeSlides");
@@ -126,37 +124,57 @@ public class Intake {
 	public void setIntakePosition(Positions position) {
 		Intake.intakePosition = position;
 		double driveTarget = 0;
-		double coaxTarget = 0;
+		double wristTarget = 0;
 		switch (position) {
 			case RETRACTED:
 				driveTarget = RETRACTED_DRIVE;
-				coaxTarget = RETRACTED_COAX;
+				wristTarget = RETRACTED_WRIST;
 				break;
 			case PRE_INTAKE:
 				driveTarget = PRE_INTAKE_DRIVE;
-				coaxTarget = PRE_INTAKE_COAX;
+				wristTarget = PRE_INTAKE_WRIST;
 				break;
 			case INTAKE:
 				driveTarget = INTAKE_DRIVE;
-				coaxTarget = INTAKE_COAX;
+				wristTarget = INTAKE_WRIST;
+				break;
+			case POST_INTAKE:
+				driveTarget = POST_INTAKE_DRIVE;
+				wristTarget = POST_INTAKE_WRIST;
 				break;
 			case TRANSFER:
 			default:
 				driveTarget = TRANSFER_DRIVE;
-				coaxTarget = TRANSFER_COAX;
+				wristTarget = TRANSFER_WRIST;
 				break;
 		}
 
 		intakeDriveServoLeft.setPosition(driveTarget);
 		intakeDriveServoRight.setPosition(driveTarget);
-		intakeCoaxServo.setPosition(coaxTarget);
+
+		if (wristPosition != wristTarget) {
+			intakeWristServoLeft.setPosition(wristTarget);
+			intakeWristServoRight.setPosition(wristTarget);
+			wristPosition = wristTarget;
+		}
 	}
 	
-	public void setIntakePosition(double driveTarget, double coaxTarget) {
+	public void setIntakePosition(double driveTarget, double wristTarget) {
 		Intake.intakePosition = Intake.Positions.MANUAL;
 		intakeDriveServoLeft.setPosition(driveTarget);
 		intakeDriveServoRight.setPosition(driveTarget);
-		intakeCoaxServo.setPosition(coaxTarget);
+
+		if (wristPosition != wristTarget) {
+			intakeWristServoLeft.setPosition(wristTarget);
+			intakeWristServoRight.setPosition(wristTarget);
+			wristPosition = wristTarget;
+		}
+	}
+
+	public void setWristRotation(double rotation) {
+		if (wristPosition + rotation > 1 || wristPosition - rotation < 0) return;
+		intakeWristServoLeft.setPosition(wristPosition + rotation);
+		intakeWristServoRight.setPosition(wristPosition - rotation);
 	}
 
 	public void setSlidePosition(Positions position) {
@@ -164,15 +182,15 @@ public class Intake {
 		int target = 0;
 		switch (position) {
 			case PRE_INTAKE:
-				target = SLIDE_POSITION_DEFAULT;
+			case INTAKE:
+				target = INTAKE_SLIDE_POSITION;
 				break;
+			case POST_INTAKE:
 			case TRANSFER:
 			case RETRACTED:
 			default:
 				target = SLIDE_TRANSFER_POSITION;
 				break;
-			case INTAKE:
-				return;
 		}
 		intakeSlides.setPower(1);
 		intakeSlides.setTargetPosition(target);
@@ -207,13 +225,6 @@ public class Intake {
 	}
 
 	/*
-	 * Rotates wrist
-	 */
-	public void setWristRotation(double target) {
-		intakeWrist.setPosition(target);
-	}
-
-	/*
 	 * Open/closes claw
 	 */
 	public void openClaw() {
@@ -244,7 +255,7 @@ public class Intake {
 					correct = (blue > green) && (green > red);
 					break;
 				case YELLOW:
-					correct = (green > 150) && (green > red) && (red > blue);
+					correct = (green > 100) && (green > red) && (red > blue);
 					break;
 			}
 		} else {

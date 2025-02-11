@@ -14,7 +14,6 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake;
 @Config
 // @TeleOp(name="Intake testing", group="Debug")
 public class WristTesting extends LinearOpMode {
-	public static double VALUE_PER_DEG = 0.0027777778;
 	public static double HEADING = 0;
 	private Intake intake;
 	private ServoImplEx intakeWrist;
@@ -23,17 +22,15 @@ public class WristTesting extends LinearOpMode {
 	public void runOpMode() {
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-		// intake = new Intake(hardwareMap, true);
-
-		intakeWrist = hardwareMap.get(ServoImplEx.class, "intakeWrist");
-		// intakeWrist.setDirection(Servo.Direction.REVERSE);
-		intakeWrist.setPwmRange(new ServoImplEx.PwmRange(500, 2500));
-		intakeWrist.scaleRange(0.4, 0.6);
+		intake = new Intake(hardwareMap, true);
 
 		waitForStart();
 
 		while (opModeIsActive()) {
-			intakePosition(telemetry, gamepad1.left_stick_x, -gamepad1.left_stick_y, Math.toRadians(HEADING));
+			intake.setPosition(Intake.Positions.INTAKE);
+			double wristTarget = intakePosition(gamepad1.left_stick_x, -gamepad1.left_stick_y, Math.toRadians(HEADING));
+
+			telemetry.addData("Target", wristTarget);
 			telemetry.update();
 		}
 	}
@@ -41,7 +38,8 @@ public class WristTesting extends LinearOpMode {
 	/*
 	 * Copied and slightly modified from Automations
 	 */
-	public void intakePosition(Telemetry telemetry, double x, double y, double heading) {
+	public double intakePosition(double x, double y, double heading) {
+		double wristTarget = 0;
 		if (x != 0 && y != 0) {
 			double rotatedX = x * Math.cos(heading) - y * Math.sin(heading);
 			double rotatedY = x * Math.sin(heading) + y * Math.cos(heading);
@@ -49,18 +47,14 @@ public class WristTesting extends LinearOpMode {
 			// Values outside this range are clipped to their opposite (ex: 135deg becomes -45deg)
 			double clippedAngle = ((Math.toDegrees(Math.atan2(rotatedX * (rotatedY / Math.abs(rotatedY)), Math.abs(rotatedY))) + 180) % 360) - 180;
 			double roundedAngle = Math.round(clippedAngle / 15) * 15;
-			double wristTarget = Intake.WRIST_MIDDLE_POSITION - (roundedAngle * (VALUE_PER_DEG)); // The number is servo position value per degree
-			// intake.setWristRotation(wristTarget);
-			intakeWrist.setPosition(wristTarget);
-
-			telemetry.addData("clippedAngle", clippedAngle);
-			telemetry.addData("wristTarget", wristTarget);
+			wristTarget = roundedAngle * Intake.WRIST_VALUE_PER_DEG;
+			
 		} else if (x == 0) {
-			intake.setWristRotation(Intake.WRIST_MIDDLE_POSITION);
-			telemetry.addData("wristTarget", Intake.WRIST_MIDDLE_POSITION);
+			wristTarget = 0;
 		} else if (y == 0) {
-			intake.setWristRotation(Intake.WRIST_MIDDLE_POSITION + (90 * 0.0027777778));
-			telemetry.addData("wristTarget", Intake.WRIST_MIDDLE_POSITION + (90 * 0.0027777778));
+			wristTarget = 90 * Intake.WRIST_VALUE_PER_DEG;
 		}
+		intake.setWristRotation(wristTarget);
+		return wristTarget;
 	}
 }

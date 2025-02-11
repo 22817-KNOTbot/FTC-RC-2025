@@ -18,7 +18,7 @@ public class IntakeTesting extends LinearOpMode {
 	public static double SLIDE_POWER = 1;
 	public static Intake.Positions SLIDE_POSITION = Intake.Positions.TRANSFER;
 	public static int SLIDE_POSITION_MANUAL = -1;
-	public static double INTAKE_WRIST = Intake.WRIST_MIDDLE_POSITION;
+	public static double INTAKE_WRIST_DEG = 0;
 	public static boolean INTAKE_CLAW_CLOSED = false;
 	public Intake intake;
 
@@ -37,12 +37,14 @@ public class IntakeTesting extends LinearOpMode {
 			} else {
 				intake.setIntakePosition(INTAKE_POSITION);
 			}
-			if (SLIDE_POSITION_MANUAL == -1) {
-				intake.setSlidePosition(SLIDE_POSITION);
-			} else {
-				intake.setSlidePosition(SLIDE_POSITION_MANUAL);
+			if (SLIDE_POWER != 0) {
+				if (SLIDE_POSITION_MANUAL == -1) {
+					intake.setSlidePosition(SLIDE_POSITION);
+				} else {
+					intake.setSlidePosition(SLIDE_POSITION_MANUAL);
+				}
 			}
-			intake.setWristRotation(INTAKE_WRIST);
+			intake.setWristRotation(INTAKE_WRIST * Intake.WRIST_VALUE_PER_DEG);
 			if (INTAKE_CLAW_CLOSED) intake.closeClaw(); else intake.openClaw();
 		}
 	}

@@ -27,16 +27,16 @@ public class ManualControl extends LinearOpMode {
 	public static double POSITION_COAX = 0;
 	public static Slides.Positions SLIDE_POSITION = Slides.Positions.RETRACTED;
 	public static int SLIDE_POSITION_MANUAL = -1;
-	public static double SLIDE_POWER = 1;
+	public static boolean SLIDE_ENABLED = true;
 
 	public static Intake.Positions INTAKE_POSITION = Intake.Positions.TRANSFER;
 	public static boolean INTAKE_POSITION_MANUAL = false;
 	public static double INTAKE_POSITION_DRIVE = 0;
-	public static double INTAKE_POSITION_COAX = 0;
-	public static double INTAKE_SLIDE_POWER = 1;
+	public static double INTAKE_POSITION_WRIST = 0;
+	public static double INTAKE_WRIST_ROT_DEG = 0;
 	public static Intake.Positions INTAKE_SLIDE_POSITION = Intake.Positions.TRANSFER;
 	public static int INTAKE_SLIDE_POSITION_MANUAL = -1;
-	public static double INTAKE_WRIST = Intake.WRIST_MIDDLE_POSITION;
+	public static boolean INTAKE_SLIDE_ENABLED = true;
 	public static boolean INTAKE_CLAW_CLOSED = false;
 
 	private Intake intake;
@@ -48,8 +48,8 @@ public class ManualControl extends LinearOpMode {
 	public void runOpMode() {
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-		intake = new Intake(hardwareMap, false);
-		slides = new Slides(hardwareMap, false);
+		intake = new Intake(hardwareMap, true);
+		slides = new Slides(hardwareMap, true);
 		cv4b = new CV4B(hardwareMap);
 		claw = new Claw(hardwareMap);
 
@@ -67,25 +67,33 @@ public class ManualControl extends LinearOpMode {
 				cv4b.setCoaxialPWM(CV4B_ENABLED);
 			}
 
-			slides.setPower(SLIDE_POWER);
-			if (SLIDE_POSITION_MANUAL == -1) {
-				slides.setPosition(SLIDE_POSITION);
+			if (SLIDE_ENABLED) {
+				slides.setPower(1);
+				if (SLIDE_POSITION_MANUAL == -1) {
+					slides.setPosition(SLIDE_POSITION);
+				} else {
+					slides.setPosition(SLIDE_POSITION_MANUAL);
+				}
 			} else {
-				slides.setPosition(SLIDE_POSITION_MANUAL);
+				slides.setPower(0);
 			}
 
-			intake.setSlidePower(INTAKE_SLIDE_POWER);
+			if (INTAKE_SLIDE_ENABLED) {
+				intake.setSlidePower(1);
+				if (INTAKE_SLIDE_POSITION_MANUAL == -1) {
+					intake.setSlidePosition(INTAKE_SLIDE_POSITION);
+				} else {
+					intake.setSlidePosition(INTAKE_SLIDE_POSITION_MANUAL);
+				}	
+			} else {
+				intake.setSlidePower(0);
+			}
 			if (INTAKE_POSITION_MANUAL) {
-				intake.setIntakePosition(INTAKE_POSITION_DRIVE, INTAKE_POSITION_COAX);
+				intake.setIntakePosition(INTAKE_POSITION_DRIVE, INTAKE_POSITION_WRIST);
 			} else {
-				intake.setIntakePosition(INTAKE_POSITION);
+					intake.setIntakePosition(INTAKE_POSITION);
 			}
-			if (INTAKE_SLIDE_POSITION_MANUAL == -1) {
-				intake.setSlidePosition(INTAKE_SLIDE_POSITION);
-			} else {
-				intake.setSlidePosition(INTAKE_SLIDE_POSITION_MANUAL);
-			}
-			intake.setWristRotation(INTAKE_WRIST);
+			intake.setWristRotation(INTAKE_WRIST_ROT_DEG * Intake.WRIST_VALUE_PER_DEG);
 			if (INTAKE_CLAW_CLOSED) intake.closeClaw(); else intake.openClaw();
 
 			claw.setPosition(CLAW_POSITION);

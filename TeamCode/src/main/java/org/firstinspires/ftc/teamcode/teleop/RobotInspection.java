@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Slides;
 public class RobotInspection extends LinearOpMode {
 	public static CV4B.Positions CV4B_POSITION = CV4B.Positions.DEPOSIT;
 	public static Slides.Positions SLIDE_POSITION = Slides.Positions.HIGH_BASKET;
-	public static int INTAKE_POSITION = Intake.SLIDE_POSITION_MAX;
+	public static int INTAKE_POSITION = Intake.INTAKE_SLIDE_POSITION;
 	private static boolean extended = false;
 	private CV4B cv4b;
 	private Intake intake;
