@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Claw;
 import org.firstinspires.ftc.teamcode.subsystems.CV4B;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Slides;
+import org.firstinspires.ftc.teamcode.subsystems.vision.AutoRotatingClaw;
 
 import org.firstinspires.ftc.teamcode.util.GamepadStorage;
 
@@ -36,6 +37,8 @@ public class Automations {
 	private Slides slides;
 	private CV4B cv4b;
 	private Claw claw;
+
+	private AutoRotatingClaw autoRotatingClaw;
 
 	// Misc
 	private boolean intakeFirstMoving = false;
@@ -117,6 +120,8 @@ public class Automations {
 		slides = new Slides(hardwareMap, false);
 		cv4b = new CV4B(hardwareMap);
 		claw = new Claw(hardwareMap);
+
+		autoRotatingClaw = new AutoRotatingClaw(hardwareMap, DEBUG);
 	}
 
 	public void updateDashboardTelemetry() {
@@ -147,12 +152,13 @@ public class Automations {
 			intake.setPosition(Intake.Positions.RETRACTED);
 			cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
 		}
+		intake.setWristRotation(0);
 	}
 
 	public void intakeInit(SamplePurpose samplePurpose) {
 		this.samplePurpose = samplePurpose;
 		intake.setPosition(Intake.Positions.PRE_INTAKE);
-		intake.setWristRotation(Intake.WRIST_MIDDLE_POSITION);
+		intake.setWristRotation(0);
 		intake.openClaw();
 		intakeFirstMoving = true;
 		timer.reset();
@@ -161,19 +167,30 @@ public class Automations {
 	}
 	
 	public void intakePosition(double x, double y, double heading) {
-		if (x != 0 && y != 0) {
-			double rotatedX = x * Math.cos(heading) - y * Math.sin(heading);
-			double rotatedY = x * Math.sin(heading) + y * Math.cos(heading);
+		double wristTarget = 0;
+		double rotatedX = x * Math.cos(-heading) - y * Math.sin(-heading);
+		double rotatedY = x * Math.sin(-heading) + y * Math.cos(-heading);
+
+		if (x == 0 && y == 0) {
+			autoRotatingClaw.process();
+			double angle = autoRotatingClaw.getRotation();
+			// double modifiedAngle = angle-Math.pow(angle, 0.3);
+			wristTarget = angle * Intake.WRIST_VALUE_PER_DEG;
+		} else if (rotatedX == 0) {
+			wristTarget = 0;
+		} else if (rotatedY == 0) {
+			wristTarget = 90 * Intake.WRIST_VALUE_PER_DEG;
+		} else {		
 			// This formula clips the angle to the range -90deg to 90.
 			// Values outside this range are clipped to their opposite (ex: 135deg becomes -45deg)
 			double clippedAngle = ((Math.toDegrees(Math.atan2(rotatedX * (rotatedY / Math.abs(rotatedY)), Math.abs(rotatedY))) + 180) % 360) - 180;
 			double roundedAngle = Math.round(clippedAngle / 15) * 15;
-			double wristTarget = Intake.WRIST_MIDDLE_POSITION - (roundedAngle * (0.0027777778)); // The number is servo position value per degree
-			intake.setWristRotation(wristTarget);
-		} else if (x == 0) {
-			intake.setWristRotation(Intake.WRIST_MIDDLE_POSITION);
-		} else if (y == 0) {
-			intake.setWristRotation(Intake.WRIST_MIDDLE_POSITION + (90 * 0.0027777778));
+			wristTarget = roundedAngle * Intake.WRIST_VALUE_PER_DEG;
+		}
+
+		intake.setWristRotation(wristTarget);
+		if (DEBUG) {
+			telemetryPacket.put("Wrist Rotation", wristTarget);
 		}
 	}
 
