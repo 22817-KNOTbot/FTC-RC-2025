@@ -44,7 +44,7 @@ public class IntakeTesting extends LinearOpMode {
 					intake.setSlidePosition(SLIDE_POSITION_MANUAL);
 				}
 			}
-			intake.setWristRotation(INTAKE_WRIST * Intake.WRIST_VALUE_PER_DEG);
+			intake.setWristRotation(INTAKE_WRIST_DEG * Intake.WRIST_VALUE_PER_DEG);
 			if (INTAKE_CLAW_CLOSED) intake.closeClaw(); else intake.openClaw();
 		}
 	}
