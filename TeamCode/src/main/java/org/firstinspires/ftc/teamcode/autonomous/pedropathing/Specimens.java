@@ -17,8 +17,10 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.Automations;
 import org.firstinspires.ftc.teamcode.subsystems.Claw;
 import org.firstinspires.ftc.teamcode.subsystems.CV4B;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Slides;
 import org.firstinspires.ftc.teamcode.util.OpModeStorage;
 
@@ -37,16 +39,21 @@ public class Specimens extends LinearOpMode {
 	private Slides slides;
 	private CV4B cv4b;
 	private Claw claw;
+	private Intake intake;
 
 	private Follower follower;
-	private Timer pathTimer, actionTimer, opmodeTimer;
+	private Timer pathTimer, parametricActionTimer, actionTimer, opmodeTimer;
 	private int pathState;
+	private boolean parametricActionTimerReset, actionTimerReset;
 	private boolean actionInit;
 	private boolean actionDone;
 
 private PathChain
 		hangSpecimenPre, 
-		pushSamples, hangSpecimen1,
+		grabSample1, releaseSample1,
+		grabSample2, releaseSample2,
+		grabSample3, releaseSample3,
+		grabSpecimen1, hangSpecimen1,
 		grabSpecimen2, hangSpecimen2,
 		grabSpecimen3, hangSpecimen3,
 		grabSpecimen4, hangSpecimen4,
@@ -58,6 +65,7 @@ private PathChain
 		startPose = new Pose(startPoseX, startPoseY, Math.toRadians(startPoseHeading));
 
 		pathTimer = new Timer();
+		parametricActionTimer = new Timer();
 		actionTimer = new Timer();
 		opmodeTimer = new Timer();
 
@@ -67,6 +75,7 @@ private PathChain
 		buildPaths();
 
 		slides = new Slides(hardwareMap, true);
+		intake = new Intake(hardwareMap, true);
 		cv4b = new CV4B(hardwareMap);
 		claw = new Claw(hardwareMap);
 
@@ -83,6 +92,8 @@ private PathChain
 			telemetry.addData("OpMode Timer", opmodeTimer.getElapsedTimeSeconds());
 			telemetry.addData("Path State", pathState);
 			telemetry.addData("Path Timer", pathTimer.getElapsedTimeSeconds());
+			telemetry.addData("Follower Busy", follower.isBusy());
+			telemetry.addData("Parametric Action Timer", parametricActionTimer.getElapsedTimeSeconds());
 			telemetry.addData("Action Timer", actionTimer.getElapsedTimeSeconds());
 			telemetry.addData("Action Done", actionDone);
 			telemetry.addData("x", follower.getPose().getX());
@@ -90,6 +101,11 @@ private PathChain
 			telemetry.addData("heading", follower.getPose().getHeading());
 			telemetry.update();
 		}
+
+		OpModeStorage.x = follower.getPose().getX();
+		OpModeStorage.y = follower.getPose().getY();
+		OpModeStorage.heading = follower.getPose().getHeading();
+		OpModeStorage.mode = Automations.Modes.SAMPLE;
 	}
 
 	public void buildPaths() {
@@ -98,59 +114,99 @@ private PathChain
 				// Line 1
 				new BezierLine(
 					new Point(startPose),
-					new Point(39.000, 63.000, Point.CARTESIAN)
+					new Point(37.000, 63.000, Point.CARTESIAN)
 				)
 			)
 			.setConstantHeadingInterpolation(Math.toRadians(180))
 			.build();
 
-		pushSamples = follower.pathBuilder()
+		grabSample1 = follower.pathBuilder()
 			.addPath(
 				// Line 2
 				new BezierCurve(
-					new Point(39.000, 63.000, Point.CARTESIAN),
-					new Point(30.397, 37.610, Point.CARTESIAN),
-					new Point(39.000, 35.292, Point.CARTESIAN)
+					new Point(37.000, 63.000, Point.CARTESIAN),
+					new Point(28.000, 65.000, Point.CARTESIAN),
+					new Point(28.500, 43.000, Point.CARTESIAN)
 				)
 			)
-			.setConstantHeadingInterpolation(Math.toRadians(180))
+			.setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(308))
+			.build();
+
+		releaseSample1 = follower.pathBuilder()
 			.addPath(
 				// Line 3
-				new BezierCurve(
-					new Point(39.000, 35.292, Point.CARTESIAN),
-					new Point(103.814, 31.428, Point.CARTESIAN),
-					new Point(14.000, 23.957, Point.CARTESIAN)
+				new BezierLine(
+				new Point(28.500, 43.000, Point.CARTESIAN),
+				new Point(28.000, 38.000, Point.CARTESIAN)
 				)
 			)
-			.setConstantHeadingInterpolation(Math.toRadians(180))
+			.setLinearHeadingInterpolation(Math.toRadians(308), Math.toRadians(221))
+			.build();
+
+		grabSample2 = follower.pathBuilder()
 			.addPath(
 				// Line 4
-				new BezierCurve(
-					new Point(14.000, 23.957, Point.CARTESIAN),
-					new Point(117.725, 22.154, Point.CARTESIAN),
-					new Point(14.426, 15.199, Point.CARTESIAN)
+				new BezierLine(
+				new Point(28.000, 38.000, Point.CARTESIAN),
+				new Point(28.000, 33.000, Point.CARTESIAN)
 				)
 			)
-			.setConstantHeadingInterpolation(Math.toRadians(180))
+			.setLinearHeadingInterpolation(Math.toRadians(221), Math.toRadians(309))
+			.build();
+
+		releaseSample2 = follower.pathBuilder()
 			.addPath(
 				// Line 5
-				new BezierCurve(
-					new Point(14.426, 15.199, Point.CARTESIAN),
-					new Point(122.361, 8.243, Point.CARTESIAN),
-					new Point(9.000, 9.016, Point.CARTESIAN)
+				new BezierLine(
+				new Point(28.000, 33.000, Point.CARTESIAN),
+				new Point(28.000, 27.000, Point.CARTESIAN)
 				)
 			)
-			.setConstantHeadingInterpolation(Math.toRadians(180))
+			.setLinearHeadingInterpolation(Math.toRadians(309), Math.toRadians(221))
+			.build();
+
+		grabSample3 = follower.pathBuilder()
+			.addPath(
+				// Line 6
+				new BezierLine(
+				new Point(28.000, 27.000, Point.CARTESIAN),
+				new Point(28.500, 23.000, Point.CARTESIAN)
+				)
+			)
+			.setLinearHeadingInterpolation(Math.toRadians(221), Math.toRadians(309))
+			.build();
+
+		releaseSample3 = follower.pathBuilder()
+			.addPath(
+				// Line 7
+				new BezierLine(
+				new Point(28.500, 23.000, Point.CARTESIAN),
+				new Point(18.000, 24.000, Point.CARTESIAN)
+				)
+			)
+			.setLinearHeadingInterpolation(Math.toRadians(309), Math.toRadians(200))
+			.build();
+
+		grabSpecimen1 = follower.pathBuilder()
+			.addPath(
+				// Line 8
+				new BezierCurve(
+					new Point(18.000, 24.000, Point.CARTESIAN),
+					new Point(20.000, 37.000, Point.CARTESIAN),
+					new Point(9.500, 36.000, Point.CARTESIAN)
+				  )
+			)
+			.setLinearHeadingInterpolation(Math.toRadians(200), Math.toRadians(180))
 			.build();
 
 		hangSpecimen1 = follower.pathBuilder()
 			.addPath(
 				// Line 6
 				new BezierCurve(
-					new Point(9.000, 9.016, Point.CARTESIAN),
-					new Point(36.580, 36.000, Point.CARTESIAN),
-					new Point(15.456, 68.522, Point.CARTESIAN),
-					new Point(39.000, 67.000, Point.CARTESIAN)
+					new Point(9.500, 36.000, Point.CARTESIAN),
+					new Point(13.000, 36.000, Point.CARTESIAN),
+					new Point(22.000, 68.522, Point.CARTESIAN),
+					new Point(37.000, 67.000, Point.CARTESIAN)
 				)
 			)
 			.setConstantHeadingInterpolation(Math.toRadians(180))
@@ -160,10 +216,10 @@ private PathChain
 			.addPath(
 				// Line 7
 				new BezierCurve(
-					new Point(39.000, 67.000, Point.CARTESIAN),
+					new Point(37.000, 67.000, Point.CARTESIAN),
 					new Point(22.486, 67.000, Point.CARTESIAN),
 					new Point(23.000, 36.000, Point.CARTESIAN),
-					new Point(9.000, 36.000, Point.CARTESIAN)
+					new Point(9.500, 36.000, Point.CARTESIAN)
 				)
 			)
 			.setConstantHeadingInterpolation(Math.toRadians(180))
@@ -173,10 +229,10 @@ private PathChain
 			.addPath(
 				// Line 8
 				new BezierCurve(
-					new Point(9.000, 36.000, Point.CARTESIAN),
-					new Point(36.580, 36.000, Point.CARTESIAN),
-					new Point(15.456, 69.522, Point.CARTESIAN),
-					new Point(39.000, 69.000, Point.CARTESIAN)
+					new Point(9.500, 36.000, Point.CARTESIAN),
+					new Point(13.000, 36.000, Point.CARTESIAN),
+					new Point(22.000, 69.522, Point.CARTESIAN),
+					new Point(37.000, 69.000, Point.CARTESIAN)
 				)
 			)
 			.setConstantHeadingInterpolation(Math.toRadians(180))
@@ -186,10 +242,10 @@ private PathChain
 			.addPath(
 				// Line 9
 				new BezierCurve(
-					new Point(39.000, 69.000, Point.CARTESIAN),
+					new Point(37.000, 69.000, Point.CARTESIAN),
 					new Point(22.486, 67.000, Point.CARTESIAN),
 					new Point(23.000, 36.000, Point.CARTESIAN),
-					new Point(9.000, 36.000, Point.CARTESIAN)
+					new Point(9.500, 36.000, Point.CARTESIAN)
 				)
 			)
 			.setConstantHeadingInterpolation(Math.toRadians(180))
@@ -199,10 +255,10 @@ private PathChain
 			.addPath(
 				// Line 10
 				new BezierCurve(
-					new Point(9.000, 36.000, Point.CARTESIAN),
-					new Point(36.580, 36.000, Point.CARTESIAN),
-					new Point(15.456, 71.522, Point.CARTESIAN),
-					new Point(39.000, 71.000, Point.CARTESIAN)
+					new Point(9.500, 36.000, Point.CARTESIAN),
+					new Point(13.000, 36.000, Point.CARTESIAN),
+					new Point(22.000, 71.522, Point.CARTESIAN),
+					new Point(37.000, 71.000, Point.CARTESIAN)
 				)
 			)
 			.setConstantHeadingInterpolation(Math.toRadians(180))
@@ -212,10 +268,10 @@ private PathChain
 			.addPath(
 				// Line 11
 				new BezierCurve(
-					new Point(39.000, 71.000, Point.CARTESIAN),
+					new Point(37.000, 71.000, Point.CARTESIAN),
 					new Point(22.486, 67.000, Point.CARTESIAN),
 					new Point(23.000, 36.000, Point.CARTESIAN),
-					new Point(9.000, 36.000, Point.CARTESIAN)
+					new Point(9.500, 36.000, Point.CARTESIAN)
 				)
 			)
 			.setConstantHeadingInterpolation(Math.toRadians(180))
@@ -225,10 +281,10 @@ private PathChain
 			.addPath(
 				// Line 12
 				new BezierCurve(
-					new Point(9.000, 36.000, Point.CARTESIAN),
-					new Point(36.580, 36.000, Point.CARTESIAN),
-					new Point(15.456, 73.522, Point.CARTESIAN),
-					new Point(39.000, 73.000, Point.CARTESIAN)
+					new Point(9.500, 36.000, Point.CARTESIAN),
+					new Point(13.000, 36.000, Point.CARTESIAN),
+					new Point(22.000, 73.522, Point.CARTESIAN),
+					new Point(37.000, 73.000, Point.CARTESIAN)
 				)
 			)
 			.setConstantHeadingInterpolation(Math.toRadians(180))
@@ -238,10 +294,10 @@ private PathChain
 			.addPath(
 				// Line 13
 				new BezierCurve(
-					new Point(39.000, 73.000, Point.CARTESIAN),
+					new Point(37.000, 73.000, Point.CARTESIAN),
 					new Point(22.486, 67.000, Point.CARTESIAN),
 					new Point(23.000, 36.000, Point.CARTESIAN),
-					new Point(9.000, 36.000, Point.CARTESIAN)
+					new Point(9.500, 36.000, Point.CARTESIAN)
 				)
 			)
 			.setConstantHeadingInterpolation(Math.toRadians(180))
@@ -257,100 +313,197 @@ private PathChain
 				}
 				break;
 			case 1:
-				if (!follower.isBusy() && actionDone) {
-					follower.followPath(pushSamples, true);
+				if (/* !follower.isBusy() */ follower.atParametricEnd() && actionDone) {
+					follower.followPath(grabSample1, true);
 					setPathState(2);
 				}
 				break;
 			case 2:
 				if (!follower.isBusy() && actionDone) {
-					follower.followPath(hangSpecimen1, true);
+					follower.followPath(releaseSample1, true);
 					setPathState(3);
 				}
 				break;
 			case 3:
 				if (!follower.isBusy() && actionDone) {
-					follower.followPath(grabSpecimen2, true);
+					follower.followPath(grabSample2, true);
 					setPathState(4);
 				}
 				break;
 			case 4:
 				if (!follower.isBusy() && actionDone) {
-					follower.followPath(hangSpecimen2, true);
+					follower.followPath(releaseSample2, true);
 					setPathState(5);
 				}
 				break;
 			case 5:
 				if (!follower.isBusy() && actionDone) {
-					follower.followPath(grabSpecimen3, true);
+					follower.followPath(grabSample3, true);
 					setPathState(6);
 				}
 				break;
 			case 6:
 				if (!follower.isBusy() && actionDone) {
-					follower.followPath(hangSpecimen3, true);
+					follower.followPath(releaseSample3, true);
 					setPathState(7);
 				}
 				break;
 			case 7:
 				if (!follower.isBusy() && actionDone) {
-					follower.followPath(grabSpecimen4, true);
+					follower.followPath(grabSpecimen1, true);
 					setPathState(8);
 				}
 				break;
 			case 8:
-				if (!follower.isBusy() && actionDone) {
-					follower.followPath(hangSpecimen4, true);
+				if (/* !follower.isBusy() */ follower.atParametricEnd() && actionDone) {
+					follower.followPath(hangSpecimen1, true);
 					setPathState(9);
 				}
 				break;
 			case 9:
-				if (!follower.isBusy() && actionDone) {
-					follower.followPath(park, true);
+				if (/* !follower.isBusy() */ follower.atParametricEnd() && actionDone) {
+					follower.followPath(grabSpecimen2, true);
 					setPathState(10);
 				}
 				break;
 			case 10:
+				if (/* !follower.isBusy() */ follower.atParametricEnd() && actionDone) {
+					follower.followPath(hangSpecimen2, true);
+					setPathState(11);
+				}
+				break;
+			case 11:
+				if (/* !follower.isBusy() */ follower.atParametricEnd() && actionDone) {
+					follower.followPath(grabSpecimen3, true);
+					setPathState(12);
+				}
+				break;
+			case 12:
+				if (/* !follower.isBusy() */ follower.atParametricEnd() && actionDone) {
+					follower.followPath(hangSpecimen3, true);
+					setPathState(13);
+				}
+				break;
+			case 13:
+				if (/* !follower.isBusy() */ follower.atParametricEnd() && actionDone) {
+					follower.followPath(grabSpecimen4, true);
+					setPathState(14);
+				}
+				break;
+			case 14:
+				if (/* !follower.isBusy() */ follower.atParametricEnd() && actionDone) {
+					follower.followPath(hangSpecimen4, true);
+					setPathState(15);
+				}
+				break;
+			case 15:
+				if (/* !follower.isBusy() */ follower.atParametricEnd() && actionDone) {
+					follower.followPath(park, true);
+					setPathState(16);
+				}
+				break;
+			case 16:
 				if (!follower.isBusy() && actionDone) {
 					setPathState(-1);
 				}
+				break;
 		}
 	}
 
 	public void autonomousActionUpdate() {
+		if (!follower.isBusy() && !actionTimerReset) {
+			actionTimer.resetTimer();
+			actionTimerReset = true;
+		}
+
+		if (follower.isBusy() && follower.atParametricEnd() && !parametricActionTimerReset) {
+			parametricActionTimer.resetTimer();
+			parametricActionTimerReset = true;
+		}
+
 		switch (pathState) {
 			case 0:
-				if (!actionInit) {
-					actionDone = grabSpecimen();
-					actionInit = true;
-				}
+					actionDone = grabSpecimen(0);
 				break;
 			case 1:
-				if (!follower.isBusy()) {
+				if (/* !follower.isBusy() */ follower.atParametricEnd()) {
 					actionDone = hangSpecimen();
+					if (actionDone) {
+						retractSlides();
+					}
 				}
 				break;
 			case 2:
-			case 4:
-			case 6:
-			case 8:
 				if (!actionInit) {
-					grabSpecimenInit();
-					actionInit = true;
-				} else if (!follower.isBusy()) {
-					actionDone = grabSpecimen();
+					actionInit = grabSampleInit(-49);
+				}
+			case 4:
+				if (!follower.isBusy()) {
+					actionDone = grabSample();
+				}
+				break;
+			case 6:
+				if (!follower.isBusy()) {
+					if (!actionInit) {
+						grabSampleInit(-49);
+						if (parametricActionTimer.getElapsedTimeSeconds() < 0.7) break;
+						actionInit = grabSample(0.5);
+					} else {
+						actionDone = retractIntake();
+					}
 				}
 				break;
 			case 3:
-			case 5:
-			case 7:
-			case 9:
 				if (!follower.isBusy()) {
+					releaseSample();
+					actionDone = true;
+				}
+				break;
+			case 5:
+				if (!follower.isBusy()) {
+					if (!actionInit) {
+						actionInit = true;
+						releaseSample();
+					} else {
+						actionDone = retractIntake();
+					}
+				}
+				break;
+			case 7:
+				if (!follower.isBusy()) {
+					if (!actionInit) {
+						actionInit = true;
+						releaseSample();
+					} else {
+						actionDone = sampleToSpecimen();
+					}
+				}
+				break;
+			case 8:
+			case 10:
+			case 12:
+			case 14:
+				if (!actionInit && pathTimer.getElapsedTimeSeconds() > 0.7) {
+					grabSpecimenInit();
+					actionInit = true;
+				} else if (/* !follower.isBusy() */ follower.atParametricEnd()) {
+					actionDone = grabSpecimen();
+				}
+				break;
+			case 9:
+			case 11:
+			case 13:
+			case 15:
+				if (/* !follower.isBusy() */ follower.atParametricEnd()) {
 					actionDone = hangSpecimen();
 				}
 				break;
-			case 10:
+			case 16:
 				actionDone = grabSpecimenInit();
+		}
+
+		if (!doMovement && actionDone) {
+			setPathState(pathState + 1);
 		}
 	}
 
@@ -358,6 +511,9 @@ private PathChain
 		pathState = pState;
 		pathTimer.resetTimer();
 		actionTimer.resetTimer();
+		actionTimerReset = false;
+		parametricActionTimer.resetTimer();
+		parametricActionTimerReset = false;
 		actionInit = false;
 		actionDone = !doActions;
 	}
@@ -365,6 +521,56 @@ private PathChain
 	/*
 	 * Autonomous actions
 	 */
+
+	public boolean grabSampleInit(int angleDeg) {
+		intake.setPosition(Intake.Positions.PRE_INTAKE);
+		intake.setWristRotation(angleDeg * Intake.WRIST_VALUE_PER_DEG);
+
+		return true;
+	}
+
+	public boolean grabSample() {
+		return grabSample(0.3);
+	}
+
+	public boolean grabSample(double delay) {
+		intake.setPosition(Intake.Positions.INTAKE);
+		if (actionTimer.getElapsedTimeSeconds() < delay) return false;
+		intake.closeClaw();
+		if (actionTimer.getElapsedTimeSeconds() < delay+0.3) return false;
+		intake.setPosition(Intake.Positions.PRE_INTAKE);
+
+		return true;
+	}
+
+	public boolean retractSlides() {
+		slides.setPosition(Slides.Positions.RETRACTED);
+
+		return true;
+	}
+
+	public boolean retractIntake() {
+		intake.setPosition(Intake.Positions.POST_INTAKE);
+
+		return true;
+	}
+
+	public boolean releaseSample() {
+		intake.openClaw();
+
+		return actionTimer.getElapsedTimeSeconds() > 0.3;
+	}
+
+	public boolean sampleToSpecimen() {
+		if (actionTimer.getElapsedTimeSeconds() < 0.6) {
+			intake.setPosition(Intake.Positions.RETRACTED);
+		} else {
+			cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
+			return true;
+		}
+
+		return false;
+	}
 
 	public boolean grabSpecimenInit() {
 		cv4b.setPosition(CV4B.Positions.SPECIMEN_GRAB);
@@ -377,7 +583,12 @@ private PathChain
 	}
 
 	public boolean grabSpecimen() {
+		return grabSpecimen(0.3);
+	}
+
+	public boolean grabSpecimen(double delay) {
 		claw.setPosition(Claw.Positions.CLOSED);
+		if (parametricActionTimer.getElapsedTimeSeconds() < delay) return false;
 		slides.setPosition(Slides.Positions.HIGH_CHAMBER_PREHANG);
 		cv4b.setPosition(CV4B.Positions.SPECIMEN_HANG);
 
@@ -385,7 +596,7 @@ private PathChain
 	}
 
 	public boolean hangSpecimen() {
-		if (actionTimer.getElapsedTimeSeconds() < 0.5) {
+		if (parametricActionTimer.getElapsedTimeSeconds() < 0.3) {
 			slides.setPosition(Slides.Positions.HIGH_CHAMBER_HANG);
 			return false;
 		} else {

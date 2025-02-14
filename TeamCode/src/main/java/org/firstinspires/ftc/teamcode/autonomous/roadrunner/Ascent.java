@@ -33,6 +33,8 @@ public class Ascent extends LinearOpMode {
 		);
 
         // Store pose for future use
-		OpModeStorage.pose = drive.pose;
+		OpModeStorage.x = 72+drive.pose.position.y;
+		OpModeStorage.y = 72-drive.pose.position.x;
+		OpModeStorage.heading = -drive.pose.heading.plus(Math.PI / 2).log();
 	}
 }

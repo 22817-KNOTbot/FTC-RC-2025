@@ -92,10 +92,10 @@ public class fieldCentricRed extends LinearOpMode {
 		IMU imu = null;
 		if (USE_ODO) {
 			localizer = new ThreeDeadWheelLocalizer(hardwareMap, MecanumDrive.PARAMS.inPerTick);
-			if (OpModeStorage.pose != null) {
-				Pose2d storedPose = OpModeStorage.pose;
-				pose = new Pose2d(storedPose.position, -storedPose.heading.plus(Math.PI / 2).log()); // Rotate so
-																										// forwards = 0
+			if (OpModeStorage.x > Double.NEGATIVE_INFINITY 
+				&& OpModeStorage.y > Double.NEGATIVE_INFINITY 
+				&& OpModeStorage.heading > Double.NEGATIVE_INFINITY) {
+				pose = new Pose2d(OpModeStorage.y-72, OpModeStorage.x-72, OpModeStorage.heading);
 			} else {
 				pose = new Pose2d(0, 0, 0);
 			}
