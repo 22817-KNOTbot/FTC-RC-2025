@@ -106,8 +106,8 @@ public class Automations {
 
 	public Automations(HardwareMap hardwareMap, Modes mode, boolean DEBUG) {
 		this.automationState = State.IDLE;
-		this.mode = mode;
 		this.hardwareMap = hardwareMap;
+		this.mode = mode;
 		this.DEBUG = DEBUG;
 		this.timer = new ElapsedTime();
 		this.dashboard = FtcDashboard.getInstance();
@@ -128,6 +128,7 @@ public class Automations {
 		if (DEBUG) {
 			telemetryPacket.put("Intake Bucket", Intake.intakePosition);
 			telemetryPacket.put("Intake Slides", Intake.slidePosition);
+			telemetryPacket.put("Intake Slides Value", intake.getSlidePosition());
 			telemetryPacket.put("CV4B", CV4B.position);
 		}
 
@@ -203,22 +204,24 @@ public class Automations {
 	}
 
 	public void intakeGrabbing() {
-		if (timer.time() < 0.3) return;
+		if (timer.time() < 0.5) return;
 		intake.closeClaw();
-		if (timer.time() < 0.6) return;
+		if (timer.time() < 0.8) return;
 
 		automationState = State.INTAKE_GRABBED;
 	}
 	
-	public void intakeGrabbed(Alliance alliance, boolean yellowAllowed) {
+	public void intakeGrabbed(Alliance alliance, boolean yellowAllowed, boolean forceIntake) {
 		if (samplePurpose == SamplePurpose.SPECIMEN) yellowAllowed = false;
 		// Check sample colour
 		if (DEBUG) {
 			telemetryPacket.put("Color", String.format("%d|%d|%d", intake.getRed(), intake.getGreen(), intake.getBlue()));
 		}
 
-		if (intake.getDistance(DistanceUnit.MM) <= 20 &&
-		(yellowAllowed ? (
+		if (
+		forceIntake ||
+		(intake.getDistance(DistanceUnit.MM) <= 20 &&
+		yellowAllowed ? (
 			intake.checkSample(Intake.SampleColours.YELLOW)
 		) : false) || (alliance == Alliance.RED ? (
 			intake.checkSample(Intake.SampleColours.RED)
@@ -242,9 +245,8 @@ public class Automations {
 
 	public void transferInit() {		
 		// Retract intake slides
-		intake.setSlidePosition(Intake.Positions.TRANSFER);
-		intake.setIntakePosition(Intake.Positions.PRE_INTAKE);
-		intake.setWristRotation(Intake.WRIST_MIDDLE_POSITION);
+		intake.setPosition(Intake.Positions.POST_INTAKE);
+		intake.setWristRotation(0);
 		cv4b.setPosition(CV4B.Positions.TRANSFER);
 		claw.setPosition(Claw.Positions.OPEN);
 		vibrateControllers();
@@ -253,8 +255,9 @@ public class Automations {
 	}
 
 	public void transferWait() {
-		if (intake.isSlideBusyFast()) {
+		if (!intake.isSlideBusyFast()) {
 			intake.setPosition(Intake.Positions.TRANSFER);
+			intake.setSlidePosition(-100);
 			timer.reset();
 
 			automationState = State.TRANSFERRING;
@@ -267,6 +270,7 @@ public class Automations {
 				claw.setPosition(Claw.Positions.CLOSED);
 			} else {
 				intake.openClaw();
+				intake.setPosition(Intake.Positions.TRANSFER);
 				vibrateControllers();
 
 				automationState = State.TRANSFERRED;
@@ -306,23 +310,23 @@ public class Automations {
 
 	// Retract arms without transferring. Designed for samples to be given to HP
 	public void noTransfer() {
-		intake.setSlidePosition(Intake.Positions.TRANSFER);
-		intake.setIntakePosition(Intake.Positions.PRE_INTAKE);
+		intake.setPosition(Intake.Positions.POST_INTAKE);
+		intake.setWristRotation(0);
 
 		automationState = State.SAMPLE_LOADED;
 	}
 
 	public void sampleEject() {
-		intake.setSlidePosition(Intake.SLIDE_POSITION_MAX);
+		intake.setSlidePosition(Intake.Positions.INTAKE);
+		timer.reset();
 		
 		automationState = State.SAMPLE_EJECT_WAIT;
 	}
 
 	public void sampleEjectWait() {
-		if (!intake.isSlideBusyFast()) {
-			intake.openClaw();
-			automationState = State.SAMPLE_EJECTED;
-		}
+		if (timer.time() < 0.5) return;
+		intake.openClaw();
+		automationState = State.SAMPLE_EJECTED;
 	}
 
 	public void resetSampleEject() {

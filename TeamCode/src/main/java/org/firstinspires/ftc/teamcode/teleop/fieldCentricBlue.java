@@ -59,14 +59,14 @@ public class fieldCentricBlue extends LinearOpMode {
 
 	@Override
 	public void runOpMode() {
+		if (gamepad1.right_bumper) DEBUG = true;
 		final boolean USE_PID = this.USE_PID;
 		final boolean USE_ODO = this.USE_ODO;
 		boolean buttonPressed = false;
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 		GamepadStorage.gamepad1 = gamepad1;
 		GamepadStorage.gamepad2 = gamepad2;
-		automationHandler = new Automations(hardwareMap,
-				OpModeStorage.mode == null ? Automations.Modes.SPECIMEN : OpModeStorage.mode, DEBUG);
+		automationHandler = new Automations(hardwareMap, OpModeStorage.mode == null ? Automations.Modes.SPECIMEN : OpModeStorage.mode, DEBUG);
 		ControlTheory.PID xVelocityController = new ControlTheory.PID(Kp, Ki, Kd, true);
 		ControlTheory.PID yVelocityController = new ControlTheory.PID(Kp, Ki, Kd, false);
 		targetBasket = Automations.Basket.HIGH;
@@ -235,7 +235,7 @@ public class fieldCentricBlue extends LinearOpMode {
 					automationHandler.intakeGrabbing();
 					break;
 				case INTAKE_GRABBED:
-					automationHandler.intakeGrabbed(Automations.Alliance.BLUE, true);
+					automationHandler.intakeGrabbed(Automations.Alliance.BLUE, true, gamepad2.right_bumper);
 					break;
 				case INTAKE_RELEASE:
 					automationHandler.intakeRelease();
@@ -283,7 +283,9 @@ public class fieldCentricBlue extends LinearOpMode {
 				case SAMPLE_EJECT_WAIT:
 					automationHandler.sampleEjectWait();
 				case SAMPLE_EJECTED:
-					automationHandler.resetSampleEject();
+					if (gamepad1.right_bumper) {
+						automationHandler.resetSampleEject();
+					}
 					break;
 				// Grabbing specimen
 				case SPECIMEN_GRABBING:
