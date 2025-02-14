@@ -6,7 +6,7 @@ import com.pedropathing.localization.constants.*;
 public class LConstants {
 	static {
 		ThreeWheelConstants.forwardTicksToInches = 0.0029750308;
-		ThreeWheelConstants.strafeTicksToInches = 0.0030189015;
+		ThreeWheelConstants.strafeTicksToInches = 0.0029520205;
 		ThreeWheelConstants.turnTicksToInches = 0.0029062348;
 		ThreeWheelConstants.leftY = 8;
 		ThreeWheelConstants.rightY = -7.625;

@@ -17,14 +17,14 @@ public class CV4B {
 	 * Drive: Higher = back
 	 * Coax: Higher = back
 	 */
-	public static double TRANSFER_DRIVE = 0.62;
-	public static double TRANSFER_COAX = 0.78;
+	public static double TRANSFER_DRIVE = 0.64;
+	public static double TRANSFER_COAX = 0.783;
 	public static double DEPOSIT_DRIVE = 0.85;
 	public static double DEPOSIT_COAX = 0.9;
 	public static double SPECIMEN_GRAB_DRIVE = 0.43;
-	public static double SPECIMEN_GRAB_COAX = 0.805;
-	public static double SPECIMEN_HANG_DRIVE = 0.85;
-	public static double SPECIMEN_HANG_COAX = 0.9;
+	public static double SPECIMEN_GRAB_COAX = 0.81;
+	public static double SPECIMEN_HANG_DRIVE = 0.78;
+	public static double SPECIMEN_HANG_COAX = 0.898;
 	public static double ASCENT_DRIVE = 0.85;
 	public static double ASCENT_COAX = 0.9;
 	// Offsets are added to all positions.
