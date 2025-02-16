@@ -15,12 +15,12 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
-import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.PoseVelocity2d;
-import com.acmerobotics.roadrunner.Time;
-import com.acmerobotics.roadrunner.Twist2d;
-import com.acmerobotics.roadrunner.Twist2dDual;
-import com.acmerobotics.roadrunner.Vector2d;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.localization.Pose;
+import com.pedropathing.util.Constants;
+
+import pedroPathing.constants.FConstants;
+import pedroPathing.constants.LConstants;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Automations;
@@ -38,75 +38,38 @@ import org.firstinspires.ftc.teamcode.util.GamepadStorage;
 @TeleOp(name = "Field Centric Teleop: Blue", group = "AAA Field Centric")
 public class fieldCentricBlue extends LinearOpMode {
 	public static boolean DEBUG = false;
-	public static boolean USE_PID = false;
-	public static boolean USE_ODO = true;
-	public static int TARGET_SPEED = 50;
-	public static double Kp = 0.008;
-	public static double Ki = 0;
-	public static double Kd = 0;
 	private ElapsedTime runtime = new ElapsedTime();
-	private DcMotor frontLeftDrive;
-	private DcMotor backLeftDrive;
-	private DcMotor frontRightDrive;
-	private DcMotor backRightDrive;
 	private Automations automationHandler;
 	private Automations.Basket targetBasket;
 
-	private Localizer localizer;
-	private Pose2d pose;
+	private Follower follower;
+	private Pose pose;
 
-	private Vector2d oldReferenceVel = new Vector2d(0, 0);
+	private Pose holdPose;
+	private boolean holdingPose;
 
 	@Override
 	public void runOpMode() {
-		if (gamepad1.right_bumper) DEBUG = true;
-		final boolean USE_PID = this.USE_PID;
-		final boolean USE_ODO = this.USE_ODO;
+		if (gamepad1.right_bumper)
+			DEBUG = true;
 		boolean buttonPressed = false;
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 		GamepadStorage.gamepad1 = gamepad1;
 		GamepadStorage.gamepad2 = gamepad2;
-		automationHandler = new Automations(hardwareMap, OpModeStorage.mode == null ? Automations.Modes.SPECIMEN : OpModeStorage.mode, DEBUG);
-		ControlTheory.PID xVelocityController = new ControlTheory.PID(Kp, Ki, Kd, true);
-		ControlTheory.PID yVelocityController = new ControlTheory.PID(Kp, Ki, Kd, false);
+		automationHandler = new Automations(hardwareMap,
+				OpModeStorage.mode == null ? Automations.Modes.SPECIMEN : OpModeStorage.mode, DEBUG);
 		targetBasket = Automations.Basket.HIGH;
 
-		frontLeftDrive = hardwareMap.get(DcMotor.class, "leftFront");
-		backLeftDrive = hardwareMap.get(DcMotor.class, "leftBack");
-		frontRightDrive = hardwareMap.get(DcMotor.class, "rightFront");
-		backRightDrive = hardwareMap.get(DcMotor.class, "rightBack");
-
-		frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-		backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-		frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
-		backRightDrive.setDirection(DcMotor.Direction.FORWARD);
-		frontLeftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-		backLeftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-		frontRightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-		backRightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-		frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-		backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-		frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-		backRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-		IMU imu = null;
-		if (USE_ODO) {
-			localizer = new ThreeDeadWheelLocalizer(hardwareMap, MecanumDrive.PARAMS.inPerTick);
-			if (OpModeStorage.x > Double.NEGATIVE_INFINITY 
-				&& OpModeStorage.y > Double.NEGATIVE_INFINITY 
+		if (OpModeStorage.x > Double.NEGATIVE_INFINITY
+				&& OpModeStorage.y > Double.NEGATIVE_INFINITY
 				&& OpModeStorage.heading > Double.NEGATIVE_INFINITY) {
-				pose = new Pose2d(OpModeStorage.y-72, OpModeStorage.x-72, OpModeStorage.heading);
-			} else {
-				pose = new Pose2d(0, 0, 0);
-			}
+			pose = new Pose(OpModeStorage.x, OpModeStorage.y, OpModeStorage.heading);
 		} else {
-			imu = hardwareMap.get(IMU.class, "imu");
-			IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-					RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-					RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
-			imu.initialize(parameters);
-			imu.resetYaw();
+			pose = new Pose(0, 0, 0);
 		}
+		Constants.setConstants(FConstants.class, LConstants.class);
+		follower = new Follower(hardwareMap);
+		follower.setStartingPose(pose);
 
 		// Bulk read
 		List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -123,6 +86,7 @@ public class fieldCentricBlue extends LinearOpMode {
 		}
 
 		waitForStart();
+		follower.startTeleopDrive();
 		runtime.reset();
 
 		while (opModeIsActive()) {
@@ -131,59 +95,29 @@ public class fieldCentricBlue extends LinearOpMode {
 				hub.clearBulkCache();
 			}
 
-			// Update pose for velocity and heading used in field centric rotation
-			double heading;
-			Vector2d velocity = new Vector2d(0, 0);
-			if (USE_ODO) {
-				velocity = updatePose();
-				heading = pose.heading.log();
-			} else {
-				heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+			follower.update();
+
+			double forward = -gamepad1.left_stick_y;
+			double lateral = -gamepad1.left_stick_x;
+			double rotation = -gamepad1.right_stick_x;
+
+			double denominator = Math.max(Math.abs(forward) + Math.abs(lateral) + Math.abs(rotation), 1);
+
+			follower.setTeleOpMovementVectors(
+					forward / denominator,
+					lateral / denominator,
+					rotation / denominator,
+					false);
+
+			if (!holdingPose && gamepad1.left_trigger >= 0.9) {
+				holdPose = follower.getPose();
+				follower.holdPoint(holdPose);
+				holdingPose = true;
+			} else if (holdingPose && gamepad1.left_trigger < 0.9) {
+				follower.breakFollowing();
+				follower.startTeleopDrive();
+				holdingPose = false;
 			}
-
-			double xOutput;
-			double yOutput;
-
-			if (USE_PID && USE_ODO) {
-				// Sets a target velocity (field-centric)
-				Vector2d referenceVel = new Vector2d(
-						gamepad1.left_stick_x * TARGET_SPEED,
-						-gamepad1.left_stick_y * TARGET_SPEED);
-
-				// If reference changes -> reset integral sum
-				// Quite important for drivetrain movement to prevent delay in movement
-				if (oldReferenceVel.x != referenceVel.x) {
-					xVelocityController.resetIntegral();
-				}
-				if (oldReferenceVel.y != referenceVel.y) {
-					yVelocityController.resetIntegral();
-				}
-
-				// Use PID calculations from ControlTheory.java
-				xOutput = xVelocityController.calculate(referenceVel.x, velocity.x);
-				yOutput = yVelocityController.calculate(referenceVel.y, velocity.y);
-			} else {
-				// Switch to regular input if PID doesn't work
-				xOutput = gamepad1.left_stick_x;
-				yOutput = -gamepad1.left_stick_y;
-
-			}
-			double rx = gamepad1.right_stick_x;
-
-			// Rotate vector to be relative to robot
-			double xRotated = xOutput * Math.cos(-heading) - yOutput * Math.sin(-heading);
-			double yRotated = xOutput * Math.sin(-heading) + yOutput * Math.cos(-heading);
-
-			double denominator = Math.max(Math.abs(xRotated) + Math.abs(yRotated) + Math.abs(rx), 1);
-			double frontLeftPower = (yRotated + xRotated + rx) / denominator;
-			double backLeftPower = (yRotated - xRotated + rx) / denominator;
-			double frontRightPower = (yRotated - xRotated - rx) / denominator;
-			double backRightPower = (yRotated + xRotated - rx) / denominator;
-
-			frontLeftDrive.setPower(frontLeftPower);
-			backLeftDrive.setPower(backLeftPower);
-			frontRightDrive.setPower(frontRightPower);
-			backRightDrive.setPower(backRightPower);
 
 			switch (automationHandler.automationState) {
 				case ABORT:
@@ -214,7 +148,7 @@ public class fieldCentricBlue extends LinearOpMode {
 						automationHandler.setMode(Automations.Modes.SPECIMEN);
 					}
 
-					if (gamepad1.left_trigger > 0.9 && (runtime.time() > 90 || DEBUG)) {
+					if (gamepad1.left_trigger > 0.9) {
 						automationHandler.ascendInit();
 					} else if (gamepad1.right_bumper) {
 						automationHandler.retract();
@@ -226,7 +160,8 @@ public class fieldCentricBlue extends LinearOpMode {
 
 				// Sample intake
 				case INTAKE_READY:
-					automationHandler.intakePosition(gamepad2.left_stick_x, -gamepad2.left_stick_y, heading);
+					automationHandler.intakePosition(gamepad2.left_stick_x, -gamepad2.left_stick_y,
+							follower.getPose().getHeading());
 					if ((gamepad2.a || gamepad2.x) && !buttonPressed) {
 						automationHandler.intakeGrab();
 					}
@@ -328,11 +263,7 @@ public class fieldCentricBlue extends LinearOpMode {
 			if (gamepad1.back || gamepad2.back) {
 				automationHandler.automationState = Automations.State.ABORT;
 			} else if (gamepad1.start || gamepad2.start) {
-				if (USE_ODO) {
-					pose = new Pose2d(pose.position, 0);
-				} else {
-					imu.resetYaw();
-				}
+				follower.setPose(new Pose(0, 0, 0));
 			}
 			if (gamepad1.a) {
 				targetBasket = targetBasket == Automations.Basket.HIGH ? Automations.Basket.LOW
@@ -358,28 +289,19 @@ public class fieldCentricBlue extends LinearOpMode {
 			}
 			telemetry.addData("Basket", targetBasket);
 			if (DEBUG) {
-				telemetry.addData("Heading", Math.toDegrees(heading));
-				telemetry.addData("frontLeftPower", frontLeftPower);
-				telemetry.addData("frontRightPower", frontRightPower);
-				telemetry.addData("backLeftPower", backLeftPower);
-				telemetry.addData("backRightPower", backRightPower);
+				telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
+				telemetry.addData("Forward", forward);
+				telemetry.addData("Lateral", lateral);
+				telemetry.addData("Rotation", rotation);
 
-				Canvas canvas = automationHandler.telemetryPacket.fieldOverlay();
-				if (USE_ODO) {
-					Drawing.drawRobot(canvas, pose);
-				} else {
-					Drawing.drawRobot(canvas, new Pose2d(0, 0, heading));
-				}
+				telemetry.addData("Position X", follower.getPose().getX());
+				telemetry.addData("Position Y", follower.getPose().getY());
+
+				telemetry.addData("Hold Position X", holdPose.getX());
+				telemetry.addData("Hold Position Y", holdPose.getY());
 				automationHandler.updateDashboardTelemetry();
 			}
 			telemetry.update();
 		}
-	}
-
-	public Vector2d updatePose() {
-		Twist2dDual<Time> twist = localizer.update();
-		pose = pose.plus(twist.value());
-
-		return twist.value().line;
 	}
 }
