@@ -19,19 +19,19 @@ public class Intake {
 	 */
 	// Intake
 	public static double RETRACTED_DRIVE = 0.57;
-	public static double RETRACTED_WRIST = 0.56;
+	public static double RETRACTED_WRIST = 0.54;
 
 	public static double PRE_INTAKE_DRIVE = 0.502;
-	public static double PRE_INTAKE_WRIST = 0.46;
+	public static double PRE_INTAKE_WRIST = 0.44;
 
 	public static double INTAKE_DRIVE = 0.49;
-	public static double INTAKE_WRIST = 0.46;
+	public static double INTAKE_WRIST = 0.44;
 
 	public static double POST_INTAKE_DRIVE = 0.52;
-	public static double POST_INTAKE_WRIST = 0.48;
+	public static double POST_INTAKE_WRIST = 0.46;
 
-	public static double TRANSFER_DRIVE = 0.527;
-	public static double TRANSFER_WRIST = 0.553;
+	public static double TRANSFER_DRIVE = 0.524;
+	public static double TRANSFER_WRIST = 0.525;
 
 	public static double WRIST_VALUE_PER_DEG = 0.0007555556;
 
@@ -41,8 +41,8 @@ public class Intake {
 	public static int SLIDE_TRANSFER_POSITION = 0;
 
 	// Claw
-	public static double CLAW_OPEN = 0.395;
-	public static double CLAW_CLOSED = 0.05;
+	public static double CLAW_OPEN = 0.45;
+	public static double CLAW_CLOSED = 0.085;
 	
 	/*
 	 * DO NOT change the below code unless necessary
