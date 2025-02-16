@@ -17,7 +17,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.Automations;
 import org.firstinspires.ftc.teamcode.subsystems.Claw;
 import org.firstinspires.ftc.teamcode.subsystems.CV4B;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
@@ -31,8 +31,8 @@ import pedroPathing.constants.LConstants;
 @Autonomous(name = "4 Sample Auto - Pedro", group = "Autonomous")
 public class Samples extends LinearOpMode {
 	public static double startPoseX = 9;
-	public static double startPoseY = 63;
-	public static double startPoseHeading = 180;
+	public static double startPoseY = 105;
+	public static double startPoseHeading = 270;
 	public static boolean doMovement = true;
 	public static boolean doActions = true;
 	private Pose startPose;
@@ -42,8 +42,9 @@ public class Samples extends LinearOpMode {
 	private Intake intake;
 
 	private Follower follower;
-	private Timer pathTimer, actionTimer, opmodeTimer;
+	private Timer pathTimer, parametricActionTimer, actionTimer, opmodeTimer;
 	private int pathState;
+	private boolean parametricActionTimerReset, actionTimerReset;
 	private boolean actionInit;
 	private boolean actionDone;
 
@@ -52,7 +53,7 @@ private PathChain
 		intakeFirst, depositFirst,
 		intakeSecond, depositSecond,
 		intakeThird, depositThird,
-		park;
+		prePark, park;
 
 	@Override
 	public void runOpMode() {
@@ -60,6 +61,7 @@ private PathChain
 		startPose = new Pose(startPoseX, startPoseY, Math.toRadians(startPoseHeading));
 
 		pathTimer = new Timer();
+		parametricActionTimer = new Timer();
 		actionTimer = new Timer();
 		opmodeTimer = new Timer();
 
@@ -86,13 +88,21 @@ private PathChain
 			telemetry.addData("OpMode Timer", opmodeTimer.getElapsedTimeSeconds());
 			telemetry.addData("Path State", pathState);
 			telemetry.addData("Path Timer", pathTimer.getElapsedTimeSeconds());
+			telemetry.addData("Follower Busy", follower.isBusy());
+			telemetry.addData("Parametric Action Timer", parametricActionTimer.getElapsedTimeSeconds());
 			telemetry.addData("Action Timer", actionTimer.getElapsedTimeSeconds());
+			telemetry.addData("Action Init", actionInit);
 			telemetry.addData("Action Done", actionDone);
 			telemetry.addData("x", follower.getPose().getX());
 			telemetry.addData("y", follower.getPose().getY());
 			telemetry.addData("heading", follower.getPose().getHeading());
 			telemetry.update();
 		}
+
+		OpModeStorage.x = follower.getPose().getX();
+		OpModeStorage.y = follower.getPose().getY();
+		OpModeStorage.heading = follower.getPose().getHeading();
+		OpModeStorage.mode = Automations.Modes.SPECIMEN;
 	}
 
 	public void buildPaths() {
@@ -103,7 +113,7 @@ private PathChain
 				new BezierCurve(
 					new Point(9.000, 105.000, Point.CARTESIAN),
 					new Point(19.500, 105.000, Point.CARTESIAN),
-					new Point(16.000, 128.000, Point.CARTESIAN)
+					new Point(14.000, 130.000, Point.CARTESIAN)
 				)
 			)
 			.setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(315))
@@ -113,8 +123,8 @@ private PathChain
 			.addPath(
 				// Line 2
 				new BezierLine(
-					new Point(16.000, 128.000, Point.CARTESIAN),
-					new Point(23.000, 120.500, Point.CARTESIAN)
+					new Point(14.000, 130.000, Point.CARTESIAN),
+					new Point(18.000, 123.000, Point.CARTESIAN)
 				)
 			)
 			.setLinearHeadingInterpolation(Math.toRadians(315), Math.toRadians(0))
@@ -124,8 +134,8 @@ private PathChain
 			.addPath(
 				// Line 3
 				new BezierLine(
-					new Point(23.000, 120.500, Point.CARTESIAN),
-					new Point(16.000, 128.000, Point.CARTESIAN)
+					new Point(18.000, 123.000, Point.CARTESIAN),
+					new Point(14.000, 130.000, Point.CARTESIAN)
 				)
 			)
 			.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(315))
@@ -135,56 +145,67 @@ private PathChain
 			.addPath(
 				// Line 4
 				new BezierLine(
-					new Point(16.000, 128.000, Point.CARTESIAN),
-					new Point(23.000, 130.000, Point.CARTESIAN)
+					new Point(14.000, 130.000, Point.CARTESIAN),
+					new Point(23.000, 116.500, Point.CARTESIAN)
 				)
 			)
-			.setLinearHeadingInterpolation(Math.toRadians(315), Math.toRadians(0))
+			.setLinearHeadingInterpolation(Math.toRadians(315), Math.toRadians(37))
 		.build();
 		
 		depositSecond = follower.pathBuilder()
 			.addPath(
 				// Line 5
 				new BezierLine(
-					new Point(23.000, 130.000, Point.CARTESIAN),
-					new Point(16.000, 128.000, Point.CARTESIAN)
+					new Point(23.000, 116.500, Point.CARTESIAN),
+					new Point(14.000, 130.000, Point.CARTESIAN)
 				)
 			)
-			.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(315))
+			.setLinearHeadingInterpolation(Math.toRadians(37), Math.toRadians(315))
 		.build();
 		
 		intakeThird = follower.pathBuilder()
 			.addPath(
 				// Line 6
 				new BezierLine(
-					new Point(16.000, 128.000, Point.CARTESIAN),
-					new Point(34.000, 124.000, Point.CARTESIAN)
+					new Point(14.000, 130.000, Point.CARTESIAN),
+          			new Point(28.000, 121.000, Point.CARTESIAN)
 				)
 			)
-			.setLinearHeadingInterpolation(Math.toRadians(315), Math.toRadians(50))
+			.setLinearHeadingInterpolation(Math.toRadians(315), Math.toRadians(51))
 		.build();
 		
 		depositThird = follower.pathBuilder()
 			.addPath(
 				// Line 7
 				new BezierLine(
-					new Point(34.000, 124.000, Point.CARTESIAN),
-					new Point(16.000, 128.000, Point.CARTESIAN)
+					new Point(28.000, 121.000, Point.CARTESIAN),
+         	 		new Point(14.000, 130.000, Point.CARTESIAN)
 				)
 			)
-			.setLinearHeadingInterpolation(Math.toRadians(50), Math.toRadians(315))
+			.setLinearHeadingInterpolation(Math.toRadians(51), Math.toRadians(315))
 		.build();
 		
-		park = follower.pathBuilder()
+		prePark = follower.pathBuilder()
 			.addPath(
 				// Line 8
 				new BezierCurve(
-					new Point(16.000, 128.000, Point.CARTESIAN),
+					new Point(14.000, 130.000, Point.CARTESIAN),
 					new Point(75.000, 110.000, Point.CARTESIAN),
-					new Point(72.000, 96.500, Point.CARTESIAN)
+					new Point(72.000, 99.000, Point.CARTESIAN)
 				)
 			)
 			.setLinearHeadingInterpolation(Math.toRadians(315), Math.toRadians(90))
+		.build();
+
+		park = follower.pathBuilder()
+			.addPath(
+				// Line 8
+				new BezierLine(
+					new Point(72.000, 99.000, Point.CARTESIAN),
+					new Point(72.000, 95.000, Point.CARTESIAN)
+				)
+			)
+			.setConstantHeadingInterpolation(Math.toRadians(90))
 		.build();
 	}
 
@@ -234,52 +255,98 @@ private PathChain
 				break;
 			case 7:
 				if (!follower.isBusy() && actionDone) {
-					follower.followPath(park, true);
+					follower.followPath(prePark, true);
 					setPathState(8);
 				}
 				break;
 			case 8:
 				if (!follower.isBusy() && actionDone) {
-					setPathState(-1);
+					follower.followPath(park);
+					setPathState(9);
 				}
+				break;
+			case 9:
+				if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 0.5) {
+					follower.breakFollowing();
+					setPathState(10);
+				}
+			break;
 		}
 	}
 
 	public void autonomousActionUpdate() {
+		if (!follower.isBusy() && !actionTimerReset) {
+			actionTimer.resetTimer();
+			actionTimerReset = true;
+		}
+
+		if (follower.isBusy() && follower.atParametricEnd() && !parametricActionTimerReset) {
+			parametricActionTimer.resetTimer();
+			parametricActionTimerReset = true;
+		}
+
 		switch (pathState) {
 			case 0:
-				depositInit();
 				actionDone = true;
 				break;
 			case 1:
-				if (!follower.isBusy()) {
+				if (!actionInit) {
+					actionInit = depositInit();
+				} else if (!follower.isBusy()) {
 					actionDone = deposit();
 				}
 				break;
 			case 2:
+				if (!actionInit) {
+					depositRetract();
+					actionInit = grabSampleInit(0);
+				} else if (!follower.isBusy()) {
+					if (!grabSample()) break;
+					actionDone = transferInit();
+				}
+				break;
 			case 4:
+				if (!actionInit) {
+					depositRetract();
+					actionInit = grabSampleInit(30);
+				} else if (!follower.isBusy()) {
+					if (!grabSample()) break;
+					actionDone = transferInit();
+				}
+				break;
 			case 6:
 				if (!actionInit) {
-					actionInit = depositRetract();
-				} else if (!follower.isBusy() && intake(Intake.SLIDE_POSITION_MAX, 0)) {
-					actionDone = intakeRetract();
+					depositRetract();
+					actionInit = grabSampleInit(51);
+				} else if (!follower.isBusy()) {
+					if (!grabSample()) break;
+					actionDone = transferInit();
 				}
 				break;
 			case 3:
 			case 5:
 			case 7:
 				if (!actionInit) {
-					actionInit = transfer();
-				} else if (!follower.isBusy() && depositInit()) {
+					if (!transfer()) break;
+					actionInit = depositInit();
+				} else if (!follower.isBusy()) {
 					actionDone = deposit();
 				}
 				break;
 			case 8:
-				if (!actionInit) {
-					actionInit = ascentInit();
-				} else if (!follower.isBusy()) {
+				if (!actionDone) {
+					actionDone = ascentInit();
+				}
+				break;
+			case 10:
+				if (!actionDone) {
 					actionDone = ascent();
 				}
+				break;
+		}
+		
+		if (!doMovement && actionDone) {
+			setPathState(pathState + 1);
 		}
 	}
 
@@ -287,6 +354,9 @@ private PathChain
 		pathState = pState;
 		pathTimer.resetTimer();
 		actionTimer.resetTimer();
+		actionTimerReset = false;
+		parametricActionTimer.resetTimer();
+		parametricActionTimerReset = false;
 		actionInit = false;
 		actionDone = !doActions;
 	}
@@ -294,77 +364,69 @@ private PathChain
 	/*
 	 * Autonomous actions
 	 */
-	public boolean intake() {
-		return intake(Intake.SLIDE_POSITION_DEFAULT, 0.5);
+	public boolean grabSampleInit(int angleDeg) {
+		intake.setPosition(Intake.Positions.PRE_INTAKE);
+		intake.setWristRotation(angleDeg * Intake.WRIST_VALUE_PER_DEG);
+
+		return true;
 	}
 
-	public boolean intake(int position) {
-		return intake(position, 0.5);
+	public boolean grabSample() {
+		return grabSample(0.3);
 	}
 
-	public boolean intake(int position, double delay) {
-		intake.setSlidePosition(position);
-		intake.setPower(0.6);
-		if (actionTimer.getElapsedTimeSeconds() > delay) {
-			intake.setBucketPosition(Intake.Positions.INTAKE);
-			if ((!intake.colourSensorResponding() || intake.getDistance(DistanceUnit.MM) <= 20)
-				|| intake.isTouched()
-				|| !intake.isSlideBusy()) {
-					return true;
-			}
+	public boolean grabSample(double delay) {
+		if (actionTimer.getElapsedTimeSeconds() < delay+0.5) {
+			intake.setPosition(Intake.Positions.INTAKE);
+			if (actionTimer.getElapsedTimeSeconds() < delay) return false;
+			intake.closeClaw();
+			if (actionTimer.getElapsedTimeSeconds() < delay+0.3) return false;
+			intake.setPosition(Intake.Positions.PRE_INTAKE);
 		}
-		return false;
+
+		return true;
 	}
 
-	public boolean intakeRetract() {
+	public boolean transferInit() {
 		intake.setPosition(Intake.Positions.TRANSFER);
-		cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+		intake.setSlidePosition(-100);
+		cv4b.setPosition(CV4B.Positions.TRANSFER);
 		claw.setPosition(Claw.Positions.OPEN);
 
-		if (!intake.isSlideBusy()) {
+		if (intake.getSlidePosition() < 5) {
 			return true;
 		}
 		return false;
 	}
 
 	public boolean transfer() {
-		cv4b.setPosition(CV4B.Positions.TRANSFER);
-		if (actionTimer.getElapsedTimeSeconds() > 0.5) {
-			if (actionTimer.getElapsedTimeSeconds() > 1.1) {
-				return true;
-			} else if (actionTimer.getElapsedTimeSeconds() > 0.8) {
-				intake.setPosition(Intake.Positions.POST_TRANSFER);
-			} else {
-				claw.setPosition(Claw.Positions.CLOSED);
-				intake.setPower(0);
-			}
+		if (pathTimer.getElapsedTimeSeconds() < 0.5) {
+			claw.setPosition(Claw.Positions.CLOSED);
+		} else {
+			intake.openClaw();
+			return true;
 		}
 		return false;
 	}
 
 	public boolean depositInit() {
-		if (!actionInit) {
+		if (pathTimer.getElapsedTimeSeconds() < 1) {
 			slides.setPosition(Slides.Positions.HIGH_BASKET);
-			actionInit = true;
-		} else if (actionTimer.getElapsedTimeSeconds() > 0.7) {
-			if (actionTimer.getElapsedTimeSeconds() < 1.7) {
-				cv4b.setPosition(CV4B.Positions.DEPOSIT);
-				intake.setPower(-0.5);
-			} else {
-				intake.setPower(0);
-				return true;
-			}
+		} else if (pathTimer.getElapsedTimeSeconds() < 1.5) {
+			cv4b.setPosition(CV4B.Positions.DEPOSIT);
+		} else if (pathTimer.getElapsedTimeSeconds() > 2.3) {
+			return true;
 		}
 		return false;
 	}
 
 	public boolean deposit() {
 		claw.setPosition(Claw.Positions.OPEN);
-		return true;
+		return actionTimer.getElapsedTimeSeconds() > 0.3;
 	}
 
 	public boolean depositRetract() {
-		cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+		cv4b.setPosition(CV4B.Positions.TRANSFER);
 		slides.setPosition(Slides.Positions.RETRACTED);
 
 		return true;
@@ -373,7 +435,7 @@ private PathChain
 	public boolean ascentInit() {
 		slides.setPosition(Slides.Positions.RETRACTED);
 		if (actionTimer.getElapsedTimeSeconds() < 0.5) {
-			cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+			cv4b.setPosition(CV4B.Positions.TRANSFER);
 		} else {
 			cv4b.setPosition(CV4B.Positions.DEPOSIT);
 			return true;
