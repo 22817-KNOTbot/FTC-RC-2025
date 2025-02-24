@@ -113,7 +113,7 @@ private PathChain
 				new BezierCurve(
 					new Point(9.000, 105.000, Point.CARTESIAN),
 					new Point(19.500, 105.000, Point.CARTESIAN),
-					new Point(14.000, 130.000, Point.CARTESIAN)
+					new Point(17.000, 127.000, Point.CARTESIAN)
 				)
 			)
 			.setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(315))
@@ -123,7 +123,7 @@ private PathChain
 			.addPath(
 				// Line 2
 				new BezierLine(
-					new Point(14.000, 130.000, Point.CARTESIAN),
+					new Point(17.000, 127.000, Point.CARTESIAN),
 					new Point(18.000, 123.000, Point.CARTESIAN)
 				)
 			)
@@ -135,7 +135,7 @@ private PathChain
 				// Line 3
 				new BezierLine(
 					new Point(18.000, 123.000, Point.CARTESIAN),
-					new Point(14.000, 130.000, Point.CARTESIAN)
+					new Point(17.000, 127.000, Point.CARTESIAN)
 				)
 			)
 			.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(315))
@@ -145,7 +145,7 @@ private PathChain
 			.addPath(
 				// Line 4
 				new BezierLine(
-					new Point(14.000, 130.000, Point.CARTESIAN),
+					new Point(17.000, 127.000, Point.CARTESIAN),
 					new Point(23.000, 116.500, Point.CARTESIAN)
 				)
 			)
@@ -157,7 +157,7 @@ private PathChain
 				// Line 5
 				new BezierLine(
 					new Point(23.000, 116.500, Point.CARTESIAN),
-					new Point(14.000, 130.000, Point.CARTESIAN)
+					new Point(17.000, 127.000, Point.CARTESIAN)
 				)
 			)
 			.setLinearHeadingInterpolation(Math.toRadians(37), Math.toRadians(315))
@@ -167,7 +167,7 @@ private PathChain
 			.addPath(
 				// Line 6
 				new BezierLine(
-					new Point(14.000, 130.000, Point.CARTESIAN),
+					new Point(17.000, 127.000, Point.CARTESIAN),
           			new Point(28.000, 121.000, Point.CARTESIAN)
 				)
 			)
@@ -179,7 +179,7 @@ private PathChain
 				// Line 7
 				new BezierLine(
 					new Point(28.000, 121.000, Point.CARTESIAN),
-         	 		new Point(14.000, 130.000, Point.CARTESIAN)
+         	 		new Point(17.000, 127.000, Point.CARTESIAN)
 				)
 			)
 			.setLinearHeadingInterpolation(Math.toRadians(51), Math.toRadians(315))
@@ -189,7 +189,7 @@ private PathChain
 			.addPath(
 				// Line 8
 				new BezierCurve(
-					new Point(14.000, 130.000, Point.CARTESIAN),
+					new Point(17.000, 127.000, Point.CARTESIAN),
 					new Point(75.000, 110.000, Point.CARTESIAN),
 					new Point(72.000, 99.000, Point.CARTESIAN)
 				)
