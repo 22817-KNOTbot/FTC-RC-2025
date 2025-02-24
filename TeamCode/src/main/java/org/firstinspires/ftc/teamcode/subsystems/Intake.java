@@ -18,24 +18,25 @@ public class Intake {
 	 * Most positions/values can be changed here.
 	 */
 	// Intake
-	public static double RETRACTED_DRIVE = 0.57;
-	public static double RETRACTED_WRIST = 0.54;
+	public static double RETRACTED_DRIVE = 0.575;
+	public static double RETRACTED_WRIST = 0.48;
 
 	public static double PRE_INTAKE_DRIVE = 0.502;
-	public static double PRE_INTAKE_WRIST = 0.44;
+	public static double PRE_INTAKE_WRIST = 0.42;
 
 	public static double INTAKE_DRIVE = 0.49;
-	public static double INTAKE_WRIST = 0.44;
+	public static double INTAKE_WRIST = 0.42;
 
 	public static double POST_INTAKE_DRIVE = 0.52;
-	public static double POST_INTAKE_WRIST = 0.46;
+	public static double POST_INTAKE_WRIST = 0.44;
 
-	public static double TRANSFER_DRIVE = 0.524;
-	public static double TRANSFER_WRIST = 0.525;
+	public static double TRANSFER_DRIVE = 0.522;
+	public static double TRANSFER_WRIST = 0.503;
 
 	public static double WRIST_VALUE_PER_DEG = 0.0007555556;
 
 	// Slides
+	public static float SLIDE_POWER = 1;
 	public static int INTAKE_SLIDE_POSITION = 350;
 
 	public static int SLIDE_TRANSFER_POSITION = 0;
@@ -192,13 +193,13 @@ public class Intake {
 				target = SLIDE_TRANSFER_POSITION;
 				break;
 		}
-		intakeSlides.setPower(1);
+		intakeSlides.setPower(SLIDE_POWER);
 		intakeSlides.setTargetPosition(target);
 	}
 
 	public void setSlidePosition(int position) {
 		Intake.slidePosition = Intake.Positions.MANUAL;
-		intakeSlides.setPower(1);
+		intakeSlides.setPower(SLIDE_POWER);
 		intakeSlides.setTargetPosition(position);
 	}
 
