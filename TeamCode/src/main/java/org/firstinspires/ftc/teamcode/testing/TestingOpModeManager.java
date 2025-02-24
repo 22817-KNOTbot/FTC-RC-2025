@@ -42,6 +42,7 @@ public final class TestingOpModeManager {
 			SampleFollow.class,
 			ServoTesting.class,
 			SlideTesting.class,
+			WristTesting.class,
 			TouchSensorTesting.class
 		);
 

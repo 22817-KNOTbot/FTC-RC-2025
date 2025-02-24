@@ -27,13 +27,17 @@ public class ManualControl extends LinearOpMode {
 	public static double POSITION_COAX = 0;
 	public static Slides.Positions SLIDE_POSITION = Slides.Positions.RETRACTED;
 	public static int SLIDE_POSITION_MANUAL = -1;
-	public static double SLIDE_POWER = 1;
-	public static Intake.Positions BUCKET_POSITION = Intake.Positions.INTAKE;
-	public static double BUCKET_POSITION_MANUAL = -1;
-	public static double SCOOP_POWER = 0;
+	public static boolean SLIDE_ENABLED = true;
+
 	public static Intake.Positions INTAKE_POSITION = Intake.Positions.TRANSFER;
-	public static int INTAKE_POSITION_MANUAL = -1;
-	public static double INTAKE_SLIDE_POWER = 1;
+	public static boolean INTAKE_POSITION_MANUAL = false;
+	public static double INTAKE_POSITION_DRIVE = 0;
+	public static double INTAKE_POSITION_WRIST = 0;
+	public static double INTAKE_WRIST_ROT_DEG = 0;
+	public static Intake.Positions INTAKE_SLIDE_POSITION = Intake.Positions.TRANSFER;
+	public static int INTAKE_SLIDE_POSITION_MANUAL = -1;
+	public static boolean INTAKE_SLIDE_ENABLED = true;
+	public static boolean INTAKE_CLAW_CLOSED = false;
 
 	private Intake intake;
 	private Slides slides;
@@ -44,8 +48,8 @@ public class ManualControl extends LinearOpMode {
 	public void runOpMode() {
 		telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-		intake = new Intake(hardwareMap, false);
-		slides = new Slides(hardwareMap, false);
+		intake = new Intake(hardwareMap, true);
+		slides = new Slides(hardwareMap, true);
 		cv4b = new CV4B(hardwareMap);
 		claw = new Claw(hardwareMap);
 
@@ -63,25 +67,34 @@ public class ManualControl extends LinearOpMode {
 				cv4b.setCoaxialPWM(CV4B_ENABLED);
 			}
 
-			slides.setPower(SLIDE_POWER);
-			if (SLIDE_POSITION_MANUAL == -1) {
-				slides.setPosition(SLIDE_POSITION);
+			if (SLIDE_ENABLED) {
+				slides.setPower(1);
+				if (SLIDE_POSITION_MANUAL == -1) {
+					slides.setPosition(SLIDE_POSITION);
+				} else {
+					slides.setPosition(SLIDE_POSITION_MANUAL);
+				}
 			} else {
-				slides.setPosition(SLIDE_POSITION_MANUAL);
+				slides.setPower(0);
 			}
 
-			if (BUCKET_POSITION_MANUAL == -1) {
-				intake.setBucketPosition(BUCKET_POSITION);
+			if (INTAKE_SLIDE_ENABLED) {
+				intake.setSlidePower(1);
+				if (INTAKE_SLIDE_POSITION_MANUAL == -1) {
+					intake.setSlidePosition(INTAKE_SLIDE_POSITION);
+				} else {
+					intake.setSlidePosition(INTAKE_SLIDE_POSITION_MANUAL);
+				}	
 			} else {
-				intake.setBucketPosition(BUCKET_POSITION_MANUAL);
+				intake.setSlidePower(0);
 			}
-			intake.setPower(SCOOP_POWER);
-			intake.setSlidePower(INTAKE_SLIDE_POWER);
-			if (INTAKE_POSITION_MANUAL == -1) {
-				intake.setSlidePosition(INTAKE_POSITION);
+			if (INTAKE_POSITION_MANUAL) {
+				intake.setIntakePosition(INTAKE_POSITION_DRIVE, INTAKE_POSITION_WRIST);
 			} else {
-				intake.setSlidePosition(INTAKE_POSITION_MANUAL);
+					intake.setIntakePosition(INTAKE_POSITION);
 			}
+			intake.setWristRotation(INTAKE_WRIST_ROT_DEG * Intake.WRIST_VALUE_PER_DEG);
+			if (INTAKE_CLAW_CLOSED) intake.closeClaw(); else intake.openClaw();
 
 			claw.setPosition(CLAW_POSITION);
 
@@ -99,7 +112,6 @@ public class ManualControl extends LinearOpMode {
 				}
 				telemetry.addData("Distance", intake.getDistance(DistanceUnit.MM));
 			}
-			telemetry.addData("Intake Touch", intake.isTouched());
 			telemetry.addData("Slide 1", slides.getSlideLeftPosition());
 			telemetry.addData("Slide 2", slides.getSlideRightPosition());
 			telemetry.update();

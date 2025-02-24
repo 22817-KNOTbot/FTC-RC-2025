@@ -14,16 +14,16 @@ public class Slides {
 	 */
 	public static int RETRACTED_POSITION = 0;
 
-	public static int LOW_BASKET_POSITION = 2000;
-	public static int HIGH_BASKET_POSITION = 2200;
+	public static int LOW_BASKET_POSITION = 800;
+	public static int HIGH_BASKET_POSITION = 2250;
 
-	public static int HIGH_CHAMBER_PREHANG_POSITION = 450;
-	public static int HIGH_CHAMBER_HANG_POSITION = 900;
+	public static int HIGH_CHAMBER_PREHANG_POSITION = 400;
+	public static int HIGH_CHAMBER_HANG_POSITION = 765;
 
 	public static int ASCEND_ONE_POSITION = 2000;
 
-	public static int ASCEND_TWO_PRE_POSITION = 2100;
-	public static int ASCEND_TWO_RETRACT_POSITION = 900;
+	public static int ASCEND_TWO_PRE_POSITION = 2200;
+	public static int ASCEND_TWO_RETRACT_POSITION = 1500;
 
 	/*
 	 * DO NOT change the below code unless necessary
@@ -131,5 +131,17 @@ public class Slides {
 
 	public boolean isSlideBusy() {
 		return slideMotorLeft.isBusy() || slideMotorRight.isBusy();
+	}
+
+		// Alternate method which should be faster than the native isBusy()
+	// Compares current position to target position
+	public boolean isSlideBusyFast() {
+		return isSlideBusyFast(10);
+	}
+
+	public boolean isSlideBusyFast(int dist) {
+		boolean leftBusy = Math.abs(slideMotorLeft.getCurrentPosition() - slideMotorLeft.getTargetPosition()) > dist;
+		boolean rightBusy = Math.abs(slideMotorRight.getCurrentPosition() - slideMotorRight.getTargetPosition()) > dist;
+		return leftBusy || rightBusy;
 	}
 }

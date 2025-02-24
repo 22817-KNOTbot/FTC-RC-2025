@@ -9,7 +9,9 @@ import org.firstinspires.ftc.teamcode.Automations;
 @Config
 public class OpModeStorage {
     // Pose for transfer between Auto and TeleOp
-    public static Pose2d pose;
+	public static double x = Double.NEGATIVE_INFINITY;
+	public static double y = Double.NEGATIVE_INFINITY;
+	public static double heading = Double.NEGATIVE_INFINITY;
 	// Mode of robot
 	public static Automations.Modes mode;
 }

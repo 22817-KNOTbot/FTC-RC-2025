@@ -16,8 +16,8 @@ public class Claw {
 	 * Lower = open
 	 * Higher = closed
 	 */
-	public static double OPEN = 1;
-	public static double CLOSED = 0.8;
+	public static double OPEN = 0.6;
+	public static double CLOSED = 0.93;
 
 	/*
 	 * DO NOT change the below code unless necessary
@@ -36,7 +36,7 @@ public class Claw {
 
 	public Claw(HardwareMap hardwareMap) {
 		clawServo = hardwareMap.get(Servo.class, "clawServo");
-		clawServo.setDirection(Servo.Direction.REVERSE);
+		// clawServo.setDirection(Servo.Direction.REVERSE);
 	}
 
 	/*

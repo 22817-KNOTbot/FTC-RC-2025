@@ -17,22 +17,25 @@ public class CV4B {
 	 * Drive: Higher = back
 	 * Coax: Higher = back
 	 */
-	public static double PRE_TRANSFER_DRIVE = 0.55;
-	public static double PRE_TRANSFER_COAX = 0.4;
-	public static double TRANSFER_DRIVE = 0.44;
-	public static double TRANSFER_COAX = 0.365;
-	public static double DEPOSIT_DRIVE = 0.85;
-	public static double DEPOSIT_COAX = 0.5;
-	public static double SPECIMEN_GRAB_DRIVE = 0.45;
-	public static double SPECIMEN_GRAB_COAX = 0.4;
-	public static double SPECIMEN_HANG_DRIVE = 0.85;
-	public static double SPECIMEN_HANG_COAX = 0.5;
-	public static double ASCENT_DRIVE = 0.85;
-	public static double ASCENT_COAX = 0.5;
+	public static double TRANSFER_DRIVE = 0.79;
+	public static double TRANSFER_COAX = 0.785;
+	public static double DEPOSIT_DRIVE = 0.95;
+	public static double DEPOSIT_COAX = 0.9;
+	public static double SPECIMEN_GRAB_DRIVE = 0.43;
+	public static double SPECIMEN_GRAB_COAX = 0.81;
+	public static double SPECIMEN_HANG_DRIVE = 0.9;
+	public static double SPECIMEN_HANG_COAX = 0.89;
+	public static double SPECIMEN_HANG_PRELOAD_DRIVE = 0.82;
+	public static double SPECIMEN_HANG_PRELOAD_COAX = 0.905;
+	public static double ASCENT_DRIVE = 0.91;
+	public static double ASCENT_COAX = 0.9;
+
+	// 0.87, 0.8 pre
+	// 0.87, 0.82 (not final)
 	// Offsets are added to all positions.
 	// Use them to fix positions after slips
-	public static double offset_drive = 0.08;
-	public static double offset_coax = -0.015;
+	public static double offset_drive = -0.07;
+	public static double offset_coax = 0.03;
 
 	/*
 	 * DO NOT change the below code unless necessary
@@ -48,9 +51,9 @@ public class CV4B {
 	public enum Positions {
 		BASE,
 		TRANSFER,
-		PRE_TRANSFER,
 		SPECIMEN_GRAB,
 		SPECIMEN_HANG,
+		SPECIMEN_HANG_PRELOAD,
 		DEPOSIT,
 		LEVEL_ONE_ASCENT,
 		MANUAL
@@ -84,10 +87,6 @@ public class CV4B {
 				driveTarget = TRANSFER_DRIVE + offset_drive;
 				coaxTarget = TRANSFER_COAX + offset_coax;
 				break;
-			case PRE_TRANSFER:
-				driveTarget = PRE_TRANSFER_DRIVE + offset_drive;
-				coaxTarget = PRE_TRANSFER_COAX + offset_coax;
-				break;
 			case DEPOSIT:
 				driveTarget = DEPOSIT_DRIVE + offset_drive;
 				coaxTarget = DEPOSIT_COAX + offset_coax;
@@ -99,6 +98,10 @@ public class CV4B {
 			case SPECIMEN_HANG:
 				driveTarget = SPECIMEN_HANG_DRIVE + offset_drive;
 				coaxTarget = SPECIMEN_HANG_COAX + offset_coax;
+				break;
+			case SPECIMEN_HANG_PRELOAD:
+				driveTarget = SPECIMEN_HANG_PRELOAD_DRIVE + offset_drive;
+				coaxTarget = SPECIMEN_HANG_PRELOAD_COAX + offset_coax;
 				break;
 			case LEVEL_ONE_ASCENT:
 				driveTarget = ASCENT_DRIVE + offset_drive;

@@ -19,7 +19,8 @@ import org.firstinspires.ftc.teamcode.subsystems.Slides;
 public class RobotInspection extends LinearOpMode {
 	public static CV4B.Positions CV4B_POSITION = CV4B.Positions.DEPOSIT;
 	public static Slides.Positions SLIDE_POSITION = Slides.Positions.HIGH_BASKET;
-	public static int INTAKE_POSITION = Intake.SLIDE_POSITION_MAX;
+	public static int INTAKE_SLIDE_POSITION = Intake.INTAKE_SLIDE_POSITION;
+	public static Intake.Positions INTAKE_POSITION = Intake.Positions.INTAKE;
 	private static boolean extended = false;
 	private CV4B cv4b;
 	private Intake intake;
@@ -37,15 +38,15 @@ public class RobotInspection extends LinearOpMode {
 
 		while (opModeIsActive()) {
 			if (!extended) {
-				cv4b.setPosition(CV4B.Positions.PRE_TRANSFER);
+				cv4b.setPosition(CV4B.Positions.TRANSFER);
 				slides.setPosition(Slides.Positions.RETRACTED);
 				intake.setSlidePosition(0);
-				intake.setBucketPosition(Intake.Positions.TRANSFER);
+				intake.setIntakePosition(Intake.Positions.TRANSFER);
 			} else {
 				cv4b.setPosition(CV4B_POSITION);
 				slides.setPosition(SLIDE_POSITION);
-				intake.setSlidePosition(INTAKE_POSITION);
-				intake.setBucketPosition(Intake.Positions.TRANSFER);
+				intake.setSlidePosition(INTAKE_SLIDE_POSITION);
+				intake.setIntakePosition(INTAKE_POSITION);
 			}
 
 			if (gamepad1.left_bumper) {
