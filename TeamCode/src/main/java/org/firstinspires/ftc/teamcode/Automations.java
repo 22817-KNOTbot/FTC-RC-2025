@@ -185,8 +185,7 @@ public class Automations {
 			// This formula clips the angle to the range -90deg to 90.
 			// Values outside this range are clipped to their opposite (ex: 135deg becomes -45deg)
 			double clippedAngle = ((Math.toDegrees(Math.atan2(rotatedX * (rotatedY / Math.abs(rotatedY)), Math.abs(rotatedY))) + 180) % 360) - 180;
-			double roundedAngle = Math.round(clippedAngle / 15) * 15;
-			wristTarget = roundedAngle * Intake.WRIST_VALUE_PER_DEG;
+			wristTarget = clippedAngle * Intake.WRIST_VALUE_PER_DEG;
 		}
 
 		intake.setWristRotation(wristTarget);
@@ -324,7 +323,7 @@ public class Automations {
 	}
 
 	public void sampleEjectWait() {
-		if (timer.time() < 0.5) return;
+		if (timer.time() < 0.3) return;
 		intake.openClaw();
 		automationState = State.SAMPLE_EJECTED;
 	}
@@ -449,6 +448,10 @@ public class Automations {
 
 	public int getSlideRightPosition() {
 		return slides.getSlideRightPosition();
+	}
+
+	public boolean getSlideBusy() {
+		return slides.isSlideBusy();
 	}
 
 	public void setSlidesPower(double power) {

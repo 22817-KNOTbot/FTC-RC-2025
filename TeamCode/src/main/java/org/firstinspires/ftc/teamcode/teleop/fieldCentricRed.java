@@ -45,7 +45,7 @@ public class fieldCentricRed extends LinearOpMode {
 	private Follower follower;
 	private Pose pose;
 
-	private Pose holdPose;
+	private Pose holdPose = new Pose(0, 0, 0);
 	private boolean holdingPose;
 
 	@Override
@@ -109,11 +109,11 @@ public class fieldCentricRed extends LinearOpMode {
 					rotation / denominator,
 					false);
 
-			if (!holdingPose && gamepad1.left_trigger >= 0.9) {
+			if (!holdingPose && gamepad1.left_bumper) {
 				holdPose = follower.getPose();
 				follower.holdPoint(holdPose);
 				holdingPose = true;
-			} else if (holdingPose && gamepad1.left_trigger < 0.9) {
+			} else if (holdingPose && !gamepad1.left_bumper) {
 				follower.breakFollowing();
 				follower.startTeleopDrive();
 				holdingPose = false;
@@ -153,7 +153,8 @@ public class fieldCentricRed extends LinearOpMode {
 					} else if (gamepad1.right_bumper) {
 						automationHandler.retract();
 					} else if (automationHandler.getSlideLeftPosition() < 5
-							&& automationHandler.getSlideRightPosition() < 5) {
+							&& automationHandler.getSlideRightPosition() < 5
+							&& !automationHandler.getSlideBusy()) {
 						automationHandler.setSlidesPower(0);
 					}
 					break;
@@ -161,7 +162,7 @@ public class fieldCentricRed extends LinearOpMode {
 				// Sample intake
 				case INTAKE_READY:
 					automationHandler.intakePosition(gamepad2.left_stick_x, -gamepad2.left_stick_y,
-							follower.getPose().getHeading());
+						-follower.getPose().getHeading());
 					if ((gamepad2.a || gamepad2.x) && !buttonPressed) {
 						automationHandler.intakeGrab();
 					}
@@ -227,7 +228,7 @@ public class fieldCentricRed extends LinearOpMode {
 					automationHandler.grabSpecimenWait();
 					break;
 				case SPECIMEN_GRABBED:
-					if (gamepad2.y && !buttonPressed) {
+					if (gamepad1.right_stick_button) {
 						automationHandler.hangSpecimen();
 					}
 					break;
@@ -276,7 +277,7 @@ public class fieldCentricRed extends LinearOpMode {
 				CV4B.offset_drive -= 0.05;
 			}
 
-			buttonPressed = gamepad2.y || gamepad2.b || gamepad2.a || gamepad2.x || gamepad1.left_trigger > 0.9;
+			buttonPressed = gamepad2.b || gamepad2.a || gamepad2.x || gamepad1.left_trigger > 0.9;
 
 			telemetry.addData("Time", runtime.time());
 			telemetry.addData("State", automationHandler.automationState);
