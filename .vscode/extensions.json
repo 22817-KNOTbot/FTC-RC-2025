@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "adelphes.android-dev-ext",
+        "redhat.java",
+        "vscjava.vscode-gradle"
+    ]
+}

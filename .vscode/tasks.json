@@ -1,0 +1,67 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Connect to control hub",
+			"type": "shell",
+			"command": "if ((get-netconnectionProfile).Name.contains('22817-RC')) { adb connect 192.168.43.1 }",
+			"presentation": {
+				"reveal": "never",
+				"showReuseMessage": false,
+				"focus": false,
+				"close": true,
+				"group": "RC code send"
+			},
+			"problemMatcher": []
+		},
+		{
+			"type": "gradle",
+			"id": "${cwd}installDebugSoftware",
+			"script": "installDebug",
+			"description": "Installs the Debug build.",
+			"group": "build",
+			"project": "Software",
+			"buildFile": "${cwd}\\build.gradle",
+			"rootProject": "Software",
+			"projectFolder": "${cwd}",
+			"workspaceFolder": "${cwd}",
+			"args": "",
+			"javaDebug": false,
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+				"focus": true,
+				"showReuseMessage": false,
+				"clear": true,
+				"group": "RC code send"
+			},
+			"problemMatcher": [
+				"$gradle"
+			],
+			"label": "Send code"
+		},
+		{
+			"label": "Connect, send code, and disconnect",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"dependsOn": [
+				"Connect to control hub",
+				"Send code"
+			],
+			"presentation": {
+				"reveal": "never",
+				"focus": false,
+				"showReuseMessage": false,
+				"close": true,
+				"group": "RC code send"
+			},
+			"type": "shell",
+			"command": "if ((get-netconnectionProfile).Name.contains('22817-RC') && -Not (ps scrcpy -ErrorAction 'silentlycontinue')) { try { adb disconnect 192.168.43.1 } catch {} }",
+			"problemMatcher": []
+		}
+	]
+}
