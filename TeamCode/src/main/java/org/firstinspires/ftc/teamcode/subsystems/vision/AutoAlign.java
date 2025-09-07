@@ -21,7 +21,7 @@ public class AutoAlign {
 	private boolean DEBUG = false;
 
 	private Integer aprilTagId;
-	
+
 	private WebcamName webcam;
 	private AprilTagProcessor aprilTagProcessor;
 
@@ -34,6 +34,11 @@ public class AutoAlign {
 			this.directionKnown = directionKnown;
 			this.x = x;
 			this.y = y;
+		}
+
+		@Override
+		public String toString() {
+			return "AlignmentDirection [directionKnown=" + directionKnown + ", x=" + x + ", y=" + y + "]";
 		}
 	}
 
@@ -82,8 +87,12 @@ public class AutoAlign {
 
 		float speedX = Math.min(distX / rangeX, 1);
 		float speedY = Math.min(distY / rangeY, 1);
-		
+
 		return new AlignmentDirection(true, speedX, speedY);
+	}
+
+	public void setAprilTagId(Integer aprilTagId) {
+		this.aprilTagId = aprilTagId;
 	}
 
 	public void showTelemetry(Telemetry telemetry) {

@@ -36,16 +36,20 @@ public class Vision {
 		return autoAlignProcessor.getAlignmentDirection();
 	}
 
-	public void close() {
-		visionPortal.close();
+	public void setAprilTagId(Integer aprilTagId) {
+		autoAlignProcessor.setAprilTagId(aprilTagId);
 	}
 
 	public void setAprilTagProcessorEnabled(boolean enabled) {
 		visionPortal.setProcessorEnabled(aprilTagProcessor, enabled);
 	}
-	
+
 	public void setAllProcessorsEnabled(boolean enabled) {
 		setAprilTagProcessorEnabled(enabled);
+	}
+	
+	public void close() {
+		visionPortal.close();
 	}
 
 	public void showTelemetry(Telemetry telemetry) {
