@@ -36,15 +36,7 @@ public class MecanumDrive {
             rotation / denominator,
             false); 
 
-        // if (!holdingPose && gamepad1.left_bumper) {
-        //     holdPose = follower.getPose();
-        //     follower.holdPoint(holdPose);
-        //     holdingPose = true;
-        // } else if (holdingPose && !gamepad1.left_bumper) {
-        //     follower.breakFollowing();
-        //     follower.startTeleopDrive();
-        //     holdingPose = false;
-        // }
+        
 
 	}
 
