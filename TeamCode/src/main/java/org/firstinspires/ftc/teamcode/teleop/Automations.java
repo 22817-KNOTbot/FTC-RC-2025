@@ -23,9 +23,9 @@ public class Automations extends LinearOpMode {
 
 		// ejection
 
-		SAMPLE_LOADED,
-		SAMPLE_EJECT_WAIT,
-		SAMPLE_EJECTED,
+		ARTIFACT_LOADED,
+		ARTIFACT_EJECT_WAIT,
+		ARTIFACT_EJECTED,
 
 	}
 
