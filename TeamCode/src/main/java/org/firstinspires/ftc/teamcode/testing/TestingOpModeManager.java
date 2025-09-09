@@ -32,9 +32,11 @@ public final class TestingOpModeManager {
 			return;
 
 		List<Class<? extends OpMode>> opModes = Arrays.asList(
-				HubLedTesting.class,
-				MotorTesting.class,
-				ServoTesting.class);
+			AutoAlignTesting.class,
+			HubLedTesting.class,
+			MotorTesting.class,
+			ServoTesting.class
+		);
 
 		for (Class<? extends OpMode> opMode : opModes) {
 			manager.register(metaForClass(opMode), opMode);
