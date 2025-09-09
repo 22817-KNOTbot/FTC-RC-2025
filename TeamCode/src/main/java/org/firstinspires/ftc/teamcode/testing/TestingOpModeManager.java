@@ -13,7 +13,7 @@ import java.util.List;
 
 public final class TestingOpModeManager {
 	public static final String GROUP = "Testing";
-	public static final boolean DISABLED = true;
+	public static final boolean DISABLED = false;
 
 	private TestingOpModeManager() {
 	}
@@ -32,7 +32,9 @@ public final class TestingOpModeManager {
 			return;
 
 		List<Class<? extends OpMode>> opModes = Arrays.asList(
-				AutoAlignTesting.class);
+				HubLedTesting.class,
+				MotorTesting.class,
+				ServoTesting.class);
 
 		for (Class<? extends OpMode> opMode : opModes) {
 			manager.register(metaForClass(opMode), opMode);
