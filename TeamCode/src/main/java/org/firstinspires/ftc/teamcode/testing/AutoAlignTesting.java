@@ -22,12 +22,13 @@ public class AutoAlignTesting extends LinearOpMode {
 		Vision.DEBUG = true;
 
 		Vision visionProcessor = new Vision(hardwareMap);
-		visionProcessor.setAprilTagId(null);
+		visionProcessor.setTargetAprilTagId(null);
 
 		waitForStart();
 
 		while (opModeIsActive()) {
 			telemetry.addLine(visionProcessor.getAlignmentDirection().toString());
+			visionProcessor.showTelemetry(telemetry);
 			telemetry.update();
 		}
 
