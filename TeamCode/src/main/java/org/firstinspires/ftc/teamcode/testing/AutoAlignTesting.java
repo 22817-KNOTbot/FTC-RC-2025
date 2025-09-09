@@ -21,8 +21,7 @@ public class AutoAlignTesting extends LinearOpMode {
 		boolean previousDebug = Vision.DEBUG;
 		Vision.DEBUG = true;
 
-		Vision visionProcessor = new Vision(hardwareMap);
-		visionProcessor.setTargetAprilTagId(null);
+		Vision visionProcessor = new Vision(hardwareMap, aprilTagId);
 
 		waitForStart();
 

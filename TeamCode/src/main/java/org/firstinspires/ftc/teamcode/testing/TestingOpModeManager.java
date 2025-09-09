@@ -35,6 +35,7 @@ public final class TestingOpModeManager {
 			AutoAlignTesting.class,
 			HubLedTesting.class,
 			MotorTesting.class,
+			MotifDecodeTesting.class,
 			ServoTesting.class
 		);
 

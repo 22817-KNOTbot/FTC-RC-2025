@@ -11,6 +11,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 import com.bylazar.configurables.annotations.Configurable;
 
+import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
+
 import java.util.List;
 
 @Configurable
@@ -53,6 +55,14 @@ public class Vision {
 
 	public AutoAlign.AlignmentDirection getAlignmentDirection() {
 		return autoAlignProcessor.getAlignmentDirection();
+	}
+
+	public Pattern updateMotifPattern() {
+		return motifDecodeProcessor.updatePattern();
+	}
+
+	public Pattern getLastMotifPattern() {
+		return motifDecodeProcessor.getLastPattern();
 	}
 
 	public void setTargetAprilTagId(Integer aprilTagId) {
