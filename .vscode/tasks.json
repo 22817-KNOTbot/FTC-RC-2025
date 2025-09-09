@@ -60,8 +60,23 @@
 				"group": "RC code send"
 			},
 			"type": "shell",
-			"command": "if ((get-netconnectionProfile).Name.contains('22817-RC') && -Not (ps scrcpy -ErrorAction 'silentlycontinue')) { try { adb disconnect 192.168.43.1 } catch {} }",
+			"command": "if (((get-netconnectionProfile).Name.contains('22817-RC')) -And -Not (ps scrcpy -ErrorAction 'silentlycontinue')) { try { adb disconnect 192.168.43.1 } catch {} }",
 			"problemMatcher": []
+		},
+		{
+			"label": "buildDebug",
+			"type": "gradle",
+			"script": "buildDebug",
+			"description": "Installs the Debug build.",
+			"group": "build",
+			"project": "Software",
+			"buildFile": "${cwd}\\build.gradle",
+			"rootProject": "Software",
+			"projectFolder": "${cwd}",
+			"workspaceFolder": "${cwd}",
+			"problemMatcher": [
+				"$gradle"
+			]
 		}
 	]
 }
