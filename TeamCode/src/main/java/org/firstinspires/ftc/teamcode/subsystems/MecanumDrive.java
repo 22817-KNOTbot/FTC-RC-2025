@@ -18,11 +18,11 @@ public class MecanumDrive {
 		follower = Constants.createFollower(hardwareMap);
 	}
 
-	public void mecanumDriveInitialize() {
+	public void initialize() {
 		follower.startTeleopDrive();
 	}
 
-	public void mecanumDriveMove(float forward, float lateral, float rotation) {
+	public void move(float forward, float lateral, float rotation) {
 		follower.update();
 		double denominator = Math.max(Math.abs(forward) + Math.abs(lateral) + Math.abs(rotation), 1);
 		follower.setTeleOpDrive(
