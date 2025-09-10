@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.teleop.teleop;
+package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -39,13 +39,13 @@ public class Teleop extends LinearOpMode {
 			mecanumHandler.mecanumDrive();
 
             if (gamepad1.aWasPressed) {
-                automationHandler.grab()
+                automationHandler.grab();
             }
             if (gamepad1.bWasPressed) {
-                automationHandler.putIntoTurret()
+                automationHandler.putIntoTurret();
             }
             if (gamepad1.xWasPressed) {
-                automationHandler.fireTurret()
+                automationHandler.fireTurret();
             }
             if (gamepad1.yWasPressed) {
 
