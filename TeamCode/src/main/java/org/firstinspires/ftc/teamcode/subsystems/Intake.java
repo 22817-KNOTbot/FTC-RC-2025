@@ -20,8 +20,10 @@ public class Intake {
 	public void enable(boolean enable) {
 		if (!on && enable) {
 			intake.setPower(power);
+			on = true;
 		} else if (on && !enable) {
 			intake.setPower(0);
+			on = false;
 		}
 	}
 
