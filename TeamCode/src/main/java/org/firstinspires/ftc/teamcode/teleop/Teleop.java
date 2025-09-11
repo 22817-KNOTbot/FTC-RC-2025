@@ -32,11 +32,11 @@ public class Teleop extends LinearOpMode {
 					break;
 				case ARTIFACT_EJECT_WAIT:
 					break;
-				case ARTIFACT_EJECTED:
+				case ARTIFACT_EJECT:
 					break;
 			}
 
-			mecanumHandler.mecanumDrive();
+			mecanumHandler.move();
 
             if (gamepad1.aWasPressed) {
                 automationHandler.grab();

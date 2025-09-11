@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
+
 // note to self, shift alt f == auto indent
 
 public class Automations extends LinearOpMode {
@@ -25,9 +27,11 @@ public class Automations extends LinearOpMode {
 
 		ARTIFACT_LOADED,
 		ARTIFACT_EJECT_WAIT,
-		ARTIFACT_EJECTED,
+		ARTIFACT_EJECT,
 
 	}
+
+	DcMotor turretMotor = hardwareMap.get(DcMotor.class, "turretMotor");
 
 	public void grab() {
 		automationState = State.INTAKE_OPEN;
@@ -36,7 +40,10 @@ public class Automations extends LinearOpMode {
 		automationState = State.TRANSFER;
 	}
 	public void fireTurret() {
-		automationState = State.SAMPLE_LOADED;
+		automationState = State.ARTIFACT_LOADED;
+		turretMotor.setPower(1);
+		automationState = State.ARTIFACT_EJECT;
+
 	}
 
 }
