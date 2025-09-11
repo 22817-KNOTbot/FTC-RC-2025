@@ -2,8 +2,9 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.Automations;
+import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
+
 
 public class Teleop extends LinearOpMode {
 
@@ -15,10 +16,9 @@ public class Teleop extends LinearOpMode {
 
         waitForStart();
 
-        while (opModeIsActive) {
+        while (opModeIsActive()) {
 			switch (automationHandler.automationState) {
 				case ABORT:
-					automationHandler.abort();
 					break;
 				case IDLE:
 					break;
@@ -36,18 +36,18 @@ public class Teleop extends LinearOpMode {
 					break;
 			}
 
-			mecanumHandler.move();
+			mecanumHandler.move(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 
-            if (gamepad1.aWasPressed) {
+            if (gamepad1.aWasPressed()) {
                 automationHandler.grab();
             }
-            if (gamepad1.bWasPressed) {
+            if (gamepad1.bWasPressed()) {
                 automationHandler.putIntoTurret();
             }
-            if (gamepad1.xWasPressed) {
+            if (gamepad1.xWasPressed()) {
                 automationHandler.fireTurret();
             }
-            if (gamepad1.yWasPressed) {
+            if (gamepad1.yWasPressed()) {
 
             }
         }
