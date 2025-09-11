@@ -40,9 +40,13 @@ public class Automations extends LinearOpMode {
 		automationState = State.TRANSFER;
 	}
 	public void fireTurret() {
-		automationState = State.ARTIFACT_LOADED;
-		turretMotor.setPower(1);
-		automationState = State.ARTIFACT_EJECT;
+		if (turretMotor.getPower() == 0) {
+			automationState = State.ARTIFACT_EJECT;
+			turretMotor.setPower(1);
+		} else {
+			automationState = State.ARTIFACT_LOADED;
+			turretMotor.setPower(0);
+		}
 
 	}
 
