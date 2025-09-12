@@ -11,6 +11,7 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.teamcode.teleop.Automations;
+import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
 
 import java.util.List;
@@ -36,6 +37,7 @@ public class TeleOp extends LinearOpMode {
 		}
 
 		automationHandler = new Automations(hardwareMap, DEBUG);
+		automationHandler.setGamepads(gamepad1, gamepad2);
 		mecanumDrive = new MecanumDrive(hardwareMap);
 
 		waitForStart();
@@ -53,47 +55,26 @@ public class TeleOp extends LinearOpMode {
 
 			mecanumDrive.lockingMecanum(gamepad1.left_bumper);
 
-			switch (automationHandler.automationState) {
-				case ABORT:
-					break;
-				case IDLE:
-					break;
-				case INTAKE_OPEN:
-					break;
-				case INTAKE_OFF:
-					break;
-				case TRANSFER:
-					break;
-				case ARTIFACT_LOADED:
-					break;
-				case ARTIFACT_EJECT_WAIT:
-					break;
-				case ARTIFACT_EJECT:
-					break;
-			}
-
 			if (gamepad1.aWasPressed()) {
-				automationHandler.grab();
-			}
-			if (gamepad1.bWasPressed()) {
-				automationHandler.putIntoTurret();
-			}
-			if (gamepad1.xWasPressed()) {
-				automationHandler.fireTurret();
+				automationHandler.intakeToggle();
 			}
 			if (gamepad1.yWasPressed()) {
-
+				automationHandler.shootArtifact(Artifact.Colour.PURPLE);
+			} else if (gamepad1.bWasPressed()) {
+				automationHandler.shootArtifact(Artifact.Colour.GREEN);
 			}
+
+			automationHandler.automationLoop();
 		}
 
 		if (gamepad1.back || gamepad2.back) {
-			automationHandler.automationState = Automations.State.ABORT;
+			automationHandler.abort();
 		} else if (gamepad1.start || gamepad2.start) {
 			mecanumDrive.resetPose();
 		}
 
 		telemetry.addData("Time", runtime.time());
-		telemetry.addData("State", automationHandler.automationState);
+		telemetry.addData("Storage State", automationHandler.getStorageState());
 		if (!automationHandler.colourSensorResponding()) {
 			telemetry.addLine("********************");
 			telemetry.addLine("WARNING: COLOUR SENSOR");

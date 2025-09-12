@@ -12,7 +12,7 @@ public class Shooter {
 
 	private DcMotor shooterMotor;
 
-	public Shooter(HardwareMap hardwareMap, boolean resetEncoder) {
+	public Shooter(HardwareMap hardwareMap) {
 		shooterMotor = hardwareMap.get(DcMotor.class, "shooterMotor");
 		shooterMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 	}
