@@ -1,15 +1,12 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-// note to self, shift alt f == auto indent
-
 public class Automations {
-
-	private Shooter shooter;
 	public State automationState;
 	private HardwareMap hardwareMap;
 
@@ -34,6 +31,18 @@ public class Automations {
 
 	}
 
+	public Automations(HardwareMap hardwareMap) {
+		this(hardwareMap, false);
+	}
+
+	public Automations(HardwareMap hardwareMap, boolean DEBUG) {
+		// TODO: Add subsystems after merged
+	}
+
+	public void showTelemetry(Telemetry telemetry) {
+		// TODO: Add telemetry after subsystems are merged
+	}
+
 	public void grab() {
 		automationState = State.INTAKE_OPEN;
 	}
@@ -41,8 +50,13 @@ public class Automations {
 		automationState = State.TRANSFER;
 	}
 	public void fireTurret() {
-		shooter = new Shooter(hardwareMap, false);
 
+	}
+
+
+	public boolean colourSensorResponding() {
+		// TODO: use turret subsystem method after merged
+		return true;
 	}
 
 }
