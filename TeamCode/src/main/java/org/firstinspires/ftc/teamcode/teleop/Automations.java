@@ -16,9 +16,13 @@ import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.vision.Vision;
 import org.firstinspires.ftc.teamcode.subsystems.vision.AutoAlign.AlignmentDirection;
+import org.firstinspires.ftc.teamcode.util.Alliance;
+
+import com.pedropathing.geometry.Pose;
 
 public class Automations {
 	private HardwareMap hardwareMap;
+	private Alliance alliance;
 	private boolean DEBUG;
 	private StorageState storageState;
 	private ElapsedTime timer;
@@ -32,6 +36,7 @@ public class Automations {
 	private Gamepad gamepad1;
 	private Gamepad gamepad2;
 
+	private Pose pose;
 	private Artifact.Pattern pattern;
 	private boolean intakeEnabled;
 
@@ -41,12 +46,13 @@ public class Automations {
 		RELEASING
 	}
 
-	public Automations(HardwareMap hardwareMap) {
-		this(hardwareMap, false);
+	public Automations(HardwareMap hardwareMap, Alliance alliance) {
+		this(hardwareMap, alliance, false);
 	}
 
-	public Automations(HardwareMap hardwareMap, boolean DEBUG) {
+	public Automations(HardwareMap hardwareMap, Alliance alliance, boolean DEBUG) {
 		this.hardwareMap = hardwareMap;
+		this.alliance = alliance;
 		this.DEBUG = DEBUG;
 		this.storageState = StorageState.WAITING;
 		this.timer = new ElapsedTime();
@@ -57,6 +63,10 @@ public class Automations {
 
 		Vision.DEBUG = DEBUG;
 		vision = new Vision(hardwareMap, null);
+	}
+
+	public void setAlliance(Alliance alliance) {
+		this.alliance = alliance;
 	}
 
 	public void setGamepads(Gamepad gamepad1, Gamepad gamepad2) {
@@ -93,7 +103,28 @@ public class Automations {
 		if (direction.directionKnown) {
 			turret.rotateTurret(direction.x);
 			turret.setPitch(Range.scale(direction.y, -1, 1, Turret.min_pitch, Turret.max_pitch));
+		} else {
+			Pose goalPose = alliance.getGoalPose();
+			Pose poseDifference = goalPose.minus(pose);
+
+			// Converting to normal coordinate system where
+			// 0 = up, increases clockwise; In radians
+			double robotAngle = (0.5 * Math.PI) - pose.getHeading();
+			robotAngle = robotAngle % (2 * Math.PI);
+			double targetAngle = Math.atan2(poseDifference.getX(), poseDifference.getY());
+
+			double angleDifference = targetAngle - robotAngle;
+			double normalizedAngle = angleDifference - (Math.ceil((angleDifference + Math.PI) / (2 * Math.PI)) - 1)
+					* 2 * Math.PI;
+
+			turret.setRotation(Math.toDegrees(normalizedAngle) * Turret.rotation_per_deg);
 		}
+	}
+
+	// Should be called every loop. Pose is used to estimate
+	// turret direction
+	public void updatePose(Pose pose) {
+		this.pose = pose;
 	}
 
 	public void intakeToggle() {
@@ -120,6 +151,10 @@ public class Automations {
 	/*
 	 * Getter methods
 	 */
+
+	public Alliance getAlliance() {
+		return alliance;
+	}
 
 	public StorageState getStorageState() {
 		return storageState;

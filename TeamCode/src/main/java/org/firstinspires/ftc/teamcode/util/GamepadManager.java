@@ -44,6 +44,7 @@ public class GamepadManager {
 			newGamepad2 = physicalGamepad2;
 		}
 
+		// TODO: test copying to physicalGamepad
 		outputGamepad1.copy(newGamepad1);
 		outputGamepad2.copy(newGamepad2);
 	}
