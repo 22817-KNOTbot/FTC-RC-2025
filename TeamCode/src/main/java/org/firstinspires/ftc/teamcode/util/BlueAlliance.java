@@ -10,4 +10,8 @@ public class BlueAlliance implements Alliance {
 	public Pose getGoalPose() {
 		return new Pose(144, 144);
 	}
+
+	public double getHeadingOffset() {
+		return -Math.PI;
+	}
 }

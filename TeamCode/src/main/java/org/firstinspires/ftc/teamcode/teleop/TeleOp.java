@@ -75,6 +75,7 @@ public class TeleOp extends LinearOpMode {
 		}
 
 		mecanumDrive.initialize();
+		mecanumDrive.setHeadingOffset(automationHandler.getAlliance().getHeadingOffset());
 		runtime.reset();
 
 		while (opModeIsActive()) {

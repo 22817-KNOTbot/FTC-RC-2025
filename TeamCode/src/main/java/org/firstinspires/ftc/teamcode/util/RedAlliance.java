@@ -10,4 +10,8 @@ public class RedAlliance implements Alliance {
 	public Pose getGoalPose() {
 		return new Pose(0, 144);
 	}
+
+	public double getHeadingOffset() {
+		return 0;
+	}
 }
