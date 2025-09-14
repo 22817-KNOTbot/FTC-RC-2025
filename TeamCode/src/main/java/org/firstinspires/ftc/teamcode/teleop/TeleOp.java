@@ -27,6 +27,7 @@ public class TeleOp extends LinearOpMode {
 
 	private GamepadManager gamepadManager;
 	private ElapsedTime runtime = new ElapsedTime();
+	private ElapsedTime loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 	private Automations automationHandler;
 	private MecanumDrive mecanumDrive;
 
@@ -77,6 +78,7 @@ public class TeleOp extends LinearOpMode {
 		mecanumDrive.initialize();
 		mecanumDrive.setHeadingOffset(automationHandler.getAlliance().getHeadingOffset());
 		runtime.reset();
+		loopTime.reset();
 
 		while (opModeIsActive()) {
 			// IMPORTANT: Cache must be cleared every loop to prevent stale data
@@ -120,6 +122,9 @@ public class TeleOp extends LinearOpMode {
 				telemetry.addLine("********************");
 			}
 			if (DEBUG) {
+				telemetry.addLine(String.format("Loop time: %.2fms - %.0fhz", loopTime.time(), 1000 / loopTime.time()));
+				loopTime.reset();
+
 				Pose pose = mecanumDrive.getPose();
 				Pose holdPose = mecanumDrive.getHoldPose();
 
