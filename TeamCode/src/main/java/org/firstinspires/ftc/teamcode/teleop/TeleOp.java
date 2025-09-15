@@ -65,37 +65,35 @@ public class TeleOp extends LinearOpMode {
 			}
 
 			automationHandler.automationLoop();
+
+			if (gamepad1.back || gamepad2.back) {
+				automationHandler.abort();
+			} else if (gamepad1.start || gamepad2.start) {
+				mecanumDrive.resetPose();
+			}
+
+			telemetry.addData("Time", runtime.time());
+			telemetry.addData("Storage State", automationHandler.getStorageState());
+			if (!automationHandler.colourSensorResponding()) {
+				telemetry.addLine("********************");
+				telemetry.addLine("WARNING: COLOUR SENSOR");
+				telemetry.addLine("IS NOT RESPONDING");
+				telemetry.addLine("********************");
+			}
+			if (DEBUG) {
+				Pose pose = mecanumDrive.getPose();
+				Pose holdPose = mecanumDrive.getHoldPose();
+
+				telemetry.addData("Heading", Math.toDegrees(pose.getHeading()));
+
+				telemetry.addData("Position X", pose.getX());
+				telemetry.addData("Position Y", pose.getY());
+
+				telemetry.addData("Hold Position X", holdPose.getX());
+				telemetry.addData("Hold Position Y", holdPose.getY());
+				automationHandler.showTelemetry(telemetry);
+			}
+			telemetry.update();
 		}
-
-		if (gamepad1.back || gamepad2.back) {
-			automationHandler.abort();
-		} else if (gamepad1.start || gamepad2.start) {
-			mecanumDrive.resetPose();
-		}
-
-		telemetry.addData("Time", runtime.time());
-		telemetry.addData("Storage State", automationHandler.getStorageState());
-		if (!automationHandler.colourSensorResponding()) {
-			telemetry.addLine("********************");
-			telemetry.addLine("WARNING: COLOUR SENSOR");
-			telemetry.addLine("IS NOT RESPONDING");
-			telemetry.addLine("********************");
-		}
-		if (DEBUG) {
-			Pose pose = mecanumDrive.getPose();
-			Pose holdPose = mecanumDrive.getHoldPose();
-
-			telemetry.addData("Heading", Math.toDegrees(pose.getHeading()));
-
-			telemetry.addData("Position X", pose.getX());
-			telemetry.addData("Position Y", pose.getY());
-
-			telemetry.addData("Hold Position X", holdPose.getX());
-			telemetry.addData("Hold Position Y", holdPose.getY());
-			automationHandler.showTelemetry(telemetry);
-		}
-		telemetry.update();
-
 	}
-
 }
