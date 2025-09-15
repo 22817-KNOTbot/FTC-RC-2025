@@ -8,8 +8,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 
 public class MecanumDrive {
-
-	private Pose holdPose = new Pose(0, 0, 0);
+	private Pose holdPose = new Pose();
 	private boolean holdingPose;
 	private Follower follower;
 
@@ -41,5 +40,17 @@ public class MecanumDrive {
 			follower.startTeleopDrive();
 			holdingPose = false;
 		}
+	}
+
+	public Pose getPose() {
+		return follower.getPose();
+	}
+
+	public void resetPose() {
+		follower.setPose(new Pose());
+	}
+
+	public Pose getHoldPose() {
+		return holdPose;
 	}
 }
