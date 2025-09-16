@@ -123,7 +123,6 @@ public class Blue9Artifacts extends LinearOpMode {
 					follower.followPath(secondLaunch, true);
 					setPathState(-1);
 				}
-				break;
 		}
 	}
 }
