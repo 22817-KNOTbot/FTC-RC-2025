@@ -38,7 +38,9 @@ public class Blue9Artifacts extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
-			pathUpdate();
+			if (doMovement == true) {
+				pathUpdate();
+			}
 		}
 	}
 

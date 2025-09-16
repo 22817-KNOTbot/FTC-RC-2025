@@ -19,7 +19,7 @@ import com.pedropathing.paths.PathChain;
 public class Red9Artifacts extends LinearOpMode {
 	public static boolean doMovement = true;
 	public static boolean doActions = true;
-	
+
 	private int pathState = 0;
 
 	private Follower follower;
@@ -38,7 +38,9 @@ public class Red9Artifacts extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
-			pathUpdate();
+			if (doMovement == true) {
+				pathUpdate();
+			}
 		}
 	}
 
