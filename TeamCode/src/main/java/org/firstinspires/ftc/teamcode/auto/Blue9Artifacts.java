@@ -23,7 +23,6 @@ public class Blue9Artifacts extends LinearOpMode {
 	private int pathState = 0;
 
 	private Follower follower;
-	private HardwareMap hardwareMap;
 	private Pose startPose;
 
 	private PathChain firstApproach, firstIntake, firstLaunch,
@@ -125,6 +124,7 @@ public class Blue9Artifacts extends LinearOpMode {
 					follower.followPath(secondLaunch, true);
 					setPathState(-1);
 				}
+				break;
 		}
 	}
 }
