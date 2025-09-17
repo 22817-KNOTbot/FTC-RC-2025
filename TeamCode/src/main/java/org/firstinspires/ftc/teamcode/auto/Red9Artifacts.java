@@ -38,7 +38,7 @@ public class Red9Artifacts extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
-			if (doMovement == true) {
+			if (doMovement) {
 				pathUpdate();
 			}
 		}
