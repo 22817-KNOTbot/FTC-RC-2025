@@ -89,6 +89,22 @@ public class Storage {
 		return backArtifact;
 	}
 
+	public Gate getFrontLeftGate() {
+		return frontLeftGate;
+	}
+
+	public Gate getFrontRightGate() {
+		return frontRightGate;
+	}
+
+	public Gate getBackLeftGate() {
+		return backLeftGate;
+	}
+
+	public Gate getBackRightGate() {
+		return backRightGate;
+	}
+
 	/*
 	 * Storage
 	 */
