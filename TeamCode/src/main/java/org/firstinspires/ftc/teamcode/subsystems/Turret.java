@@ -18,6 +18,7 @@ public class Turret {
 	public static double min_pitch = 0.5;
 	public static double max_pitch = 0.5;
 	public static double rotation_increment = 0.01;
+	public static double rotation_per_deg = 1d/1800;
 
 	private Servo turretDiffServo1;
 	private Servo turretDiffServo2;

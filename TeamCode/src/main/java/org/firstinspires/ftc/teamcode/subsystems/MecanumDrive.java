@@ -11,6 +11,7 @@ public class MecanumDrive {
 	private Pose holdPose = new Pose();
 	private boolean holdingPose;
 	private Follower follower;
+	private double headingOffset;
 
 	public MecanumDrive(HardwareMap hardwareMap) {
 		follower = Constants.createFollower(hardwareMap);
@@ -20,14 +21,24 @@ public class MecanumDrive {
 		follower.startTeleopDrive();
 	}
 
+	public void setHeadingOffset(double headingOffset) {
+		this.headingOffset = headingOffset;
+	}
+
 	public void move(float forward, float lateral, float rotation) {
 		follower.update();
-		double denominator = Math.max(Math.abs(forward) + Math.abs(lateral) + Math.abs(rotation), 1);
+
+		double relativeHeading = follower.getPose().getHeading() + headingOffset;
+
+		double forwardRotated = forward * Math.sin(-relativeHeading) + lateral * Math.cos(-relativeHeading);
+		double lateralRotated = forward * Math.cos(-relativeHeading) - lateral * Math.sin(-relativeHeading);
+
+		double denominator = Math.max(Math.abs(forwardRotated) + Math.abs(lateralRotated) + Math.abs(rotation), 1);
 		follower.setTeleOpDrive(
-			forward / denominator,
-			-lateral / denominator,
-			-rotation / denominator,
-			false);
+				forwardRotated / denominator,
+				-lateralRotated / denominator,
+				-rotation / denominator,
+				true);
 	}
 
 	public void lockingMecanum(boolean enabled) {
