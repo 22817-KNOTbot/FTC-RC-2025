@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.auto;
 import com.bylazar.configurables.annotations.Configurable;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.teleop.Automations.java;
+import org.firstinspires.ftc.teamcode.vision.Vision.java;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -38,6 +40,7 @@ public class Red9Artifacts extends LinearOpMode {
 
 		while (opModeIsActive()) {
 			if (doMovement) {
+				follower.update();
 				pathUpdate();
 			}
 		}

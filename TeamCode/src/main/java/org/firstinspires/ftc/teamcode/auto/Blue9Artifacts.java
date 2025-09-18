@@ -38,6 +38,7 @@ public class Blue9Artifacts extends LinearOpMode {
 
 		while (opModeIsActive()) {
 			if (doMovement) {
+				follower.update();
 				pathUpdate();
 			}
 		}
