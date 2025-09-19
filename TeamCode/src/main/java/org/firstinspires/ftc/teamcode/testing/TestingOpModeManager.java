@@ -38,7 +38,7 @@ public final class TestingOpModeManager {
 			MotifDecodeTesting.class,
 			MotorTesting.class,
 			ServoTesting.class,
-			Shootertesting.class,
+			ShooterTesting.class,
 			StorageTesting.class,
 			TurretTesting.class
 		);
