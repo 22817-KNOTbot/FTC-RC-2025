@@ -160,6 +160,11 @@ public class Automations {
 		return storageState;
 	}
 
+	public Artifact.Pattern getPatternShort () {
+		return pattern;
+	}
+
+
 	/*
 	 * Misc. util methods
 	 */

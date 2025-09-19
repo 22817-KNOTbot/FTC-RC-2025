@@ -7,6 +7,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import org.firstinspires.ftc.teamcode.scoring.Artifact;
 
 import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.util.Alliance;
@@ -34,6 +35,8 @@ public class Blue9Artifacts extends LinearOpMode {
 	private Follower follower;
 	private Pose startPose;
 
+	private Artifact.Colour[] pattern;
+
 	private PathChain firstApproach, firstIntake, firstLaunch,
 			secondIntake, secondLaunch;
 
@@ -51,6 +54,7 @@ public class Blue9Artifacts extends LinearOpMode {
 			follower.update();
 			if (doMovement) {
 				pathUpdate();
+				automationsHandler.updatePose(follower.getPose());
 			}
 
 			if (doActions) {
@@ -161,21 +165,25 @@ public class Blue9Artifacts extends LinearOpMode {
 		if (doActions) {		
 			switch (autoState) {
 				case 0:
-					//pattern = getLastPattern();
-					
 					break;
 				case 1:
 					automationsHandler.intakeToggle();
 					break;
 				case 2:
 					automationsHandler.intakeToggle();
-					automationsHandler.shootArtifact();
+					pattern = automationsHandler.getPatternShort().getPattern();
+					automationsHandler.shootArtifact(pattern[0]);
+					automationsHandler.shootArtifact(pattern[1]);
+					automationsHandler.shootArtifact(pattern[2]);
 					break;
 				case 3:
 					automationsHandler.intakeToggle();
 					break;
 				case 4:
-					automationsHandler.shootArtifact();
+					pattern = automationsHandler.getPatternShort().getPattern();
+					automationsHandler.shootArtifact(pattern[0]);
+					automationsHandler.shootArtifact(pattern[1]);
+					automationsHandler.shootArtifact(pattern[2]);
 					break;
 
 			}
