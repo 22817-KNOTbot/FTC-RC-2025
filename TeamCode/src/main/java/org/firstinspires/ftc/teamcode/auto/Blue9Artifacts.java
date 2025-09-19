@@ -8,6 +8,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.teleop.Automations;
+import org.firstinspires.ftc.teamcode.util.Alliance;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.geometry.BezierCurve;
@@ -20,7 +23,13 @@ public class Blue9Artifacts extends LinearOpMode {
 	public static boolean doMovement = true;
 	public static boolean doActions = true;
 
+	private Automations automationsHandler;
+	private Alliance alliance;
+	private HardwareMap hardwareMap;
+
 	private int pathState = 0;
+	private int autoState = 0;
+	private boolean DEBUG;
 
 	private Follower follower;
 	private Pose startPose;
@@ -33,12 +42,20 @@ public class Blue9Artifacts extends LinearOpMode {
 		follower = Constants.createFollower(hardwareMap);
 		follower.setStartingPose(startPose);
 		buildPaths();
+	
+		automationsHandler = new Automations(hardwareMap, alliance, DEBUG);
 
 		waitForStart();
 
 		while (opModeIsActive()) {
+			follower.update();
 			if (doMovement) {
 				pathUpdate();
+			}
+
+			if (doActions) {
+				automationsHandler.automationLoop();
+				actionsDo();
 			}
 		}
 	}
@@ -92,39 +109,76 @@ public class Blue9Artifacts extends LinearOpMode {
 	public void setPathState(int state) {
 		pathState = state;
 	}
+	public void setActionState(int state) {
+		autoState = state;
+	}
 
 	public void pathUpdate() {
 		switch (pathState) {
 			case 0:
 				if (!follower.isBusy()) {
+					actionsDo();
 					follower.followPath(firstApproach, true);
+					setActionState(1);
 					setPathState(1);
 				}
 				break;
 			case 1:
 				if (!follower.isBusy()) {
 					follower.followPath(firstIntake, true);
+					actionsDo();
+					setActionState(2);
 					setPathState(2);
 				}
 				break;
 			case 2:
 				if (!follower.isBusy()) {
 					follower.followPath(firstLaunch, true);
+					actionsDo();
+					setActionState(3);
 					setPathState(3);
 				}
 				break;
 			case 3:
 				if (!follower.isBusy()) {
 					follower.followPath(secondIntake, true);
+					actionsDo();
+					setActionState(4);
 					setPathState(4);
 				}
 				break;
 			case 4:
 				if (!follower.isBusy()) {
 					follower.followPath(secondLaunch, true);
+					actionsDo();
+					setActionState(-1);
 					setPathState(-1);
 				}
 				break;
+		}
+	}
+	public void actionsDo() {
+		if (doActions) {		
+			switch (autoState) {
+				case 0:
+					//pattern = getLastPattern();
+					
+					break;
+				case 1:
+					automationsHandler.intakeToggle();
+					break;
+				case 2:
+					automationsHandler.intakeToggle();
+					automationsHandler.shootArtifact();
+					break;
+				case 3:
+					automationsHandler.intakeToggle();
+					break;
+				case 4:
+					automationsHandler.shootArtifact();
+					break;
+
+			}
 		}
 	}
 }
