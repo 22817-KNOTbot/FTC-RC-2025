@@ -7,8 +7,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import org.firstinspires.ftc.teamcode.scoring.Artifact;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 
@@ -26,7 +27,9 @@ public class Blue9Artifacts extends LinearOpMode {
 
 	private Automations automationsHandler;
 	private Alliance alliance;
-	private HardwareMap hardwareMap;
+	private ElapsedTime timer = new ElapsedTime();
+
+	private int shootNumber = 0;
 
 	private int pathState = 0;
 	private int autoState = 0;
@@ -45,7 +48,7 @@ public class Blue9Artifacts extends LinearOpMode {
 		follower = Constants.createFollower(hardwareMap);
 		follower.setStartingPose(startPose);
 		buildPaths();
-	
+
 		automationsHandler = new Automations(hardwareMap, alliance, DEBUG);
 
 		waitForStart();
@@ -59,7 +62,7 @@ public class Blue9Artifacts extends LinearOpMode {
 
 			if (doActions) {
 				automationsHandler.automationLoop();
-				actionsDo();
+				// actionsDo();
 			}
 		}
 	}
@@ -113,6 +116,7 @@ public class Blue9Artifacts extends LinearOpMode {
 	public void setPathState(int state) {
 		pathState = state;
 	}
+
 	public void setActionState(int state) {
 		autoState = state;
 	}
@@ -161,29 +165,49 @@ public class Blue9Artifacts extends LinearOpMode {
 				break;
 		}
 	}
+
 	public void actionsDo() {
-		if (doActions) {		
+		if (doActions) {
 			switch (autoState) {
 				case 0:
 					break;
 				case 1:
 					automationsHandler.intakeToggle();
+					timer.reset();
+					shootNumber = 0;
 					break;
 				case 2:
 					automationsHandler.intakeToggle();
 					pattern = automationsHandler.getPatternShort().getPattern();
-					automationsHandler.shootArtifact(pattern[0]);
-					automationsHandler.shootArtifact(pattern[1]);
-					automationsHandler.shootArtifact(pattern[2]);
+					if (timer.time() > 1 && timer.time() < 1.5 && shootNumber == 0) {
+						automationsHandler.shootArtifact(pattern[0]);
+						shootNumber = 1;
+					} else if (timer.time() > 1.5 && timer.time() < 2 && shootNumber == 1) {
+						automationsHandler.shootArtifact(pattern[1]);
+						shootNumber = 2;
+					} else if (timer.time() > 2 && shootNumber == 2) {
+						automationsHandler.shootArtifact(pattern[2]);
+						shootNumber = -1;
+					}
 					break;
 				case 3:
 					automationsHandler.intakeToggle();
+					timer.reset();
+					shootNumber = 0;
 					break;
 				case 4:
+					automationsHandler.intakeToggle();
 					pattern = automationsHandler.getPatternShort().getPattern();
-					automationsHandler.shootArtifact(pattern[0]);
-					automationsHandler.shootArtifact(pattern[1]);
-					automationsHandler.shootArtifact(pattern[2]);
+					if (timer.time() > 1 && timer.time() < 1.5 && shootNumber == 0) {
+						automationsHandler.shootArtifact(pattern[0]);
+						shootNumber = 1;
+					} else if (timer.time() > 1.5 && timer.time() < 2 && shootNumber == 1) {
+						automationsHandler.shootArtifact(pattern[1]);
+						shootNumber = 2;
+					} else if (timer.time() > 2 && shootNumber == 2) {
+						automationsHandler.shootArtifact(pattern[2]);
+						shootNumber = -1;
+					}
 					break;
 
 			}
