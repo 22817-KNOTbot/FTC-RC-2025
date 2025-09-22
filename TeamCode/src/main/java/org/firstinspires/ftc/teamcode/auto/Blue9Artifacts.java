@@ -178,7 +178,7 @@ public class Blue9Artifacts extends LinearOpMode {
 					break;
 				case 2:
 					automationsHandler.intakeToggle();
-					pattern = automationsHandler.getPatternShort().getPattern();
+					pattern = automationsHandler.getPattern().getPattern();
 					if (timer.time() > 1 && timer.time() < 1.5 && shootNumber == 0) {
 						automationsHandler.shootArtifact(pattern[0]);
 						shootNumber = 1;

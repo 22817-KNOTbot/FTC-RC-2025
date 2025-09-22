@@ -160,7 +160,7 @@ public class Automations {
 		return storageState;
 	}
 
-	public Artifact.Pattern getPatternShort () {
+	public Artifact.Pattern getPattern() {
 		return pattern;
 	}
 

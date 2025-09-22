@@ -17,7 +17,7 @@ public class Artifact {
 			pattern = new Colour[] { colour1, colour2, colour3 };
 		}
 
-		public Colour[] getPattern() {
+		public Colour[] getPatternList() {
 			return pattern;
 		}
 	}

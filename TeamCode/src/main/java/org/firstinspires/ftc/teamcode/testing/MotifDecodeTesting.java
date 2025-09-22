@@ -27,14 +27,14 @@ public class MotifDecodeTesting extends LinearOpMode {
 			Pattern newMotifPattern = visionProcessor.updateMotifPattern();
 			Pattern storedMotifPattern = visionProcessor.getLastMotifPattern();
 			telemetry.addLine(newMotifPattern != null ? newMotifPattern.toString() : "null");
-			telemetry.addLine(newMotifPattern != null ? newMotifPattern.getPattern()[0].toString() : "null");
-			telemetry.addLine(newMotifPattern != null ? newMotifPattern.getPattern()[1].toString() : "null");
-			telemetry.addLine(newMotifPattern != null ? newMotifPattern.getPattern()[2].toString() : "null");
+			telemetry.addLine(newMotifPattern != null ? newMotifPattern.getPatternList()[0].toString() : "null");
+			telemetry.addLine(newMotifPattern != null ? newMotifPattern.getPatternList()[1].toString() : "null");
+			telemetry.addLine(newMotifPattern != null ? newMotifPattern.getPatternList()[2].toString() : "null");
 			telemetry.addLine("================================");
 			telemetry.addLine(storedMotifPattern != null ? storedMotifPattern.toString() : "null");
-			telemetry.addLine(storedMotifPattern != null ? storedMotifPattern.getPattern()[0].toString() : "null");
-			telemetry.addLine(storedMotifPattern != null ? storedMotifPattern.getPattern()[1].toString() : "null");
-			telemetry.addLine(storedMotifPattern != null ? storedMotifPattern.getPattern()[2].toString() : "null");
+			telemetry.addLine(storedMotifPattern != null ? storedMotifPattern.getPatternList()[0].toString() : "null");
+			telemetry.addLine(storedMotifPattern != null ? storedMotifPattern.getPatternList()[1].toString() : "null");
+			telemetry.addLine(storedMotifPattern != null ? storedMotifPattern.getPatternList()[2].toString() : "null");
 			visionProcessor.showTelemetry(telemetry);
 			telemetry.update();
 		}
