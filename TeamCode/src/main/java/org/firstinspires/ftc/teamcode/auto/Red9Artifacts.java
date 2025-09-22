@@ -3,11 +3,7 @@ package org.firstinspires.ftc.teamcode.auto;
 import com.bylazar.configurables.annotations.Configurable;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.subsystems.vision.MotifDecode;
-import org.firstinspires.ftc.teamcode.subsystems.vision.Vision;
 import org.firstinspires.ftc.teamcode.teleop.Automations;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -21,8 +17,6 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.paths.callbacks.ParametricCallback;
 
-import java.util.ArrayList;
-import java.util.List;
 
 @Configurable
 @Autonomous(name = "Red 9 Artifacts", group = "Autonomous")
