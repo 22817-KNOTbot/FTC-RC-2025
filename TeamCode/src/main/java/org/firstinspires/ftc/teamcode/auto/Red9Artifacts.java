@@ -2,9 +2,13 @@ package org.firstinspires.ftc.teamcode.auto;
 
 import com.bylazar.configurables.annotations.Configurable;
 
+import org.firstinspires.ftc.teamcode.scoring.Artifact;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.teleop.Automations.java;
-import org.firstinspires.ftc.teamcode.vision.Vision.java;
+import org.firstinspires.ftc.teamcode.subsystems.vision.MotifDecode;
+import org.firstinspires.ftc.teamcode.subsystems.vision.Vision;
+import org.firstinspires.ftc.teamcode.teleop.Automations;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -15,6 +19,10 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.paths.PathChain;
+import com.pedropathing.paths.callbacks.ParametricCallback;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Configurable
 @Autonomous(name = "Red 9 Artifacts", group = "Autonomous")
@@ -23,9 +31,12 @@ public class Red9Artifacts extends LinearOpMode {
 	public static boolean doActions = true;
 
 	private int pathState = 0;
+	private int actionState = 0;
 
+	private Automations automationHandler;
 	private Follower follower;
 	private Pose startPose;
+	private Artifact.Colour[] patternColours;
 
 	private PathChain firstApproach, firstIntake, firstLaunch,
 			secondIntake, secondLaunch;
@@ -39,6 +50,7 @@ public class Red9Artifacts extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
+			automationHandler.automationLoop();
 			if (doMovement) {
 				follower.update();
 				pathUpdate();
@@ -54,11 +66,15 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(50.939, 27.820),
 								new Pose(39.771, 35.461)))
 				.setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(180))
+				.addParametricCallback(0, this::actionUpdate)
+				.addParametricCallback(0, this::actionUpdate)
 				.build();
 
 		firstIntake = follower.pathBuilder()
 				.addPath(new BezierLine(new Pose(39.771, 35.461), new Pose(24.000, 35.800)))
 				.setTangentHeadingInterpolation()
+				.addParametricCallback(0, this::actionUpdate)
+				.addParametricCallback(100, this::actionUpdate)
 				.build();
 
 		firstLaunch = follower.pathBuilder()
@@ -69,6 +85,8 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(60.000, 76.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
+				.addParametricCallback(100, this::actionUpdate)
+				.addParametricCallback(100, this::actionUpdate)
 				.build();
 
 		secondIntake = follower.pathBuilder()
@@ -78,6 +96,8 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(49.959, 58.776),
 								new Pose(24.000, 59.800)))
 				.setTangentHeadingInterpolation()
+				.addParametricCallback(40, this::actionUpdate)
+				.addParametricCallback(100, this::actionUpdate)
 				.build();
 
 		secondLaunch = follower.pathBuilder()
@@ -88,11 +108,16 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(60.000, 76.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
+				.addParametricCallback(100, this::actionUpdate)
 				.build();
 	}
 
 	public void setPathState(int state) {
 		pathState = state;
+	}
+
+	public void setActionState(int state) {
+		actionState = state;
 	}
 
 	public void pathUpdate() {
@@ -127,6 +152,47 @@ public class Red9Artifacts extends LinearOpMode {
 					setPathState(-1);
 				}
 				break;
+		}
+	}
+
+	public void actionUpdate() {
+		if (doActions) {
+			switch (actionState) {
+				case 0:
+					follower.pausePathFollowing();
+					patternColours = automationHandler.getArtifactPattern().getPattern();
+					setActionState(1);
+				case 1:
+					for (Artifact.Colour colour : patternColours) {
+						automationHandler.shootArtifact(colour);
+					}
+					follower.resumePathFollowing();
+					setActionState(2);
+				case 2:
+					automationHandler.intakeToggle();
+					setActionState(3);
+				case 3:
+					automationHandler.intakeToggle();
+					setActionState(4);
+				case 4:
+					follower.pausePathFollowing();
+					for (Artifact.Colour colour : patternColours) {
+						automationHandler.shootArtifact(colour);
+					}
+					follower.resumePathFollowing();
+					setActionState(5);
+				case 5:
+					automationHandler.intakeToggle();
+					setActionState(6);
+				case 6:
+					automationHandler.intakeToggle();
+					setActionState(7);
+				case 7:
+					for (Artifact.Colour colour : patternColours) {
+						automationHandler.shootArtifact(colour);
+					}
+					setActionState(-1);
+			}
 		}
 	}
 }
