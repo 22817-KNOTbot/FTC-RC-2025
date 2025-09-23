@@ -152,7 +152,7 @@ public class Red9Artifacts extends LinearOpMode {
 				break;
 			case 4:
 				if (!follower.isBusy()) {
-					follower.followPat(secondLaunch, true);			
+					follower.followPath(secondLaunch, true);			
 					setActionState(-1);
 					setPathState(-1);
 				}
@@ -191,7 +191,7 @@ public class Red9Artifacts extends LinearOpMode {
 					break;
 				case 4:
 					automationsHandler.intakeToggle();
-					pattern = automationsHandler.getPatternShort().getPattern();
+					pattern = automationsHandler.getPattern().getPatternList();
 					if (timer.time() > 1 && timer.time() < 1.5 && shootNumber == 0) {
 						automationsHandler.shootArtifact(pattern[0]);
 						shootNumber = 1;

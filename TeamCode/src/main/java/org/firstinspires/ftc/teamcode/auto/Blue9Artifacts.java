@@ -62,7 +62,7 @@ public class Blue9Artifacts extends LinearOpMode {
 
 			if (doActions) {
 				automationsHandler.automationLoop();
-				// actionsDo();
+				actionsDo();
 			}
 		}
 	}
@@ -125,7 +125,6 @@ public class Blue9Artifacts extends LinearOpMode {
 		switch (pathState) {
 			case 0:
 				if (!follower.isBusy()) {
-					actionsDo();
 					follower.followPath(firstApproach, true);
 					setActionState(1);
 					setPathState(1);
@@ -134,15 +133,13 @@ public class Blue9Artifacts extends LinearOpMode {
 			case 1:
 				if (!follower.isBusy()) {
 					follower.followPath(firstIntake, true);
-					actionsDo();
 					setActionState(2);
 					setPathState(2);
 				}
 				break;
 			case 2:
 				if (!follower.isBusy()) {
-					follower.followPath(firstLaunch, true);
-					actionsDo();
+					follower.followPath(firstLaunch, true);			
 					setActionState(3);
 					setPathState(3);
 				}
@@ -150,15 +147,13 @@ public class Blue9Artifacts extends LinearOpMode {
 			case 3:
 				if (!follower.isBusy()) {
 					follower.followPath(secondIntake, true);
-					actionsDo();
 					setActionState(4);
 					setPathState(4);
 				}
 				break;
 			case 4:
 				if (!follower.isBusy()) {
-					follower.followPath(secondLaunch, true);
-					actionsDo();
+					follower.followPath(secondLaunch, true);			
 					setActionState(-1);
 					setPathState(-1);
 				}
@@ -178,7 +173,7 @@ public class Blue9Artifacts extends LinearOpMode {
 					break;
 				case 2:
 					automationsHandler.intakeToggle();
-					pattern = automationsHandler.getPattern().getPattern();
+					pattern = automationsHandler.getPattern().getPatternList();
 					if (timer.time() > 1 && timer.time() < 1.5 && shootNumber == 0) {
 						automationsHandler.shootArtifact(pattern[0]);
 						shootNumber = 1;
@@ -197,7 +192,7 @@ public class Blue9Artifacts extends LinearOpMode {
 					break;
 				case 4:
 					automationsHandler.intakeToggle();
-					pattern = automationsHandler.getPatternShort().getPattern();
+					pattern = automationsHandler.getPattern().getPatternList();
 					if (timer.time() > 1 && timer.time() < 1.5 && shootNumber == 0) {
 						automationsHandler.shootArtifact(pattern[0]);
 						shootNumber = 1;
