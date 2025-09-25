@@ -69,16 +69,16 @@ public class Storage {
 
 	// Returns the storage if successfully stored
 	// Returns null if storage is full
-	public storageFull() {
+	public boolean storageFull() {
 		if (artifactStored.contains(null)) {
-			return;
+			return true;
 		} else {
-			return null;
+			return false;
 		}
 	}
 
 
-	public release() {
+	public boolean release() {
 		if (getThirdArtifact() != null) {
 			artifactStored.set(numOfArtifacts, null);
 			numOfArtifacts -= 1;
