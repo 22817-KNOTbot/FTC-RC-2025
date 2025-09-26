@@ -11,14 +11,19 @@ import com.bylazar.configurables.annotations.Configurable;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
 
+import java.util.ArrayList;
+
 @Configurable
 public class Storage {
 
-	private DcMotor storageMotor = hardwareMap.get(DcMotor.class, "storageMotor");
+	private DcMotor storageMotor;
+	private Servo transfer;
+	private DcMotor transferMotor;
 
 	public static double distance_threshold_mm = 5;
+	public static double transferPos = 0.5;	//arbitary mumber, will change with further testing
 	public static int motorPos = 1;
-	public static double positionGap = 5; //arbitary mumber, will change with further testing
+	public static int positionGap = 5; //arbitary mumber, will change with further testing
 	public static Colour artifactStored[] = {null, null, null};
 
 	private static int numOfArtifacts = 0;
@@ -28,11 +33,15 @@ public class Storage {
 	private boolean previouslyLoaded;
 
 	public Storage(HardwareMap hardwareMap) {
-
 		colourSensor = hardwareMap.get(ColorRangeSensor.class, "colourSensor");
+		storageMotor = hardwareMap.get(DcMotor.class, "storageMotor");
+		storageMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		storageMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		transfer = hardwareMap.get(Servo.class, "transferServo");
+		transferMotor = hardwareMap.get(DcMotor.class, "transferMotor");
+
 	}
 
-	@Configurable
 	public void abort() {
 		// Currently does nothing
 		// Exists for future use
@@ -59,9 +68,9 @@ public class Storage {
 
 	public boolean intake() {
 		if (isArtifactLoaded()) {
-			artifactStored.set(numOfArtifacts, getArtifactColour());
+			artifactStored[numOfArtifacts] = getArtifactColour();
 			numOfArtifacts += 1;
-			storageMotor.setTargetPosition(getCurrentPosition() + positionGap);
+			storageMotor.setTargetPosition(storageMotor.getCurrentPosition() + positionGap);
 			return true;
 		}
 		return false;
@@ -70,7 +79,7 @@ public class Storage {
 	// Returns the storage if successfully stored
 	// Returns null if storage is full
 	public boolean storageFull() {
-		if (artifactStored.contains(null)) {
+		if (artifactStored.find(null)) {
 			return true;
 		} else {
 			return false;
@@ -80,17 +89,34 @@ public class Storage {
 
 	public boolean release() {
 		if (getThirdArtifact() != null) {
-			artifactStored.set(numOfArtifacts, null);
+			artifactStored[numOfArtifacts] = null;
 			numOfArtifacts -= 1;
+			transfer.setPosition(transferPos);
+			transferMotor.setPower(1);
+			finishRelease();
+			return true;
 		} else if (getSecondArtifact() != null) {
-			artifactStored.set(numOfArtifacts, null);
+			artifactStored[numOfArtifacts] = null;
 			numOfArtifacts -= 1;
+			transfer.setPosition(transferPos);
+			transferMotor.setPower(1);
+			finishRelease();
+			return true;
 		} else if (getFirstArtifact() != null) {
-			artifactStored.set(numOfArtifacts, null);
+			artifactStored[numOfArtifacts] = null;
 			numOfArtifacts -= 1;
+			transfer.setPosition(transferPos);
+			transferMotor.setPower(1);
+			finishRelease();
+			return true;
 		} else {
-			return null;
+			return false;
 		}
+	}
+	public void finishRelease() {
+		//wait
+			transfer.setPosition(0);
+			transferMotor.setPower(0);
 	}
 
 	/*
