@@ -11,14 +11,14 @@ import com.bylazar.configurables.annotations.Configurable;
 @Configurable
 public class Turret {
 	public static double BASE_ROTATION = 0.5;
-	public static double BASE_PITCH = 0.5;
+	public static double BASE_PITCH = 0.0;
 
-	public static double min_rotation = 0.5;
-	public static double max_rotation = 0.5;
-	public static double min_pitch = 0.5;
-	public static double max_pitch = 0.5;
+	public static double min_rotation = 0.4;
+	public static double max_rotation = 0.6;
+	public static double min_pitch = -0.05;
+	public static double max_pitch = 0.05;
 	public static double rotation_increment = 0.01;
-	public static double rotation_per_deg = 1d/1800;
+	public static double rotation_per_deg = (1d/1800)*3;
 
 	private Servo turretDiffServo1;
 	private Servo turretDiffServo2;
@@ -36,7 +36,7 @@ public class Turret {
 		turretDiffServo1 = hardwareMap.get(Servo.class, "turretDiffServo1");
 		turretDiffServo2 = hardwareMap.get(Servo.class, "turretDiffServo2");
 		turretDiffServo1.setDirection(Servo.Direction.FORWARD);
-		turretDiffServo2.setDirection(Servo.Direction.REVERSE);
+		turretDiffServo2.setDirection(Servo.Direction.FORWARD);
 	}
 
 	public void abort() {
