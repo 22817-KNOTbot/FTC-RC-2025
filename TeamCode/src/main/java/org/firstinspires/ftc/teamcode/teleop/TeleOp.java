@@ -26,7 +26,6 @@ public class TeleOp extends LinearOpMode {
 	public static boolean DEBUG = false;
 
 	private GamepadManager gamepadManager;
-	private ElapsedTime runtime = new ElapsedTime();
 	private ElapsedTime loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 	private Automations automationHandler;
 	private MecanumDrive mecanumDrive;
@@ -45,10 +44,10 @@ public class TeleOp extends LinearOpMode {
 			DEBUG = true;
 
 		Alliance alliance;
-		if (gamepad1.right_trigger > 0.9) {
-			alliance = new BlueAlliance();
-		} else if (gamepad1.right_trigger > 0.9) {
+		if (gamepad1.left_trigger > 0.9) {
 			alliance = new RedAlliance();
+		} else if (gamepad1.right_trigger > 0.9) {
+			alliance = new BlueAlliance();
 		} else {
 			alliance = (Alliance) blackboard.getOrDefault("alliance", new RedAlliance());
 		}
@@ -67,17 +66,17 @@ public class TeleOp extends LinearOpMode {
 			gamepadManager.updateGamepads();
 			gamepad1.copy(gamepadManager.getGamepad1());
 			gamepad2.copy(gamepadManager.getGamepad2());
-			if (gamepad1.right_trigger > 0.9) {
-				automationHandler.setAlliance(new BlueAlliance());
-			} else if (gamepad1.right_trigger > 0.9) {
+			if (gamepad1.left_trigger > 0.9) {
 				automationHandler.setAlliance(new RedAlliance());
+			} else if (gamepad1.right_trigger > 0.9) {
+				automationHandler.setAlliance(new BlueAlliance());
 			}
 			telemetry.addData("Alliance", automationHandler.getAlliance().getColourString());
 		}
 
 		mecanumDrive.initialize();
 		mecanumDrive.setHeadingOffset(automationHandler.getAlliance().getHeadingOffset());
-		runtime.reset();
+		mecanumDrive.setAutoDriveTarget(automationHandler.getAlliance().getBasePose());
 		loopTime.reset();
 
 		while (opModeIsActive()) {
@@ -92,6 +91,9 @@ public class TeleOp extends LinearOpMode {
 
 			mecanumDrive.move(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 
+			if (getRuntime() >= 100 || gamepad2.right_bumper) {
+				mecanumDrive.setAutoDrive(gamepad1.right_bumper);
+			}
 			mecanumDrive.lockingMecanum(gamepad1.left_bumper);
 
 			if (gamepad1.aWasPressed()) {
@@ -113,7 +115,7 @@ public class TeleOp extends LinearOpMode {
 			}
 
 			telemetry.addData("Alliance", automationHandler.getAlliance().getColourString());
-			telemetry.addData("Time", runtime.time());
+			telemetry.addData("Time", getRuntime());
 			telemetry.addData("Storage State", automationHandler.getStorageState());
 			if (!automationHandler.colourSensorResponding()) {
 				telemetry.addLine("********************");
@@ -135,6 +137,9 @@ public class TeleOp extends LinearOpMode {
 
 				telemetry.addData("Hold Position X", holdPose.getX());
 				telemetry.addData("Hold Position Y", holdPose.getY());
+
+				telemetry.addData("Auto driving", mecanumDrive.isAutoDrive());
+				telemetry.addData("Auto drive target", mecanumDrive.getAutoDriveTarget());
 				automationHandler.showTelemetry(telemetry);
 			}
 			telemetry.update();

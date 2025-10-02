@@ -6,4 +6,5 @@ public interface Alliance {
 	public String getColourString();
 	public Pose getGoalPose();
 	public double getHeadingOffset();
+	public Pose getBasePose();
 }
