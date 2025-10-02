@@ -4,6 +4,7 @@ repositories {
 	maven { url = 'https://maven.brott.dev/' }
 	maven { url = 'https://maven.pedropathing.com' }
 	maven { url = 'https://mymaven.bylazar.com/releases' }
+	maven { url = 'https://repo.dairy.foundation/releases' }
 }
 
 dependencies {
@@ -17,10 +18,12 @@ dependencies {
     implementation 'org.firstinspires.ftc:Vision:11.0.0'
     implementation 'androidx.appcompat:appcompat:1.2.0'
 	implementation 'com.acmerobotics.dashboard:dashboard:0.4.17'
-	implementation "com.bylazar:fullpanels:1.0.5"
+	implementation "com.bylazar:fullpanels:1.0.6"
 	implementation("com.squareup.moshi:moshi:1.15.2")
 
 	implementation 'com.pedropathing:ftc:2.0.0'
 	implementation 'com.pedropathing:telemetry:0.0.6'
+
+	implementation("dev.frozenmilk.sinister:Sloth:0.2.4")
 }
 
