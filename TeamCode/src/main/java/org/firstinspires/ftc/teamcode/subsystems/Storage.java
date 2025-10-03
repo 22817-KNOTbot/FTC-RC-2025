@@ -17,9 +17,17 @@ import java.util.ArrayList;
 @Configurable
 public class Storage {
 
+	public enum TurnDirection {
+		AVAILABLE,	//AVAILABLE is equal to NONE as in no turn is performed.
+		NONE,		//But, in AVAILABLE, the Artifact is already in the intake slot.
+		CW,
+		CCW
+	}
+
 	private DcMotor storageMotor;
 	private Servo transfer;
 	private DcMotor transferMotor;
+	private Colour intakeArtifact;
 
 	public static double distance_threshold_mm = 5;
 	public static double transferPos = 0.5;	//arbitary mumber, will change with further testing
@@ -57,13 +65,13 @@ public class Storage {
 	 * Getter methods
 	 */
 	
-	public static Colour getFirstArtifact() {
+	public static Colour getIntakeArtifact() {
 		return artifactStored.get(0);
 	}
-	public static Colour getSecondArtifact() {
+	public static Colour getBackLeftArtifact() {
 		return artifactStored.get(1);
 	}
-	public static Colour getThirdArtifact() {
+	public static Colour getBackRightArtifact() {
 		return artifactStored.get(2);
 	}
 
@@ -74,7 +82,7 @@ public class Storage {
 
 	public boolean intake() {
 		if (isArtifactLoaded()) {
-			artifactStored.set(numOfArtifacts, getArtifactColour());
+			artifactStored.set(0, getArtifactColour());
 			numOfArtifacts += 1;
 			storageTurnCW();
 			return true;
@@ -85,41 +93,33 @@ public class Storage {
 	//Storage Turn Clockwise
 	public void storageTurnCW() {
 		storageMotor.setTargetPosition(storageMotor.getCurrentPosition() + positionGap);
+		intakeArtifact = getIntakeArtifact();
+		artifactStored.set(0, getBackRightArtifact());
+		artifactStored.set(2, getBackLeftArtifact());
+		artifactStored.set(1, intakeArtifact);
 	}
 
 	//Storage Turn Counter-clockwise
 		public void storageTurnCCW() {
 		storageMotor.setTargetPosition(storageMotor.getCurrentPosition() - positionGap);
+		artifactStored.set(0, getBackLeftArtifact());
+		artifactStored.set(1, getBackRightArtifact());
+		artifactStored.set(2, intakeArtifact);
 	}
 
-	// Returns the storage if successfully stored
-	// Returns null if storage is full
+	// Returns the storage true if full
 	public boolean storageFull() {
 		if (artifactStored.contains(null)) {
-			return true;
-		} else {
 			return false;
+		} else {
+			return true;
 		}
 	}
 
 
 	public boolean release() {
-		if (getThirdArtifact() != null) {
-			artifactStored.set(numOfArtifacts, null);
-			numOfArtifacts -= 1;
-			transfer.setPosition(transferPos);
-			transferMotor.setPower(1);
-			finishRelease();
-			return true;
-		} else if (getSecondArtifact() != null) {
-			artifactStored.set(numOfArtifacts, null);
-			numOfArtifacts -= 1;
-			transfer.setPosition(transferPos);
-			transferMotor.setPower(1);
-			finishRelease();
-			return true;
-		} else if (getFirstArtifact() != null) {
-			artifactStored.set(numOfArtifacts, null);
+		if (getIntakeArtifact() != null) {
+			artifactStored.set(0, null);
 			numOfArtifacts -= 1;
 			transfer.setPosition(transferPos);
 			transferMotor.setPower(1);
@@ -130,24 +130,25 @@ public class Storage {
 		}
 	}
 
-	public void sortArtifacts(Colour desiredArtifact) {
-		if (numOfArtifacts >= 0) {
-			if (artifactStored.get(numOfArtifacts - 1) == desiredArtifact) {
-				release();
-			}
-		}
-	}
 
-	//USE THIS AFTER sortArtifacts() IMMEDEITLY TO HAVE A ARTIFACT IN THE INTAKE POSITION
-	public void sortArtifactsTurn(Colour desiredArtifact) {
+	//Sorts Artifacts, if artifact is in intake slot, it will fire it
+	public TurnDirection sortArtifactsTurn(Colour desiredArtifact) {
 		if (numOfArtifacts >= 0) {
-			if (artifactStored.get(numOfArtifacts - 1) == desiredArtifact) {
-				storageTurnCCW();
-			} else if (artifactStored.get(numOfArtifacts - 2) == desiredArtifact) {
-				storageTurnCCW();
-			} else {
-				storageTurnCW();
+			if (getIntakeArtifact() == desiredArtifact) {
+				release();
+				return TurnDirection.AVAILABLE;
 			}
+			if (getBackLeftArtifact() == desiredArtifact) {
+				storageTurnCCW();
+				return TurnDirection.CCW;
+			} else if (getBackRightArtifact() == desiredArtifact) {
+				storageTurnCW();
+				return TurnDirection.CW;
+			} else {
+				return TurnDirection.NONE;
+			}
+		} else {
+			return TurnDirection.NONE;
 		}
 	}
 
