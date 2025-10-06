@@ -79,7 +79,7 @@ public class Storage {
 	 */
 
 	public boolean intake() {
-		if (isArtifactLoaded() && artifactStored.contains(null)) {
+		if (isArtifactLoaded() && !storageFull()) {
 			turnToArtifact(null);
 			artifactStored.set(0, getArtifactColour());
 			numOfArtifacts += 1;
@@ -108,11 +108,7 @@ public class Storage {
 
 	// Returns the storage true if full
 	public boolean storageFull() {
-		if (artifactStored.contains(null)) {
-			return false;
-		} else {
-			return true;
-		}
+		return !artifactStored.contains(null);
 	}
 
 	// Sorts Artifacts, if artifact is in intake slot, it will fire it
