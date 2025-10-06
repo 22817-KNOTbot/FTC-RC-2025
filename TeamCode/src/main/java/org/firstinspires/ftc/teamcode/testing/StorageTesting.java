@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Storage;
 public class StorageTesting extends LinearOpMode {
 	public static Command command = Command.NONE;
 	public static Colour desiredArtifact = Colour.PURPLE;
+	public static boolean resetEncoder = true;
 
 	private Storage storage;
 
@@ -36,7 +37,7 @@ public class StorageTesting extends LinearOpMode {
 	public void runOpMode() {
 		telemetry = new JoinedTelemetry(PanelsTelemetry.INSTANCE.getFtcTelemetry(), telemetry);
 
-		storage = new Storage(hardwareMap);
+		storage = new Storage(hardwareMap, true);
 
 		waitForStart();
 
@@ -57,7 +58,7 @@ public class StorageTesting extends LinearOpMode {
 					command = Command.NONE;
 					break;
 				case SORT:
-					output = storage.sortArtifactsTurn(desiredArtifact);
+					output = storage.turnToArtifact(desiredArtifact);
 					command = Command.NONE;
 			}
 			telemetry.addData("Command output", output == null ? "null" : output);
