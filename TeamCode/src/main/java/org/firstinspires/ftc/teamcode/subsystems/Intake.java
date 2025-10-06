@@ -7,27 +7,24 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 @Configurable
 public class Intake {
-	public static boolean on = false;
 	public static float power = 1;
 
-	private DcMotor intake;
+	private DcMotor intakeMotor;
 
 	public Intake(HardwareMap hardwareMap) {
-		intake = hardwareMap.get(DcMotor.class, "intake");
-		intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
+		intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 	}
 
 	public void enable(boolean enable) {
-		if (!on && enable) {
-			intake.setPower(power);
-			on = true;
-		} else if (on && !enable) {
-			intake.setPower(0);
-			on = false;
+		if (enable) {
+			intakeMotor.setPower(power);
+		} else {
+			intakeMotor.setPower(0);
 		}
 	}
 
 	public void setPower(float pow) {
-		intake.setPower(pow);
+		intakeMotor.setPower(pow);
 	}
 }
