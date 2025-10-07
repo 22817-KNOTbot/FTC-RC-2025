@@ -100,9 +100,9 @@ public class TeleOp extends LinearOpMode {
 				automationHandler.intakeToggle();
 			}
 			if (gamepad1.yWasPressed()) {
-				automationHandler.shootArtifact(Artifact.Colour.PURPLE);
+				automationHandler.prepareOrShootArtifact(Artifact.Colour.PURPLE);
 			} else if (gamepad1.bWasPressed()) {
-				automationHandler.shootArtifact(Artifact.Colour.GREEN);
+				automationHandler.prepareOrShootArtifact(Artifact.Colour.GREEN);
 			}
 
 			automationHandler.updatePose(mecanumDrive.getPose());
