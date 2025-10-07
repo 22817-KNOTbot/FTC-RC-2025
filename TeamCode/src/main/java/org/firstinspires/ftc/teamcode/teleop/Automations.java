@@ -42,7 +42,7 @@ public class Automations {
 
 	public enum StorageState {
 		WAITING,
-		STORING,
+		TURNING,
 		RELEASING
 	}
 
@@ -57,7 +57,7 @@ public class Automations {
 		this.storageState = StorageState.WAITING;
 		this.timer = new ElapsedTime();
 		intake = new Intake(hardwareMap);
-		storage = new Storage(hardwareMap);
+		storage = new Storage(hardwareMap, false);
 		turret = new Turret(hardwareMap);
 		shooter = new Shooter(hardwareMap);
 
@@ -80,7 +80,13 @@ public class Automations {
 	}
 
 	public void abort() {
-		// Exists for future use
+		intake.enable(false);
+		storage.abort();
+		shooter.enable(false);
+	}
+
+	public void initialize() {
+		shooter.enable(true);
 	}
 
 	// Should be called every loop. Handles various things
@@ -88,14 +94,12 @@ public class Automations {
 	public void automationLoop() {
 		vision.updateMotifPattern();
 		pattern = vision.getLastMotifPattern();
-		if (storageState == StorageState.WAITING && storage.intake()) {
-			storage.storeArtifact();
-			timer.reset();
-			storageState = StorageState.STORING;
-		} else if (storageState == StorageState.STORING && timer.time() > 0.5) {
-			storageState = StorageState.WAITING;
+		if (storageState == StorageState.WAITING) {
+			storage.intake();
+		} else if (storageState == StorageState.TURNING && timer.time() > 0.5) {
+			shootActiveArtifact();
 		} else if (storageState == StorageState.RELEASING && timer.time() > 0.5) {
-			shooter.enable(false);
+			storage.finishRelease();
 			storageState = StorageState.WAITING;
 		}
 
@@ -132,16 +136,40 @@ public class Automations {
 		intakeEnabled = !intakeEnabled;
 	}
 
-	public void shootArtifact(Artifact.Colour colour) {
-		if (storage.getFrontLeftArtifact() == colour) {
-			storage.releaseLeft();
-		} else if (storage.getFrontRightArtifact() == colour) {
-			storage.releaseRight();
-		} else {
+	public Storage.TurnDirection prepareArtifact(Artifact.Colour colour) {
+		Storage.TurnDirection turnDirection = storage.turnToArtifact(colour);
+		timer.reset();
+		storageState = StorageState.TURNING;
+		return turnDirection;
+	}
+
+	// Returns true if already prepared and has been shot
+	public boolean prepareOrShootArtifact(Artifact.Colour colour) {
+		Storage.TurnDirection turnDirection = storage.turnToArtifact(colour);
+		if (turnDirection == Storage.TurnDirection.AVAILABLE) {
+			shootActiveArtifact();
+			return true;
+		} else if (turnDirection == Storage.TurnDirection.NONE) {
 			vibrateControllers();
-			return;
+		} else {
+			timer.reset();
+			storageState = StorageState.TURNING;
 		}
+		return false;
+	}
+
+	public void storageTurnCW() {
+		storage.storageTurnCW();
+	}
+
+	public void storageTurnCCW() {
+		storage.storageTurnCCW();
+	}
+
+	public void shootActiveArtifact() {
+		storage.release();
 		shooter.enable(true);
+		storageState = StorageState.RELEASING;
 	}
 
 	public boolean colourSensorResponding() {
