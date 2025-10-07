@@ -16,60 +16,66 @@ import org.firstinspires.ftc.teamcode.subsystems.Storage;
 public class StorageTesting extends LinearOpMode {
 	public static Command command = Command.NONE;
 	public static Colour desiredArtifact = Colour.PURPLE;
-	public static boolean resetEncoder = true;
+	public static boolean manualDirectionMode = false;
+	public static Storage.TurnDirection manualTurnDirection = Storage.TurnDirection.NONE;
+	public static boolean resetEncoders = true;
 
 	private Storage storage;
 
 	public enum Command {
 		NONE,
 		INTAKE,
-		STORE,
+		TURN_TO,
 		RELEASE,
-		SORT
-	}
-
-	public enum GateMode {
-		MANUAL,
-		AUTO
+		FINISH_RELEASE,
 	}
 
 	@Override
 	public void runOpMode() {
 		telemetry = new JoinedTelemetry(PanelsTelemetry.INSTANCE.getFtcTelemetry(), telemetry);
 
-		storage = new Storage(hardwareMap, true);
+		storage = new Storage(hardwareMap, resetEncoders);
 
 		waitForStart();
 
 		while (opModeIsActive()) {
 			Object output = null;
-			switch (command) {
-				case NONE:
-					break;
-				case INTAKE:
-					output = storage.intake();
-					break;
-				case STORE:
-					output = storage.intake();
-					command = Command.NONE;
-					break;
-				case RELEASE:
-					storage.release();
-					command = Command.NONE;
-					break;
-				case SORT:
-					output = storage.turnToArtifact(desiredArtifact);
-					command = Command.NONE;
+			if (!manualDirectionMode) {
+				switch (command) {
+					case NONE:
+						break;
+					case INTAKE:
+						output = storage.intake();
+						if (output.equals(true)) command = Command.NONE;
+						break;
+					case TURN_TO:
+						output = storage.turnToArtifact(desiredArtifact);
+					case RELEASE:
+						output = storage.release();
+						command = Command.NONE;
+						break;
+					case FINISH_RELEASE:
+						storage.finishRelease();
+						command = Command.NONE;
+				}
+			} else {
+				if (manualTurnDirection == Storage.TurnDirection.CW) {
+					storage.storageTurnCW();
+				} else if (manualTurnDirection == Storage.TurnDirection.CCW) {
+					storage.storageTurnCCW();
+				}
+				manualTurnDirection = Storage.TurnDirection.NONE;
 			}
 			telemetry.addData("Command output", output == null ? "null" : output);
 
 			telemetry.addLine("=== Stored Artifacts ===");
-			telemetry.addData("Front Left Artifact", storage.getIntakeArtifact());
-			telemetry.addData("Front Right Artifact", storage.getBackLeftArtifact());
-			telemetry.addData("Back Artifact", storage.getBackRightArtifact());
+			telemetry.addData("Storage Full", storage.storageFull());
+			telemetry.addData("Active Artifact", storage.getActiveArtifact());
+			telemetry.addData("Back Left Artifact", storage.getBackLeftArtifact());
+			telemetry.addData("Back Right Artifact", storage.getBackRightArtifact());
 
 			telemetry.addLine("=== Colour/Range ===");
-			telemetry.addData("Loaded (back)", storage.isArtifactLoaded());
+			telemetry.addData("Loaded (active)", storage.isArtifactLoaded());
 			telemetry.addData("Colour", storage.getArtifactColour());
 			telemetry.addData("Red", storage.getRed());
 			telemetry.addData("Green", storage.getGreen());
