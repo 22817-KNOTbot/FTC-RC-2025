@@ -85,7 +85,7 @@ public class MecanumDrive {
 	}
 
 	public void resetPose() {
-		follower.setPose(new Pose());
+		follower.setPose(new Pose(0, 0, -headingOffset));
 	}
 
 	public Pose getHoldPose() {

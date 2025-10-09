@@ -39,6 +39,7 @@ public class Automations {
 	private Pose pose;
 	private Artifact.Pattern pattern;
 	private boolean intakeEnabled;
+	private boolean shooterEnabled;
 
 	public enum StorageState {
 		WAITING,
@@ -85,8 +86,9 @@ public class Automations {
 		shooter.enable(false);
 	}
 
-	public void initialize() {
-		shooter.enable(true);
+	// Code that should be run on start but not during init
+	public void start() {
+		setShooterEnabled(true);
 	}
 
 	// Should be called every loop. Handles various things
@@ -102,7 +104,10 @@ public class Automations {
 			storage.finishRelease();
 			storageState = StorageState.WAITING;
 		}
+	}
 
+	// Should be called every loop
+	public void updateTurret() {
 		AlignmentDirection direction = vision.getAlignmentDirection();
 		if (direction.directionKnown) {
 			turret.rotateTurret(direction.x);
@@ -176,6 +181,14 @@ public class Automations {
 		return storage.colourSensorResponding();
 	}
 
+	public void rotateTurret(double vector) {
+		turret.rotateTurret(vector);
+	}
+
+	public void pitchTurret(double vector) {
+		turret.pitchTurret(vector);
+	}
+
 	/*
 	 * Getter methods
 	 */
@@ -184,13 +197,26 @@ public class Automations {
 		return alliance;
 	}
 
+	public Artifact.Pattern getPattern() {
+		return pattern;
+	}
+
 	public StorageState getStorageState() {
 		return storageState;
+	}
+
+	public boolean getShooterEnabled() {
+		return shooterEnabled;
 	}
 
 	/*
 	 * Misc. util methods
 	 */
+
+	public void setShooterEnabled(boolean enabled) {
+		shooter.enable(enabled);
+		shooterEnabled = enabled;
+	}
 
 	public void vibrateControllers() {
 		vibrateControllers(100);
