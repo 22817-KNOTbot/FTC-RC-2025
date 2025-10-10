@@ -13,15 +13,17 @@ public class Turret {
 	public static double BASE_ROTATION = 0.5;
 	public static double BASE_PITCH = 0.5;
 
-	public static double min_rotation = 0.5;
-	public static double max_rotation = 0.5;
-	public static double min_pitch = 0.5;
-	public static double max_pitch = 0.5;
+	public static double min_rotation = 0.4;
+	public static double max_rotation = 0.6;
+	public static double min_pitch = 0.45;
+	public static double max_pitch = 0.55;
 	public static double rotation_increment = 0.01;
-	public static double rotation_per_deg = 1d/1800;
+	public static double rotation_per_deg = (1d/1800)*3;
+	public static double pitch_incremenet = 0.01;
 
-	private Servo turretDiffServo1;
-	private Servo turretDiffServo2;
+	private Servo turretYawServo1;
+	private Servo turretYawServo2;
+	private Servo turretPitchServo;
 
 	private static Position position = Position.BASE;
 	private static double rotation = BASE_ROTATION;
@@ -33,10 +35,12 @@ public class Turret {
 	}
 
 	public Turret(HardwareMap hardwareMap) {
-		turretDiffServo1 = hardwareMap.get(Servo.class, "turretDiffServo1");
-		turretDiffServo2 = hardwareMap.get(Servo.class, "turretDiffServo2");
-		turretDiffServo1.setDirection(Servo.Direction.FORWARD);
-		turretDiffServo2.setDirection(Servo.Direction.REVERSE);
+		turretYawServo1 = hardwareMap.get(Servo.class, "turretYawServo1");
+		turretYawServo2 = hardwareMap.get(Servo.class, "turretYawServo2");
+		turretYawServo1.setDirection(Servo.Direction.FORWARD);
+		turretYawServo2.setDirection(Servo.Direction.REVERSE);
+		turretPitchServo = hardwareMap.get(Servo.class, "turretPitchServo");
+		turretPitchServo.setDirection(Servo.Direction.FORWARD);
 	}
 
 	public void abort() {
@@ -95,6 +99,11 @@ public class Turret {
 		Turret.position = Position.MANUAL;
 		setPitchInternal(pitch);
 	}
+	
+	public void pitchTurret(double vector) {
+		vector = Range.clip(vector, -1, 1);
+		setPitch(pitch + (vector * pitch_incremenet));
+	}
 
 	/*
 	 * Internal functions
@@ -108,8 +117,8 @@ public class Turret {
 	private void setRotationInternal(double rotationTarget) {
 		rotationTarget = Range.clip(rotationTarget, min_rotation, max_rotation);
 
-		turretDiffServo1.setPosition(rotationTarget - Turret.pitch);
-		turretDiffServo2.setPosition(rotationTarget + Turret.pitch);
+		turretYawServo1.setPosition(rotationTarget);
+		turretYawServo2.setPosition(rotationTarget);
 
 		Turret.rotation = rotationTarget;
 	}
@@ -117,8 +126,7 @@ public class Turret {
 	private void setPitchInternal(double pitchTarget) {
 		pitchTarget = Range.clip(pitchTarget, min_pitch, max_pitch);
 
-		turretDiffServo1.setPosition(Turret.rotation - pitchTarget);
-		turretDiffServo2.setPosition(Turret.rotation + pitchTarget);
+		turretPitchServo.setPosition(pitchTarget);
 
 		Turret.pitch = pitchTarget;
 	}

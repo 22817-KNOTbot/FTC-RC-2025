@@ -14,4 +14,8 @@ public class RedAlliance implements Alliance {
 	public double getHeadingOffset() {
 		return 0;
 	}
+
+	public Pose getBasePose() {
+		return new Pose(38, 34, Math.PI / 2);
+	}
 }

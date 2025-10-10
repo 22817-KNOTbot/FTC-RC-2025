@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.JoinedTelemetry;
@@ -26,13 +27,14 @@ public class TeleOp extends LinearOpMode {
 	public static boolean DEBUG = false;
 
 	private GamepadManager gamepadManager;
-	private ElapsedTime runtime = new ElapsedTime();
 	private ElapsedTime loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 	private Automations automationHandler;
 	private MecanumDrive mecanumDrive;
 
 	@Override
 	public void runOpMode() {
+		boolean manualTurretMode = false;
+
 		gamepadManager = new GamepadManager(gamepad1, gamepad2,
 				PanelsGamepad.INSTANCE.getFirstManager()::asCombinedFTCGamepad,
 				PanelsGamepad.INSTANCE.getSecondManager()::asCombinedFTCGamepad);
@@ -45,10 +47,10 @@ public class TeleOp extends LinearOpMode {
 			DEBUG = true;
 
 		Alliance alliance;
-		if (gamepad1.right_trigger > 0.9) {
-			alliance = new BlueAlliance();
-		} else if (gamepad1.right_trigger > 0.9) {
+		if (gamepad1.left_trigger > 0.9) {
 			alliance = new RedAlliance();
+		} else if (gamepad1.right_trigger > 0.9) {
+			alliance = new BlueAlliance();
 		} else {
 			alliance = (Alliance) blackboard.getOrDefault("alliance", new RedAlliance());
 		}
@@ -67,17 +69,18 @@ public class TeleOp extends LinearOpMode {
 			gamepadManager.updateGamepads();
 			gamepad1.copy(gamepadManager.getGamepad1());
 			gamepad2.copy(gamepadManager.getGamepad2());
-			if (gamepad1.right_trigger > 0.9) {
-				automationHandler.setAlliance(new BlueAlliance());
-			} else if (gamepad1.right_trigger > 0.9) {
+			if (gamepad1.left_trigger > 0.9) {
 				automationHandler.setAlliance(new RedAlliance());
+			} else if (gamepad1.right_trigger > 0.9) {
+				automationHandler.setAlliance(new BlueAlliance());
 			}
 			telemetry.addData("Alliance", automationHandler.getAlliance().getColourString());
 		}
 
 		mecanumDrive.initialize();
 		mecanumDrive.setHeadingOffset(automationHandler.getAlliance().getHeadingOffset());
-		runtime.reset();
+		mecanumDrive.setAutoDriveTarget(automationHandler.getAlliance().getBasePose());
+		automationHandler.start();
 		loopTime.reset();
 
 		while (opModeIsActive()) {
@@ -92,15 +95,18 @@ public class TeleOp extends LinearOpMode {
 
 			mecanumDrive.move(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 
+			if (getRuntime() >= 100 || DEBUG || gamepad2.right_trigger > 0.9) {
+				mecanumDrive.setAutoDrive(gamepad1.right_bumper);
+			}
 			mecanumDrive.lockingMecanum(gamepad1.left_bumper);
 
 			if (gamepad1.aWasPressed()) {
 				automationHandler.intakeToggle();
 			}
 			if (gamepad1.yWasPressed()) {
-				automationHandler.shootArtifact(Artifact.Colour.PURPLE);
+				automationHandler.prepareOrShootArtifact(Artifact.Colour.PURPLE);
 			} else if (gamepad1.bWasPressed()) {
-				automationHandler.shootArtifact(Artifact.Colour.GREEN);
+				automationHandler.prepareOrShootArtifact(Artifact.Colour.GREEN);
 			}
 
 			automationHandler.updatePose(mecanumDrive.getPose());
@@ -112,8 +118,40 @@ public class TeleOp extends LinearOpMode {
 				mecanumDrive.resetPose();
 			}
 
+			/*
+			 * Driver 2 overrides
+			 */
+
+			if (gamepad2.aWasPressed()) {
+				automationHandler.intakeToggle();
+			}
+			if (gamepad2.bWasPressed()) {
+				automationHandler.setShooterEnabled(!automationHandler.getShooterEnabled());
+			}
+			if (gamepad2.yWasPressed()) {
+				automationHandler.shootActiveArtifact();
+			}
+			if (gamepad2.rightBumperWasPressed()) {
+				automationHandler.storageTurnCW();
+			} else if (gamepad2.leftBumperWasPressed()) {
+				automationHandler.storageTurnCCW();
+			}
+			if (gamepad2.dpadUpWasPressed()) {
+				DEBUG = !DEBUG;
+			}
+			if (gamepad2.dpadDownWasPressed()) {
+				manualTurretMode = !manualTurretMode;
+			}
+			if (manualTurretMode) {
+				automationHandler.rotateTurret(gamepad2.left_stick_x);
+				automationHandler.pitchTurret(gamepad2.right_stick_y);
+			} else {
+				automationHandler.updateTurret();
+			}
+
 			telemetry.addData("Alliance", automationHandler.getAlliance().getColourString());
-			telemetry.addData("Time", runtime.time());
+			telemetry.addData("Pattern", automationHandler.getPattern());
+			telemetry.addData("Time", getRuntime());
 			telemetry.addData("Storage State", automationHandler.getStorageState());
 			if (!automationHandler.colourSensorResponding()) {
 				telemetry.addLine("********************");
@@ -135,6 +173,9 @@ public class TeleOp extends LinearOpMode {
 
 				telemetry.addData("Hold Position X", holdPose.getX());
 				telemetry.addData("Hold Position Y", holdPose.getY());
+
+				telemetry.addData("Auto driving", mecanumDrive.isAutoDrive());
+				telemetry.addData("Auto drive target", mecanumDrive.getAutoDriveTarget());
 				automationHandler.showTelemetry(telemetry);
 			}
 			telemetry.update();

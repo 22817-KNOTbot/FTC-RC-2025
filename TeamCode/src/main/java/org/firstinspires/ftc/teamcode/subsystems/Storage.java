@@ -3,106 +3,76 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import com.bylazar.configurables.annotations.Configurable;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
+import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 @Configurable
 public class Storage {
 	public static double distance_threshold_mm = 5;
+	public static int positionInterval = 5; // arbitary number, will change with further testing
+	public static double transferMotorPower = 1;
+	public static int transferInterval = 5; // arbitary number, will change with further testing
 
-	private static Colour frontLeftArtifact = null;
-	private static Colour frontRightArtifact = null;
-	private static Colour backArtifact = null;
+	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
+	private static int numOfArtifacts = 0;
 
-	private Gate frontLeftGate;
-	private Gate frontRightGate;
-	private Gate backLeftGate;
-	private Gate backRightGate;
+	private DcMotor storageMotor;
+	private DcMotor transferMotor;
 	private ColorRangeSensor colourSensor;
 
-	private boolean previouslyLoaded;
+	public enum TurnDirection {
+		AVAILABLE, // AVAILABLE is equal to NONE as in no turn is performed.
+		NONE, // But, in AVAILABLE, the Artifact is already in the intake slot.
+		CW,
+		CCW
+	}
 
-	public Storage(HardwareMap hardwareMap) {
-		frontLeftGate = new Gate(hardwareMap.get(Servo.class, "frontLeftGateServo"));
-		frontRightGate = new Gate(hardwareMap.get(Servo.class, "frontRightGateServo"));
-		backLeftGate = new Gate(hardwareMap.get(Servo.class, "backLeftGateServo"));
-		backRightGate = new Gate(hardwareMap.get(Servo.class, "backRightGateServo"));
-
+	public Storage(HardwareMap hardwareMap, boolean resetEncoder) {
 		colourSensor = hardwareMap.get(ColorRangeSensor.class, "colourSensor");
-	}
 
-	public enum Chamber {
-		LEFT,
-		RIGHT
-	}
+		storageMotor = hardwareMap.get(DcMotor.class, "storageMotor");
+		storageMotor.setTargetPosition(0);
+		storageMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		storageMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-	@Configurable
-	public static class Gate {
-		public static double gate_open = 0;
-		public static double gate_closed = 0;
+		transferMotor = hardwareMap.get(DcMotor.class, "transferMotor");
+		transferMotor.setTargetPosition(0);
+		transferMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		transferMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-		private Servo servo;
-		private boolean open = false;
-
-		protected Gate(Servo servo) {
-			this.servo = servo;
-			open = servo.getPosition() == gate_open;
-		}
-
-		public void open() {
-			servo.setPosition(gate_open);
-			open = true;
-		}
-
-		public void close() {
-			servo.setPosition(gate_closed);
-			open = false;
-		}
-
-		public boolean isOpen() {
-			return open;
+		if (resetEncoder) {
+			storageMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+			transferMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		}
 	}
 
 	public void abort() {
-		// Currently does nothing
-		// Exists for future use
+		transferMotor.setPower(0);
 	}
 
 	/*
 	 * Getter methods
 	 */
 
-	public static Colour getFrontLeftArtifact() {
-		return frontLeftArtifact;
+	public static Colour getActiveArtifact() {
+		return artifactStored.get(0);
 	}
 
-	public static Colour getFrontRightArtifact() {
-		return frontRightArtifact;
+	public static Colour getBackLeftArtifact() {
+		return artifactStored.get(1);
 	}
 
-	public static Colour getBackArtifact() {
-		return backArtifact;
-	}
-
-	public Gate getFrontLeftGate() {
-		return frontLeftGate;
-	}
-
-	public Gate getFrontRightGate() {
-		return frontRightGate;
-	}
-
-	public Gate getBackLeftGate() {
-		return backLeftGate;
-	}
-
-	public Gate getBackRightGate() {
-		return backRightGate;
+	public static Colour getBackRightArtifact() {
+		return artifactStored.get(2);
 	}
 
 	/*
@@ -110,50 +80,69 @@ public class Storage {
 	 */
 
 	public boolean intake() {
-		backLeftGate.close();
-		backRightGate.close();
-		if (isArtifactLoaded()) {
-			backArtifact = getArtifactColour();
+		turnToArtifact(null);
+		Colour colour = getArtifactColour();
+		if (isArtifactLoaded() && !storageFull() && colour != null) {
+			artifactStored.set(0, colour);
+			numOfArtifacts += 1;
 			return true;
 		}
 		return false;
 	}
 
-	// Returns the chamber if successfully stored
-	// Returns null if both slots are full
-	public Chamber storeArtifact() {
-		if (frontLeftArtifact == null) {
-			backLeftGate.open();
-			frontLeftGate.close();
-			frontLeftArtifact = backArtifact;
-			backArtifact = null;
-			return Chamber.LEFT;
-		} else if (frontRightArtifact == null) {
-			backRightGate.open();
-			frontRightGate.close();
-			frontRightArtifact = backArtifact;
-			backArtifact = null;
-			return Chamber.RIGHT;
+	public void storageTurnCW() {
+		storageMotor.setTargetPosition(storageMotor.getTargetPosition() + positionInterval);
+		Colour intakeArtifact = getActiveArtifact();
+		artifactStored.set(0, getBackRightArtifact());
+		artifactStored.set(2, getBackLeftArtifact());
+		artifactStored.set(1, intakeArtifact);
+	}
+
+	public void storageTurnCCW() {
+		storageMotor.setTargetPosition(storageMotor.getTargetPosition() - positionInterval);
+		Colour intakeArtifact = getActiveArtifact();
+		artifactStored.set(0, getBackLeftArtifact());
+		artifactStored.set(1, getBackRightArtifact());
+		artifactStored.set(2, intakeArtifact);
+	}
+
+	public boolean storageFull() {
+		return !artifactStored.contains(null);
+	}
+
+	public TurnDirection turnToArtifact(Colour desiredArtifact) {
+		if (numOfArtifacts > 0) {
+			if (getActiveArtifact() == desiredArtifact) {
+				return TurnDirection.AVAILABLE;
+			} else if (getBackLeftArtifact() == desiredArtifact) {
+				storageTurnCCW();
+				return TurnDirection.CCW;
+			} else if (getBackRightArtifact() == desiredArtifact) {
+				storageTurnCW();
+				return TurnDirection.CW;
+			} else {
+				return TurnDirection.NONE;
+			}
+		} else {
+			return TurnDirection.NONE;
 		}
-		return null;
 	}
 
-	public boolean releaseLeft() {
-		if (frontLeftArtifact == null)
+	public boolean release() {
+		if (getActiveArtifact() != null) {
+			artifactStored.set(0, null);
+			numOfArtifacts -= 1;
+			transferMotor.setPower(transferMotorPower);
+			transferMotor.setTargetPosition(transferMotor.getTargetPosition() + transferInterval);
+			return true;
+		} else {
 			return false;
-		
-		frontLeftGate.open();
-		frontLeftArtifact = null;
-		return true;
+		}
 	}
 
-	public boolean releaseRight() {
-		if (frontRightArtifact == null)
-			return false;
-		
-		frontRightGate.open();
-		frontRightArtifact = null;
-		return true;
+	public void finishRelease() {
+		// Wait
+		transferMotor.setPower(0);
 	}
 
 	/*

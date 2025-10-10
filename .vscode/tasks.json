@@ -20,7 +20,7 @@
 			"type": "gradle",
 			"id": "${cwd}installDebugSoftware",
 			"script": "installDebug",
-			"description": "Installs the Debug build.",
+			"description": "Installs the Debug build and removes sloth remote.",
 			"group": "build",
 			"project": "Software",
 			"buildFile": "${cwd}\\build.gradle",
@@ -40,7 +40,10 @@
 			"problemMatcher": [
 				"$gradle"
 			],
-			"label": "Send code"
+			"label": "Send code",
+			"dependsOn": [
+				"removeSlothRemote"
+			]
 		},
 		{
 			"label": "Connect, send code, and disconnect",
@@ -68,6 +71,36 @@
 			"type": "gradle",
 			"script": "buildDebug",
 			"description": "Installs the Debug build.",
+			"group": "build",
+			"project": "Software",
+			"buildFile": "${cwd}\\build.gradle",
+			"rootProject": "Software",
+			"projectFolder": "${cwd}",
+			"workspaceFolder": "${cwd}",
+			"problemMatcher": [
+				"$gradle"
+			]
+		},
+		{
+			"label": "deploySloth",
+			"type": "gradle",
+			"script": "deploySloth",
+			"description": "Deploys code using Sloth.",
+			"group": "build",
+			"project": "Software",
+			"buildFile": "${cwd}\\build.gradle",
+			"rootProject": "Software",
+			"projectFolder": "${cwd}",
+			"workspaceFolder": "${cwd}",
+			"problemMatcher": [
+				"$gradle"
+			]
+		},
+		{
+			"label": "removeSlothRemote",
+			"type": "gradle",
+			"script": "removeSlothRemote",
+			"description": "Removes remote Sloth.",
 			"group": "build",
 			"project": "Software",
 			"buildFile": "${cwd}\\build.gradle",

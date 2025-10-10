@@ -5,13 +5,18 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.HeadingInterpolator;
+import com.pedropathing.paths.Path;
 
 public class MecanumDrive {
-	private Pose holdPose = new Pose();
-	private boolean holdingPose;
 	private Follower follower;
 	private double headingOffset;
+	private Pose holdPose = new Pose();
+	private boolean holdingPose;
+	private boolean autoDrive;
+	private Pose autoDriveTarget;
 
 	public MecanumDrive(HardwareMap hardwareMap) {
 		follower = Constants.createFollower(hardwareMap);
@@ -27,6 +32,8 @@ public class MecanumDrive {
 
 	public void move(float forward, float lateral, float rotation) {
 		follower.update();
+		if (autoDrive)
+			return;
 
 		double relativeHeading = follower.getPose().getHeading() + headingOffset;
 
@@ -53,15 +60,43 @@ public class MecanumDrive {
 		}
 	}
 
+	public void setAutoDrive(boolean enable) {
+		if (enable && !autoDrive && autoDriveTarget != null) {
+			follower.followPath(
+					follower.pathBuilder()
+							.addPath(new Path(new BezierLine(follower::getPose, autoDriveTarget)))
+							.setHeadingInterpolation(
+									HeadingInterpolator.linearFromPoint(follower::getHeading, autoDriveTarget.getHeading(), 1))
+							.build());
+		}
+		if (!enable && autoDrive) {
+			follower.breakFollowing();
+			initialize();
+		}
+		autoDrive = enable;
+	}
+
+	public void setAutoDriveTarget(Pose target) {
+		autoDriveTarget = target;
+	}
+
 	public Pose getPose() {
 		return follower.getPose();
 	}
 
 	public void resetPose() {
-		follower.setPose(new Pose());
+		follower.setPose(new Pose(0, 0, -headingOffset));
 	}
 
 	public Pose getHoldPose() {
 		return holdPose;
+	}
+
+	public boolean isAutoDrive() {
+		return autoDrive;
+	}
+
+	public Pose getAutoDriveTarget() {
+		return autoDriveTarget;
 	}
 }
