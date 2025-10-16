@@ -42,7 +42,15 @@ public class Red9Artifacts extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
+			// get motif patterns 
+			// while (patternColours = null) {
+			// 	patternColours = automationHandler.getArtifactPattern().getPattern();
+			// }
 			automationHandler.automationLoop();
+			if (doActions) {
+				automationHandler.updatePose(follower.getPose());
+				automationHandler.updateTurret();
+			}
 			if (doMovement) {
 				follower.update();
 				pathUpdate();
@@ -66,7 +74,7 @@ public class Red9Artifacts extends LinearOpMode {
 				.addPath(new BezierLine(new Pose(39.771, 35.461), new Pose(24.000, 35.800)))
 				.setTangentHeadingInterpolation()
 				.addParametricCallback(0, this::actionUpdate)
-				.addParametricCallback(100, this::actionUpdate)
+				.addParametricCallback(1, this::actionUpdate)
 				.build();
 
 		firstLaunch = follower.pathBuilder()
@@ -77,8 +85,8 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(60.000, 76.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
-				.addParametricCallback(100, this::actionUpdate)
-				.addParametricCallback(100, this::actionUpdate)
+				.addParametricCallback(1, this::actionUpdate)
+				.addParametricCallback(1, this::actionUpdate)
 				.build();
 
 		secondIntake = follower.pathBuilder()
@@ -88,8 +96,8 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(49.959, 58.776),
 								new Pose(24.000, 59.800)))
 				.setTangentHeadingInterpolation()
-				.addParametricCallback(40, this::actionUpdate)
-				.addParametricCallback(100, this::actionUpdate)
+				.addParametricCallback(0.4, this::actionUpdate)
+				.addParametricCallback(1, this::actionUpdate)
 				.build();
 
 		secondLaunch = follower.pathBuilder()
@@ -100,7 +108,7 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(60.000, 76.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
-				.addParametricCallback(100, this::actionUpdate)
+				.addParametricCallback(1, this::actionUpdate)
 				.build();
 	}
 
@@ -156,7 +164,7 @@ public class Red9Artifacts extends LinearOpMode {
 					setActionState(1);
 				case 1:
 					for (Artifact.Colour colour : patternColours) {
-						automationHandler.shootArtifact(colour);
+						automationHandler.prepareOrShootArtifact(colour);
 					}
 					follower.resumePathFollowing();
 					setActionState(2);
@@ -169,7 +177,7 @@ public class Red9Artifacts extends LinearOpMode {
 				case 4:
 					follower.pausePathFollowing();
 					for (Artifact.Colour colour : patternColours) {
-						automationHandler.shootArtifact(colour);
+						automationHandler.prepareOrShootArtifact(colour);
 					}
 					follower.resumePathFollowing();
 					setActionState(5);
@@ -181,10 +189,15 @@ public class Red9Artifacts extends LinearOpMode {
 					setActionState(7);
 				case 7:
 					for (Artifact.Colour colour : patternColours) {
-						automationHandler.shootArtifact(colour);
+						automationHandler.prepareOrShootArtifact(colour);
 					}
 					setActionState(-1);
 			}
 		}
+	}
+
+	public void readyToShoot() {
+		follower.pausePathFollowing();
+		setActionState(1);
 	}
 }
