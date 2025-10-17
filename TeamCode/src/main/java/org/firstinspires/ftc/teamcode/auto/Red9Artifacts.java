@@ -162,18 +162,23 @@ public class Red9Artifacts extends LinearOpMode {
 					follower.pausePathFollowing();
 					patternColours = automationHandler.getArtifactPattern().getPattern();
 					setActionState(1);
+					break;
 				case 1:
 					for (Artifact.Colour colour : patternColours) {
 						automationHandler.prepareOrShootArtifact(colour);
+						break;
 					}
 					follower.resumePathFollowing();
 					setActionState(2);
+					break;
 				case 2:
 					automationHandler.intakeToggle();
 					setActionState(3);
+					break;
 				case 3:
 					automationHandler.intakeToggle();
 					setActionState(4);
+					break;
 				case 4:
 					follower.pausePathFollowing();
 					for (Artifact.Colour colour : patternColours) {
@@ -181,17 +186,21 @@ public class Red9Artifacts extends LinearOpMode {
 					}
 					follower.resumePathFollowing();
 					setActionState(5);
+					break;
 				case 5:
 					automationHandler.intakeToggle();
 					setActionState(6);
+					break;
 				case 6:
 					automationHandler.intakeToggle();
 					setActionState(7);
+					break;
 				case 7:
 					for (Artifact.Colour colour : patternColours) {
 						automationHandler.prepareOrShootArtifact(colour);
 					}
 					setActionState(-1);
+					break;
 			}
 		}
 	}
