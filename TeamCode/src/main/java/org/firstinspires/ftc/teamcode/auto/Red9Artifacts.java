@@ -23,7 +23,6 @@ public class Red9Artifacts extends LinearOpMode {
 	public static boolean doActions = true;
 
 	private int pathState = 0;
-	private int actionState = 0;
 
 	private Automations automationHandler;
 	private Follower follower;
@@ -42,7 +41,6 @@ public class Red9Artifacts extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
-			// get motif patterns
 			while (patternColours == null) {
 				patternColours = automationHandler.getArtifactPattern().getPattern();
 			}
@@ -113,10 +111,6 @@ public class Red9Artifacts extends LinearOpMode {
 
 	public void setPathState(int state) {
 		pathState = state;
-	}
-
-	public void setActionState(int state) {
-		actionState = state;
 	}
 
 	public void pathUpdate() {
