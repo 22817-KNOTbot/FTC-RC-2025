@@ -42,10 +42,10 @@ public class Red9Artifacts extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
-			// get motif patterns 
-			// while (patternColours = null) {
-			// 	patternColours = automationHandler.getArtifactPattern().getPattern();
-			// }
+			// get motif patterns
+			while (patternColours == null) {
+				patternColours = automationHandler.getArtifactPattern().getPattern();
+			}
 			automationHandler.automationLoop();
 			if (doActions) {
 				automationHandler.updatePose(follower.getPose());
@@ -66,15 +66,15 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(50.939, 27.820),
 								new Pose(39.771, 35.461)))
 				.setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(180))
-				.addParametricCallback(0, this::actionUpdate)
-				.addParametricCallback(0, this::actionUpdate)
+				.addParametricCallback(0, this::readyToShoot)
+				.addParametricCallback(0, this::shootArtifacts)
 				.build();
 
 		firstIntake = follower.pathBuilder()
 				.addPath(new BezierLine(new Pose(39.771, 35.461), new Pose(24.000, 35.800)))
 				.setTangentHeadingInterpolation()
-				.addParametricCallback(0, this::actionUpdate)
-				.addParametricCallback(1, this::actionUpdate)
+				.addParametricCallback(0, this::intakeToggle)
+				.addParametricCallback(1, this::intakeToggle)
 				.build();
 
 		firstLaunch = follower.pathBuilder()
@@ -85,8 +85,7 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(60.000, 76.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
-				.addParametricCallback(1, this::actionUpdate)
-				.addParametricCallback(1, this::actionUpdate)
+				.addParametricCallback(1, this::shootArtifacts)
 				.build();
 
 		secondIntake = follower.pathBuilder()
@@ -96,8 +95,8 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(49.959, 58.776),
 								new Pose(24.000, 59.800)))
 				.setTangentHeadingInterpolation()
-				.addParametricCallback(0.4, this::actionUpdate)
-				.addParametricCallback(1, this::actionUpdate)
+				.addParametricCallback(0.4, this::intakeToggle)
+				.addParametricCallback(1, this::intakeToggle)
 				.build();
 
 		secondLaunch = follower.pathBuilder()
@@ -108,7 +107,7 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(60.000, 76.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
-				.addParametricCallback(1, this::actionUpdate)
+				.addParametricCallback(1, this::shootArtifacts)
 				.build();
 	}
 
@@ -155,49 +154,26 @@ public class Red9Artifacts extends LinearOpMode {
 		}
 	}
 
-	public void actionUpdate() {
+	public void readyToShoot() {
 		if (doActions) {
-			switch (actionState) {
-				case 0:
-					follower.pausePathFollowing();
-					patternColours = automationHandler.getArtifactPattern().getPattern();
-					setActionState(1);
-				case 1:
-					for (Artifact.Colour colour : patternColours) {
-						automationHandler.prepareOrShootArtifact(colour);
-					}
-					follower.resumePathFollowing();
-					setActionState(2);
-				case 2:
-					automationHandler.intakeToggle();
-					setActionState(3);
-				case 3:
-					automationHandler.intakeToggle();
-					setActionState(4);
-				case 4:
-					follower.pausePathFollowing();
-					for (Artifact.Colour colour : patternColours) {
-						automationHandler.prepareOrShootArtifact(colour);
-					}
-					follower.resumePathFollowing();
-					setActionState(5);
-				case 5:
-					automationHandler.intakeToggle();
-					setActionState(6);
-				case 6:
-					automationHandler.intakeToggle();
-					setActionState(7);
-				case 7:
-					for (Artifact.Colour colour : patternColours) {
-						automationHandler.prepareOrShootArtifact(colour);
-					}
-					setActionState(-1);
-			}
+			follower.pausePathFollowing();
+			patternColours = automationHandler.getArtifactPattern().getPattern();
 		}
 	}
 
-	public void readyToShoot() {
-		follower.pausePathFollowing();
-		setActionState(1);
+	public void shootArtifacts() {
+		if (doActions) {
+			follower.pausePathFollowing();
+			for (Artifact.Colour colour : patternColours) {
+				automationHandler.prepareOrShootArtifact(colour);
+			}
+			follower.resumePathFollowing();
+		}
+	}
+
+	public void intakeToggle() {
+		if (doActions) {
+			automationHandler.intakeToggle();
+		}
 	}
 }
