@@ -22,7 +22,9 @@ public class Blue9Artifacts extends LinearOpMode {
 	public static boolean doMovement = true;
 	public static boolean doActions = true;
 
+	private boolean shooting = false;
 	private int pathState = 0;
+	private int shotsFired = 0;
 
 	private Automations automationHandler;
 	private Follower follower;
@@ -48,6 +50,17 @@ public class Blue9Artifacts extends LinearOpMode {
 			if (doActions) {
 				automationHandler.updatePose(follower.getPose());
 				automationHandler.updateTurret();
+				if (shotsFired == 3) {
+					shotsFired = 0;
+					shooting = false;
+					follower.resumePathFollowing();
+				}
+				if (shooting) {
+					if (automationHandler.getStorageState() == Automations.StorageState.WAITING) {
+						automationHandler.prepareOrShootArtifact(patternColours[shotsFired]);
+						shotsFired += 1;
+					}
+				}
 			}
 			if (doMovement) {
 				follower.update();
@@ -65,7 +78,7 @@ public class Blue9Artifacts extends LinearOpMode {
 								new Pose(104.000, 35.800)))
 				.setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(0))
 				.addParametricCallback(0, this::readyToShoot)
-				.addParametricCallback(0, this::shootArtifacts)
+				.addParametricCallback(0, this::setShootingState)
 				.build();
 
 		firstIntake = follower.pathBuilder()
@@ -84,7 +97,7 @@ public class Blue9Artifacts extends LinearOpMode {
 								new Pose(84.000, 76.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
-				.addParametricCallback(1, this::shootArtifacts)
+				.addParametricCallback(1, this::setShootingState)
 				.build();
 
 		secondIntake = follower.pathBuilder()
@@ -94,7 +107,7 @@ public class Blue9Artifacts extends LinearOpMode {
 								new Pose(94.041, 58.776),
 								new Pose(120.000, 59.800)))
 				.setTangentHeadingInterpolation()
-				.addParametricCallback(0.4, this::intakeToggle)
+				.addPoseCallback(new Pose(99.000, 63.000), this::intakeToggle, 0.4)
 				.addParametricCallback(1, this::intakeToggle)
 				.build();
 
@@ -106,7 +119,7 @@ public class Blue9Artifacts extends LinearOpMode {
 								new Pose(84.000, 76.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
-				.addParametricCallback(1, this::shootArtifacts)
+				.addParametricCallback(1, this::setShootingState)
 				.build();
 	}
 
@@ -156,13 +169,10 @@ public class Blue9Artifacts extends LinearOpMode {
 		}
 	}
 
-	public void shootArtifacts() {
+	public void setShootingState() {
 		if (doActions) {
 			follower.pausePathFollowing();
-			for (Artifact.Colour colour : patternColours) {
-				automationHandler.prepareOrShootArtifact(colour);
-			}
-			follower.resumePathFollowing();
+			shooting = true;
 		}
 	}
 

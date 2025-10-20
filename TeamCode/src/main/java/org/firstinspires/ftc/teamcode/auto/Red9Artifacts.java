@@ -48,12 +48,13 @@ public class Red9Artifacts extends LinearOpMode {
 				automationHandler.updatePose(follower.getPose());
 				automationHandler.updateTurret();
 				if (shotsFired == 3) {
+					shotsFired = 0;
 					shooting = false;
 					follower.resumePathFollowing();
 				}
 				if (shooting) {
-					if (automationHandler.getStorageState == WAITING) {
-						automationHandler.prepareOrShootArtifact();
+					if (automationHandler.getStorageState() == Automations.StorageState.WAITING) {
+						automationHandler.prepareOrShootArtifact(patternColours[shotsFired]);
 						shotsFired += 1;
 					}
 				}
@@ -74,7 +75,7 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(39.771, 35.461)))
 				.setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(180))
 				.addParametricCallback(0, this::readyToShoot)
-				.addParametricCallback(0, this::shootArtifacts)
+				.addParametricCallback(0, this::setShootingState)
 				.build();
 
 		firstIntake = follower.pathBuilder()
@@ -102,7 +103,7 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(49.959, 58.776),
 								new Pose(24.000, 59.800)))
 				.setTangentHeadingInterpolation()
-				.addPoseCallback(new Pose(45.000, 63.000), this::intakeToggle)
+				.addPoseCallback(new Pose(45.000, 63.000), this::intakeToggle, 0.4)
 				.addParametricCallback(1, this::intakeToggle)
 				.build();
 
@@ -114,7 +115,7 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(60.000, 76.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
-				.addParametricCallback(1, this::shootArtifacts)
+				.addParametricCallback(1, this::setShootingState)
 				.build();
 	}
 
