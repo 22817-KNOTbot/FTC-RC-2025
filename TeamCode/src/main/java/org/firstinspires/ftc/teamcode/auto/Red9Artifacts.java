@@ -5,6 +5,8 @@ import com.bylazar.configurables.annotations.Configurable;
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.teleop.Automations;
+import org.firstinspires.ftc.teamcode.util.Alliance;
+import org.firstinspires.ftc.teamcode.util.RedAlliance;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -21,11 +23,13 @@ import com.pedropathing.paths.PathChain;
 public class Red9Artifacts extends LinearOpMode {
 	public static boolean doMovement = true;
 	public static boolean doActions = true;
+	public static boolean DEBUG = false;
 
 	private boolean shooting = false;
 	private int pathState = 0;
 	private int shotsFired = 0;
 
+	private Alliance alliance = new RedAlliance();
 	private Automations automationHandler;
 	private Follower follower;
 	private Pose startPose;
@@ -38,16 +42,17 @@ public class Red9Artifacts extends LinearOpMode {
 	public void runOpMode() {
 		follower = Constants.createFollower(hardwareMap);
 		follower.setStartingPose(startPose);
+		automationHandler = new Automations(hardwareMap, alliance, DEBUG);
 		buildPaths();
 
 		waitForStart();
 
 		while (opModeIsActive()) {
-			automationHandler.automationLoop();
 			if (doActions) {
+				automationHandler.automationLoop();
 				automationHandler.updatePose(follower.getPose());
 				automationHandler.updateTurret();
-				if (shotsFired == 3) {
+				if (shotsFired >= 3) {
 					shotsFired = 0;
 					shooting = false;
 					follower.resumePathFollowing();
@@ -75,7 +80,7 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(104.000, 35.800)))
 				.setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(0))
 				.addParametricCallback(0, this::readyToShoot)
-				.addParametricCallback(0, this::setShootingState)
+				.addParametricCallback(0, this::startShooting)
 				.build();
 
 		firstIntake = follower.pathBuilder()
@@ -94,7 +99,7 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(84.000, 76.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
-				.addParametricCallback(1, this::setShootingState)
+				.addParametricCallback(1, this::startShooting)
 				.build();
 
 		secondIntake = follower.pathBuilder()
@@ -116,7 +121,7 @@ public class Red9Artifacts extends LinearOpMode {
 								new Pose(84.000, 76.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
-				.addParametricCallback(1, this::setShootingState)
+				.addParametricCallback(1, this::startShooting)
 				.build();
 	}
 
@@ -166,7 +171,7 @@ public class Red9Artifacts extends LinearOpMode {
 		}
 	}
 
-	public void setShootingState() {
+	public void startShooting() {
 		if (doActions) {
 			follower.pausePathFollowing();
 			shooting = true;
