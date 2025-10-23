@@ -91,19 +91,23 @@ public class Storage {
 	}
 
 	public void storageTurnCW() {
+		storageMotor.setPower(1);
 		storageMotor.setTargetPosition(storageMotor.getTargetPosition() + positionInterval);
 		Colour intakeArtifact = getActiveArtifact();
 		artifactStored.set(0, getBackRightArtifact());
 		artifactStored.set(2, getBackLeftArtifact());
 		artifactStored.set(1, intakeArtifact);
+		storageMotor.setPower(0);
 	}
 
 	public void storageTurnCCW() {
+		storageMotor.setPower(1);
 		storageMotor.setTargetPosition(storageMotor.getTargetPosition() - positionInterval);
 		Colour intakeArtifact = getActiveArtifact();
 		artifactStored.set(0, getBackLeftArtifact());
 		artifactStored.set(1, getBackRightArtifact());
 		artifactStored.set(2, intakeArtifact);
+		storageMotor.setPower(0);
 	}
 
 	public boolean storageFull() {
