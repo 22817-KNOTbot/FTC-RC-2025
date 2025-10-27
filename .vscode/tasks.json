@@ -109,6 +109,9 @@
 			"workspaceFolder": "${cwd}",
 			"problemMatcher": [
 				"$gradle"
+			],
+			"dependsOn": [
+				"Connect to control hub"
 			]
 		}
 	]
