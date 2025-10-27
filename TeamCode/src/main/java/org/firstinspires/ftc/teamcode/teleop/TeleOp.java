@@ -180,5 +180,7 @@ public class TeleOp extends LinearOpMode {
 			}
 			telemetry.update();
 		}
+
+		automationHandler.end();
 	}
 }

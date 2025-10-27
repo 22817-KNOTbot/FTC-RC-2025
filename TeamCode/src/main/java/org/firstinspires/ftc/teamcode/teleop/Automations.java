@@ -106,6 +106,11 @@ public class Automations {
 		}
 	}
 
+	// Should only be called once as the opmode ends
+	public void end() {
+		vision.close();
+	}
+
 	// Should be called every loop
 	public void updateTurret() {
 		AlignmentDirection direction = vision.getAlignmentDirection();

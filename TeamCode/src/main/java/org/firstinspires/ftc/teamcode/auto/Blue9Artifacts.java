@@ -69,6 +69,8 @@ public class Blue9Artifacts extends LinearOpMode {
 				pathUpdate();
 			}
 		}
+
+		automationHandler.end();
 	}
 
 	public void buildPaths() {
