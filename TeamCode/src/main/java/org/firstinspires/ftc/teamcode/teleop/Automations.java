@@ -209,6 +209,10 @@ public class Automations {
 		return shooterEnabled;
 	}
 
+	public Artifact.Pattern getArtifactPattern() {
+		return pattern;
+	}
+
 	/*
 	 * Misc. util methods
 	 */
