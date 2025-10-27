@@ -16,7 +16,7 @@ public class Shooter {
 	public Shooter(HardwareMap hardwareMap) {
 		shooterMotorLeft = hardwareMap.get(DcMotor.class, "shooterMotorLeft");
 		shooterMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-		shooterMotorLeft.setReversed();
+		shooterMotorLeft.setDirection(DcMotor.Direction.REVERSE);
 		shooterMotorRight = hardwareMap.get(DcMotor.class, "shooterMotorRight");
 		shooterMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 	}
