@@ -90,7 +90,16 @@ public class Storage {
 		return false;
 	}
 
+	public void storageMotorEnable(boolean enabled){
+		if (enabled){
+			storageMotor.setPower(1);
+		} else {
+			storageMotor.setPower(0);
+		}
+	}
+
 	public void storageTurnCW() {
+		storageMotor.setPower(1);
 		storageMotor.setTargetPosition(storageMotor.getTargetPosition() + positionInterval);
 		Colour intakeArtifact = getActiveArtifact();
 		artifactStored.set(0, getBackRightArtifact());
@@ -99,6 +108,7 @@ public class Storage {
 	}
 
 	public void storageTurnCCW() {
+		storageMotor.setPower(1);
 		storageMotor.setTargetPosition(storageMotor.getTargetPosition() - positionInterval);
 		Colour intakeArtifact = getActiveArtifact();
 		artifactStored.set(0, getBackLeftArtifact());
