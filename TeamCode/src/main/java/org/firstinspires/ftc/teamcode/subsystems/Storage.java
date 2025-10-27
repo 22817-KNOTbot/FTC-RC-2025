@@ -90,7 +90,7 @@ public class Storage {
 		return false;
 	}
 
-	public void storageMotorEnable(bolean enabled){
+	public void storageMotorEnable(boolean enabled){
 		if (enabled){
 			storageMotor.setPower(1);
 		} else {
