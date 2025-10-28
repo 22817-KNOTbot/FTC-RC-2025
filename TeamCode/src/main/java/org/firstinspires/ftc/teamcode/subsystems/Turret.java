@@ -13,11 +13,11 @@ public class Turret {
 	public static double BASE_ROTATION = 0.5;
 	public static double BASE_PITCH = 0.5;
 
-	public static double min_rotation = 0.4;
-	public static double max_rotation = 0.6;
+	public static double min_rotation = 0.3;
+	public static double max_rotation = 0.7;
 	public static double min_pitch = 0.45;
 	public static double max_pitch = 0.55;
-	public static double rotation_increment = 0.01;
+	public static double rotation_increment = 0.0005;
 	public static double rotation_per_deg = (1d/1800)*3;
 	public static double pitch_incremenet = 0.01;
 
