@@ -17,9 +17,12 @@ public class Turret {
 	public static double max_rotation = 0.7;
 	public static double min_pitch = 0.45;
 	public static double max_pitch = 0.55;
-	public static double rotation_increment = 0.0005;
 	public static double rotation_per_deg = (1d/1800)*3;
 	public static double pitch_incremenet = 0.01;
+	
+	public static double Kp = 0.0005;
+	public static double Ki = 0;
+	public static double Kd = 0;
 
 	private Servo turretYawServo1;
 	private Servo turretYawServo2;
@@ -90,9 +93,8 @@ public class Turret {
 		setRotationInternal(rotationTarget);
 	}
 
-	public void rotateTurret(double vector) {
-		vector = Range.clip(vector, -1, 1);
-		setRotation(rotation + (vector * rotation_increment));
+	public void rotateTurret(double rotationAmount) {
+		setRotation(rotation + (rotationAmount));
 	}
 
 	public void setPitch(double pitch) {

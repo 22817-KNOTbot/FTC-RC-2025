@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.vision.Vision;
 import org.firstinspires.ftc.teamcode.subsystems.vision.AutoAlign.AlignmentDirection;
 import org.firstinspires.ftc.teamcode.util.Alliance;
+import org.firstinspires.ftc.teamcode.util.ControlTheory;
 
 import com.pedropathing.geometry.Pose;
 
@@ -41,6 +42,8 @@ public class Automations {
 	private boolean intakeEnabled;
 	private boolean shooterEnabled;
 
+	private ControlTheory.PID PIDController;
+
 	public enum StorageState {
 		WAITING,
 		TURNING,
@@ -61,6 +64,7 @@ public class Automations {
 		storage = new Storage(hardwareMap, false);
 		turret = new Turret(hardwareMap);
 		shooter = new Shooter(hardwareMap);
+		PIDController = new ControlTheory.PID(Turret.Kp, Turret.Ki, Turret.Kd, false);
 
 		Vision.DEBUG = DEBUG;
 		vision = new Vision(hardwareMap, null);
@@ -115,7 +119,7 @@ public class Automations {
 	public void updateTurret() {
 		AlignmentDirection direction = vision.getAlignmentDirection();
 		if (direction.directionKnown) {
-			turret.rotateTurret(direction.x);
+			turret.rotateTurret(PIDController.calculate(direction.x, 0));
 			turret.setPitch(Range.scale(direction.y, -1, 1, Turret.min_pitch, Turret.max_pitch));
 		} else {
 			Pose goalPose = alliance.getGoalPose();
