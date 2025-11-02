@@ -11,13 +11,13 @@ import com.bylazar.configurables.annotations.Configurable;
 @Configurable
 public class Turret {
 	public static double BASE_ROTATION = 0.5;
-	public static double BASE_PITCH = 0.5;
+	public static double BASE_PITCH = 0.05;
 
-	public static double min_rotation = 0.4;
-	public static double max_rotation = 0.6;
-	public static double min_pitch = 0.45;
-	public static double max_pitch = 0.55;
-	public static double rotation_increment = 0.01;
+	public static double min_rotation = 0.3;
+	public static double max_rotation = 0.7;
+	public static double min_pitch = 0.05;
+	public static double max_pitch = 0.6;
+	public static double rotation_increment = 0.0005;
 	public static double rotation_per_deg = (1d/1800)*3;
 	public static double pitch_incremenet = 0.01;
 
@@ -38,7 +38,7 @@ public class Turret {
 		turretYawServo1 = hardwareMap.get(Servo.class, "turretYawServo1");
 		turretYawServo2 = hardwareMap.get(Servo.class, "turretYawServo2");
 		turretYawServo1.setDirection(Servo.Direction.FORWARD);
-		turretYawServo2.setDirection(Servo.Direction.REVERSE);
+		turretYawServo2.setDirection(Servo.Direction.FORWARD);
 		turretPitchServo = hardwareMap.get(Servo.class, "turretPitchServo");
 		turretPitchServo.setDirection(Servo.Direction.FORWARD);
 	}
