@@ -19,7 +19,7 @@ public class Turret {
 	public static double max_pitch = 0.6;
 	public static double rotation_increment = 0.0005;
 	public static double rotation_per_deg = (1d/1800)*3;
-	public static double pitch_incremenet = 0.01;
+	public static double pitch_increment = 0.01;
 
 	private Servo turretYawServo1;
 	private Servo turretYawServo2;
@@ -102,7 +102,7 @@ public class Turret {
 	
 	public void pitchTurret(double vector) {
 		vector = Range.clip(vector, -1, 1);
-		setPitch(pitch + (vector * pitch_incremenet));
+		setPitch(pitch + (vector * pitch_increment));
 	}
 
 	/*
