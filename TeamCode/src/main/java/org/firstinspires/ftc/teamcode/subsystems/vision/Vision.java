@@ -33,8 +33,6 @@ public class Vision {
 
 	private CameraStream cameraStreamProcessor;
 
-	private WebcamName webcam;
-
 	public Vision(HardwareMap hardwareMap) {
 		this(hardwareMap, null);
 	}
