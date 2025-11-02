@@ -13,6 +13,8 @@ import com.bylazar.configurables.annotations.Configurable;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
 
+import com.pedropathing.geometry.Pose;
+
 import java.util.List;
 
 @Configurable
@@ -22,15 +24,22 @@ public class Vision {
 
 	private VisionPortal visionPortal;
 	private AprilTagProcessor aprilTagProcessor;
+	private AprilTagDetection detection;
 
 	private AutoAlign autoAlignProcessor;
 	private MotifDecode motifDecodeProcessor;
 
 	private WebcamName webcam;
 
+	private double myX = detection.robotPose.getPosition().x;
+	private double myY = detection.robotPose.getPosition().y;
+	private double myZ = detection.robotPose.getPosition().z;
+	private double myYaw = detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES);
+
 	public Vision(HardwareMap hardwareMap) {
 		this(hardwareMap, null);
 	}
+
 
 	public Vision(HardwareMap hardwareMap, Integer targetAprilTagId) {
 		WebcamName webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
@@ -51,6 +60,8 @@ public class Vision {
 				.setStreamFormat(VisionPortal.StreamFormat.MJPEG)
 				.addProcessor(aprilTagProcessor)
 				.build();
+		
+		pose = new Pose(myX, myY, myYaw);
 	}
 
 	public AutoAlign.AlignmentDirection getAlignmentDirection() {
@@ -67,6 +78,13 @@ public class Vision {
 
 	public void setTargetAprilTagId(Integer aprilTagId) {
 		autoAlignProcessor.setAprilTagId(aprilTagId);
+	}
+
+	public double localize() {
+		myX = detection.robotPose.getPosition().x;
+		myY = detection.robotPose.getPosition().y;
+		myYaw = detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES);
+		return new Pose(myX, myY, myYaw);
 	}
 
 	public void setAprilTagProcessorEnabled(boolean enabled) {
