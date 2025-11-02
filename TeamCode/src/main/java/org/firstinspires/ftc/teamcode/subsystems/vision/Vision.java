@@ -15,7 +15,10 @@ import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
 
 import java.util.List;
 
+import com.acmerobotics.dashboard.config.Config;
+
 @Configurable
+@Config
 public class Vision {
 	public static boolean DEBUG = false;
 	public static int decimation = 3;

@@ -8,9 +8,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import com.acmerobotics.dashboard.config.Config;
+
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 
 @Configurable
+@Config
 // @TeleOp(name="Shooter testing", group="Debug")
 public class ShooterTesting extends LinearOpMode {
 	public static boolean enabled = false;

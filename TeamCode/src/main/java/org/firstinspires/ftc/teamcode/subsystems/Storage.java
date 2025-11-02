@@ -15,7 +15,10 @@ import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.acmerobotics.dashboard.config.Config;
+
 @Configurable
+@Config
 public class Storage {
 	public static double distance_threshold_mm = 5;
 	public static int positionInterval = 5; // arbitary number, will change with further testing

@@ -8,9 +8,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import com.acmerobotics.dashboard.config.Config;
+
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 
 @Configurable
+@Config
 // @TeleOp(name="Turret testing", group="Debug")
 public class TurretTesting extends LinearOpMode {
 	public static Mode mode = Mode.ABSOLUTE;

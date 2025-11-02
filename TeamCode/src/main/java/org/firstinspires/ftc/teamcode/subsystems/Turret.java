@@ -8,7 +8,10 @@ import com.qualcomm.robotcore.util.Range;
 
 import com.bylazar.configurables.annotations.Configurable;
 
+import com.acmerobotics.dashboard.config.Config;
+
 @Configurable
+@Config
 public class Turret {
 	public static double BASE_ROTATION = 0.5;
 	public static double BASE_PITCH = 0.05;

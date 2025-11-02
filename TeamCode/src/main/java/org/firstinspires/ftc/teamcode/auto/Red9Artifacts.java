@@ -17,8 +17,10 @@ import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.paths.PathChain;
 
+import com.acmerobotics.dashboard.config.Config;
 
 @Configurable
+@Config
 @Autonomous(name = "Red 9 Artifacts", group = "Autonomous")
 public class Red9Artifacts extends LinearOpMode {
 	public static boolean doMovement = true;
