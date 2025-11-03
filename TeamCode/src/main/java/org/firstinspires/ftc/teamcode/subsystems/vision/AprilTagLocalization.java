@@ -35,6 +35,7 @@ public class AprilTagLocalization {
 
 	private AutoAlign autoAlignProcessor;
 	private MotifDecode motifDecodeProcessor;
+	private Integer aprilTagId;
 
 	private WebcamName webcam;
 
