@@ -9,6 +9,9 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
+import com.pedropathing.geometry.PedroCoordinates;
+import com.pedropathing.ftc.FTCCoordinates;
+
 import com.bylazar.configurables.annotations.Configurable;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
@@ -50,8 +53,8 @@ public class AprilTagLocalization {
 	public Pose getPose() {
 		pose = new Pose(detection.robotPose.getPosition().x,
 			detection.robotPose.getPosition().y,
-			detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES)
-		);
+			detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES), FTCCoordinates.INSTANCE)
+			.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
 		// change pose to center of turret
 		// change pose to center of robot
 		return pose;
