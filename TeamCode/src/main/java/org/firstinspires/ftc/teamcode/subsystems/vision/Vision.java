@@ -68,7 +68,7 @@ public class Vision {
 			visionPortal = visionPortalBuilder.build();
 		}
 
-		PanelsCameraStream.INSTANCE.startStream(cameraStreamProcessor, null);
+		// PanelsCameraStream.INSTANCE.startStream(cameraStreamProcessor, null);
 		FtcDashboard.getInstance().startCameraStream(cameraStreamProcessor, 0);
 	}
 
