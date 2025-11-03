@@ -19,10 +19,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import java.util.List;
 
+import java.lang.Math;
+
 @Configurable
 public class AprilTagLocalization {
 	public static boolean DEBUG = false;
 	public static int decimation = 3;
+	public static Pose turretPos; // determined after measuring?
+	public static Pose robotCentre; // determined after measuring?
 
 	private VisionPortal visionPortal;
 	private AprilTagProcessor aprilTagProcessor;
@@ -34,10 +38,10 @@ public class AprilTagLocalization {
 
 	private WebcamName webcam;
 
-	private double myX = detection.robotPose.getPosition().x;
-	private double myY = detection.robotPose.getPosition().y;
-	private double myZ = detection.robotPose.getPosition().z;
-	private double myYaw = detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES);
+	private double myX = detection.ftcPose.x;
+	private double myY = detection.ftcPose.y;
+	private double myZ = detection.ftcPose.z;
+	private double myYaw = detection.ftcPose.yaw;
 
 	public AprilTagLocalization(HardwareMap hardwareMap) {
 		this(hardwareMap, null);
@@ -82,11 +86,14 @@ public class AprilTagLocalization {
 		autoAlignProcessor.setAprilTagId(aprilTagId);
 	}
 
-	public Pose localize() {
-		myX = detection.robotPose.getPosition().x;
-		myY = detection.robotPose.getPosition().y;
-		myYaw = detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES);
-		return new Pose(myX, myY, myYaw);
+	public Pose getPose() {
+		myX = detection.ftcPose.x;
+		myY = detection.ftcPose.y;
+		myYaw = detection.ftcPose.yaw;
+		pose = new Pose(myX, myY, myYaw);
+		// change pose to center of turret
+		// change pose to center of robot
+		return pose;
 	}
 
 	public void setAprilTagProcessorEnabled(boolean enabled) {
