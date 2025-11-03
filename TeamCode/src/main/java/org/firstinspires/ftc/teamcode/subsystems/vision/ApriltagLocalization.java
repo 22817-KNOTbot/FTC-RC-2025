@@ -15,27 +15,35 @@ import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
 
 import com.pedropathing.geometry.Pose;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 import java.util.List;
 
 @Configurable
-public class Vision {
+public class AprilTagLocalization {
 	public static boolean DEBUG = false;
 	public static int decimation = 3;
 
 	private VisionPortal visionPortal;
 	private AprilTagProcessor aprilTagProcessor;
 	private AprilTagDetection detection;
+	private Pose pose;
 
 	private AutoAlign autoAlignProcessor;
 	private MotifDecode motifDecodeProcessor;
 
 	private WebcamName webcam;
 
-	public Vision(HardwareMap hardwareMap) {
+	private double myX = detection.robotPose.getPosition().x;
+	private double myY = detection.robotPose.getPosition().y;
+	private double myZ = detection.robotPose.getPosition().z;
+	private double myYaw = detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES);
+
+	public AprilTagLocalization(HardwareMap hardwareMap) {
 		this(hardwareMap, null);
 	}
 
-	public Vision(HardwareMap hardwareMap, Integer targetAprilTagId) {
+	public AprilTagLocalization(HardwareMap hardwareMap, Integer targetAprilTagId) {
 		WebcamName webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
 
 		aprilTagProcessor = new AprilTagProcessor.Builder()
@@ -54,7 +62,9 @@ public class Vision {
 				.setStreamFormat(VisionPortal.StreamFormat.MJPEG)
 				.addProcessor(aprilTagProcessor)
 				.build();
-		}
+		
+		pose = new Pose(myX, myY, myYaw);
+	}
 
 	public AutoAlign.AlignmentDirection getAlignmentDirection() {
 		return autoAlignProcessor.getAlignmentDirection();
@@ -70,6 +80,13 @@ public class Vision {
 
 	public void setTargetAprilTagId(Integer aprilTagId) {
 		autoAlignProcessor.setAprilTagId(aprilTagId);
+	}
+
+	public Pose localize() {
+		myX = detection.robotPose.getPosition().x;
+		myY = detection.robotPose.getPosition().y;
+		myYaw = detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES);
+		return new Pose(myX, myY, myYaw);
 	}
 
 	public void setAprilTagProcessorEnabled(boolean enabled) {
