@@ -32,6 +32,7 @@ public final class TestingOpModeManager {
 			return;
 
 		List<Class<? extends OpMode>> opModes = Arrays.asList(
+			AprilTagPoseTesting.class,
 			AutoAlignTesting.class,
 			ColourTesting.class,
 			HubLedTesting.class,
@@ -49,10 +50,12 @@ public final class TestingOpModeManager {
 			manager.register(metaForClass(opMode), opMode);
 		}
 
-		FtcDashboard.getInstance().withConfigRoot(configRoot -> {
-			for (Class<?> c : opModes) {
-				configRoot.putVariable(c.getSimpleName(), ReflectionConfig.createVariableFromClass(c));
-			}
-		});
+		if (FtcDashboard.getInstance() != null) {
+			FtcDashboard.getInstance().withConfigRoot(configRoot -> {
+				for (Class<?> c : opModes) {
+					configRoot.putVariable(c.getSimpleName(), ReflectionConfig.createVariableFromClass(c));
+				}
+			});
+		}
 	}
 }

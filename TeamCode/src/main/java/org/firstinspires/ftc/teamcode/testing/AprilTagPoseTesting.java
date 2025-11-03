@@ -72,7 +72,7 @@ public class AprilTagPoseTesting extends LinearOpMode {
 				.addProcessor(cameraStreamProcessor)
 				.build();
 
-		PanelsCameraStream.INSTANCE.startStream(cameraStreamProcessor, null);
+		// PanelsCameraStream.INSTANCE.startStream(cameraStreamProcessor, null);
 		FtcDashboard.getInstance().startCameraStream(cameraStreamProcessor, 0);
 
 		waitForStart();
@@ -92,7 +92,7 @@ public class AprilTagPoseTesting extends LinearOpMode {
 			 * Telemetry
 			 */
 			if (targetedAprilTag != null) {
-				if (targetedAprilTag.metadata != null) {
+				if (targetedAprilTag.metadata != null && targetedAprilTag.robotPose != null) {
 					telemetryManager.addLine(String.format("\n==== (ID %d) %s", targetedAprilTag.id, targetedAprilTag.metadata.name));
 					telemetryManager.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)",
 							targetedAprilTag.robotPose.getPosition().x,
@@ -115,17 +115,18 @@ public class AprilTagPoseTesting extends LinearOpMode {
 			/*
 			 * Dashboards drawing
 			 */
-			drawDashboardRobot(telemetryManager.getDashboardCanvas(), targetedAprilTag.robotPose);
+			if (targetedAprilTag != null && targetedAprilTag.robotPose != null) {
+				drawDashboardRobot(telemetryManager.getDashboardCanvas(), targetedAprilTag.robotPose);
+				FieldManager fieldManager = PanelsField.INSTANCE.getField();
+				drawPanelsRobot(fieldManager, targetedAprilTag.robotPose);
+				fieldManager.update();
+			}
 
-			FieldManager fieldManager = PanelsField.INSTANCE.getField();
-			drawPanelsRobot(fieldManager, targetedAprilTag.robotPose);
-
-			fieldManager.update();
 			telemetryManager.update();
 		}
 
 		visionPortal.close();
-		PanelsCameraStream.INSTANCE.stopStream();
+		// PanelsCameraStream.INSTANCE.stopStream();
 	}
 
 	private void drawDashboardRobot(Canvas canvas, Pose3D pose) {
