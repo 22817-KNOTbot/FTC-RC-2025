@@ -51,9 +51,9 @@ public class TeleOp extends LinearOpMode {
 
 		Alliance alliance;
 		if (gamepad1.left_trigger > 0.9) {
-			alliance = new RedAlliance();
-		} else if (gamepad1.right_trigger > 0.9) {
 			alliance = new BlueAlliance();
+		} else if (gamepad1.right_trigger > 0.9) {
+			alliance = new RedAlliance();
 		} else {
 			alliance = (Alliance) blackboard.getOrDefault("alliance", new RedAlliance());
 		}

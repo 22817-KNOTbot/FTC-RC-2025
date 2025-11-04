@@ -33,9 +33,11 @@ public final class TestingOpModeManager {
 
 		List<Class<? extends OpMode>> opModes = Arrays.asList(
 			AutoAlignTesting.class,
+			BasicDriveTesting.class,
 			ColourTesting.class,
 			HubLedTesting.class,
 			IntakeTesting.class,
+			MecanumDriveTesting.class,
 			MotifDecodeTesting.class,
 			MotorTesting.class,
 			MotorTwoTesting.class,
