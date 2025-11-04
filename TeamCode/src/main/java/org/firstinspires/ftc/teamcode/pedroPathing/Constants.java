@@ -32,15 +32,15 @@ public class Constants {
 			.forwardTicksToInches(0.0029750308)
 			.strafeTicksToInches(0.0029520205)
 			.turnTicksToInches(0.0029062348)
-			.leftPodY(8)
-			.rightPodY(-7.625)
-			.strafePodX(-6.5)
-			.leftEncoder_HardwareMapName("leftFront")
-			.rightEncoder_HardwareMapName("rightFront")
-			.strafeEncoder_HardwareMapName("leftBack")
+			.leftPodY(7.286)
+			.rightPodY(-7.144)
+			.strafePodX(-7.4355)
+			.leftEncoder_HardwareMapName("frontLeftMotor")
+			.rightEncoder_HardwareMapName("frontRightMotor")
+			.strafeEncoder_HardwareMapName("backLeftMotor")
 			.leftEncoderDirection(Encoder.FORWARD)
 			.rightEncoderDirection(Encoder.FORWARD)
-			.strafeEncoderDirection(Encoder.REVERSE);
+			.strafeEncoderDirection(Encoder.FORWARD);
 
 	public static Follower createFollower(HardwareMap hardwareMap) {
 		return new FollowerBuilder(followerConstants, hardwareMap)
