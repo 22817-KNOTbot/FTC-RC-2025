@@ -113,7 +113,7 @@ public class Automations {
 
 	// Should be called every loop
 	public void updateTurret() {
-		AlignmentDirection direction = vision.getAlignmentDirection();
+		AlignmentDirection direction = vision.getAlignmentDirection(); // TODO replace with odomatry hardcoded values
 		if (direction.directionKnown) {
 			turret.rotateTurret(direction.x);
 			turret.setPitch(Range.scale(direction.y, -1, 1, Turret.min_pitch, Turret.max_pitch));
