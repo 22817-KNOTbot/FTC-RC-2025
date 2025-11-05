@@ -54,7 +54,6 @@ public class Vision {
 	}
 
 	public AutoAlign.AlignmentDirection getAlignmentDirection() {
-		return new AlignmentDirection(false, null, null);
 		return autoAlignProcessor.getAlignmentDirection();
 	}
 

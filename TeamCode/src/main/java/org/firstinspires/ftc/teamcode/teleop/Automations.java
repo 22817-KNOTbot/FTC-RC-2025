@@ -113,26 +113,21 @@ public class Automations {
 
 	// Should be called every loop
 	public void updateTurret() {
-		AlignmentDirection direction = vision.getAlignmentDirection(); // TODO replace with odomatry hardcoded values
-		if (direction.directionKnown) {
-			turret.rotateTurret(direction.x);
-			turret.setPitch(Range.scale(direction.y, -1, 1, Turret.min_pitch, Turret.max_pitch));
-		} else {
-			Pose goalPose = alliance.getGoalPose();
-			Pose poseDifference = goalPose.minus(pose);
+		Pose goalPose = alliance.getGoalPose();
+		Pose poseDifference = goalPose.minus(pose);
 
-			// Converting to normal coordinate system where
-			// 0 = up, increases clockwise; In radians
-			double robotAngle = (0.5 * Math.PI) - pose.getHeading();
-			robotAngle = robotAngle % (2 * Math.PI);
-			double targetAngle = Math.atan2(poseDifference.getX(), poseDifference.getY());
+		// Converting to normal coordinate system where
+		// 0 = up, increases clockwise; In radians
+		double robotAngle = (0.5 * Math.PI) - pose.getHeading();
+		robotAngle = robotAngle % (2 * Math.PI);
+		double targetAngle = Math.atan2(poseDifference.getX(), poseDifference.getY());
 
-			double angleDifference = targetAngle - robotAngle;
-			double normalizedAngle = angleDifference - (Math.ceil((angleDifference + Math.PI) / (2 * Math.PI)) - 1)
-					* 2 * Math.PI;
+		double angleDifference = targetAngle - robotAngle;
+		double normalizedAngle = angleDifference - (Math.ceil((angleDifference + Math.PI) / (2 * Math.PI)) - 1)
+				* 2 * Math.PI;
 
-			turret.setRotation(Math.toDegrees(normalizedAngle) * Turret.rotation_per_deg);
-		}
+		turret.setRotation(Math.toDegrees(normalizedAngle) * Turret.rotation_per_deg);
+		
 	}
 
 	// Should be called every loop. Pose is used to estimate
