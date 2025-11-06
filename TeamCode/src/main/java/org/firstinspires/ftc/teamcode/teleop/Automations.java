@@ -98,9 +98,9 @@ public class Automations {
 		pattern = vision.getLastMotifPattern();
 		if (storageState == StorageState.WAITING) {
 			storage.intake();
-		} else if (storageState == StorageState.TURNING && timer.time() > 0.5) {
+		} else if (storageState == StorageState.TURNING && shooter.getVelocityLeft() > shooter.desiredVelocity && shooter.getVelocityRight() > shooter.desiredVelocity) {
 			shootActiveArtifact();
-		} else if (storageState == StorageState.RELEASING && timer.time() > 0.5) {
+		} else if (storageState == StorageState.RELEASING) {
 			storage.finishRelease();
 			storageState = StorageState.WAITING;
 		}
@@ -174,6 +174,7 @@ public class Automations {
 	public void shootActiveArtifact() {
 		storage.release();
 		shooter.enable(true);
+
 		storageState = StorageState.RELEASING;
 	}
 
