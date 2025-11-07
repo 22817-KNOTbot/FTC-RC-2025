@@ -18,7 +18,10 @@ import org.firstinspires.ftc.teamcode.subsystems.vision.Vision;
 import org.firstinspires.ftc.teamcode.subsystems.vision.AutoAlign.AlignmentDirection;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 
+import com.pedropathing.math.Vector;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.follower.Follower;
+
 
 public class Automations {
 	private HardwareMap hardwareMap;
@@ -37,6 +40,8 @@ public class Automations {
 	private Gamepad gamepad2;
 
 	private Pose pose;
+	private Vector velocity;
+
 	private Artifact.Pattern pattern;
 	private boolean intakeEnabled;
 	private boolean shooterEnabled;
@@ -98,7 +103,12 @@ public class Automations {
 		pattern = vision.getLastMotifPattern();
 		if (storageState == StorageState.WAITING) {
 			storage.intake();
-		} else if (storageState == StorageState.TURNING && shooter.getVelocityLeft() > shooter.desiredVelocity && shooter.getVelocityRight() > shooter.desiredVelocity) {
+		} else if (
+			storageState == StorageState.TURNING &&
+			shooter.getVelocityLeft() > shooter.desiredVelocity && 
+			shooter.getVelocityRight() > shooter.desiredVelocity /*&& 
+			follower.getPose().plus(follower.getVelocity())*/){
+				
 			shootActiveArtifact();
 		} else if (storageState == StorageState.RELEASING) {
 			storage.finishRelease();
@@ -134,6 +144,9 @@ public class Automations {
 	// turret direction
 	public void updatePose(Pose pose) {
 		this.pose = pose;
+	}
+	public void updateVelocity(Vector velocity) {
+		this.velocity = velocity;
 	}
 
 	public void intakeToggle() {
