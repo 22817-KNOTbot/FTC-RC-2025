@@ -101,13 +101,15 @@ public class Automations {
 	public void automationLoop() {
 		vision.updateMotifPattern();
 		pattern = vision.getLastMotifPattern();
+		Pose futurePose = pose.plus(new Pose(velocity.getXComponent(), velocity.getYComponent()));
 		if (storageState == StorageState.WAITING) {
 			storage.intake();
 		} else if (
 			storageState == StorageState.TURNING &&
 			shooter.getVelocityLeft() > shooter.desiredVelocity && 
-			shooter.getVelocityRight() > shooter.desiredVelocity /*&& 
-			follower.getPose().plus(follower.getVelocity())*/){
+			shooter.getVelocityRight() > shooter.desiredVelocity &&
+			((futurePose.getX() > 72 && futurePose.getX() ==  futurePose.getY()) || 
+			(futurePose.getX() < 72 && Math.abs(futurePose.getX() - 72) ==  Math.abs(futurePose.getY() - 72)))){
 				
 			shootActiveArtifact();
 		} else if (storageState == StorageState.RELEASING) {
