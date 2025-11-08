@@ -11,8 +11,11 @@ import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.configurables.annotations.Configurable;
 
+import com.acmerobotics.dashboard.config.Config;
+
 // @Disabled
 @Configurable
+@Config
 // @TeleOp(name="Color testing", group="Debug")
 public class ColourTesting extends LinearOpMode {
     public static double COLOUR_THRESHOLD_1 = 1;

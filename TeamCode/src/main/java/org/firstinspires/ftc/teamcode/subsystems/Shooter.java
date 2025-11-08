@@ -5,7 +5,10 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import com.acmerobotics.dashboard.config.Config;
+
 @Configurable
+@Config
 public class Shooter {
 	//power = power of shooterMotor
 	public static float power = 1;

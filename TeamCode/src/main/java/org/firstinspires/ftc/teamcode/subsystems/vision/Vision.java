@@ -9,13 +9,18 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
+import com.bylazar.camerastream.PanelsCameraStream;
 import com.bylazar.configurables.annotations.Configurable;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
 
 import java.util.List;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+
 @Configurable
+@Config
 public class Vision {
 	public static boolean DEBUG = false;
 	public static int decimation = 3;
@@ -25,6 +30,8 @@ public class Vision {
 
 	private AutoAlign autoAlignProcessor;
 	private MotifDecode motifDecodeProcessor;
+
+	private CameraStream cameraStreamProcessor;
 
 	private WebcamName webcam;
 
@@ -45,12 +52,24 @@ public class Vision {
 		autoAlignProcessor = new AutoAlign(aprilTagProcessor, targetAprilTagId, DEBUG);
 		motifDecodeProcessor = new MotifDecode(aprilTagProcessor, DEBUG);
 
-		visionPortal = new VisionPortal.Builder()
+		cameraStreamProcessor = new CameraStream();
+
+		VisionPortal.Builder visionPortalBuilder = new VisionPortal.Builder()
 				.setCamera(webcam)
 				.enableLiveView(DEBUG)
 				.setStreamFormat(VisionPortal.StreamFormat.MJPEG)
-				.addProcessor(aprilTagProcessor)
-				.build();
+				.addProcessor(aprilTagProcessor);
+		
+		if (DEBUG) {
+			visionPortal = visionPortalBuilder
+					.addProcessor(cameraStreamProcessor)
+					.build();
+		} else {
+			visionPortal = visionPortalBuilder.build();
+		}
+
+		// PanelsCameraStream.INSTANCE.startStream(cameraStreamProcessor, null);
+		FtcDashboard.getInstance().startCameraStream(cameraStreamProcessor, 0);
 	}
 
 	public AutoAlign.AlignmentDirection getAlignmentDirection() {
@@ -79,6 +98,7 @@ public class Vision {
 
 	public void close() {
 		visionPortal.close();
+		PanelsCameraStream.INSTANCE.stopStream();
 	}
 
 	public void showTelemetry(Telemetry telemetry) {

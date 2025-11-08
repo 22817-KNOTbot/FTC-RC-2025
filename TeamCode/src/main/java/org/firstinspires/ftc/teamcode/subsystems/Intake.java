@@ -5,7 +5,10 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import com.acmerobotics.dashboard.config.Config;
+
 @Configurable
+@Config
 public class Intake {
 	public static float power = 1;
 

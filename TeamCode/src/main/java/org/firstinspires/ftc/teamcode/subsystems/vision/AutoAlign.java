@@ -10,7 +10,10 @@ import com.bylazar.configurables.annotations.Configurable;
 
 import java.util.List;
 
+import com.acmerobotics.dashboard.config.Config;
+
 @Configurable
+@Config
 public class AutoAlign {
 	public static int targetX = 320;
 	public static int targetY = 240;

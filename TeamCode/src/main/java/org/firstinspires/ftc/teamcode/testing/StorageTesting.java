@@ -4,14 +4,16 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 
+import com.acmerobotics.dashboard.config.Config;
+
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
-
 import org.firstinspires.ftc.teamcode.subsystems.Storage;
 
 @Configurable
+@Config
 // @TeleOp(name="Storage testing", group="Debug")
 public class StorageTesting extends LinearOpMode {
 	public static Command command = Command.NONE;

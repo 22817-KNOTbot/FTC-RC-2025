@@ -10,7 +10,10 @@ import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.configurables.annotations.Configurable;
 
+import com.acmerobotics.dashboard.config.Config;
+
 @Configurable
+@Config
 public class MotifDecodeTesting extends LinearOpMode {
 	@Override
 	public void runOpMode() {

@@ -8,9 +8,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import com.acmerobotics.dashboard.config.Config;
+
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 
 @Configurable
+@Config
 // @TeleOp(name="Intake testing", group="Debug")
 public class IntakeTesting extends LinearOpMode {
 	public static boolean enabled = false;
