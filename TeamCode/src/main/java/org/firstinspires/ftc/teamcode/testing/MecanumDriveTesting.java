@@ -32,7 +32,7 @@ public class MecanumDriveTesting extends LinearOpMode {
 		gamepad2.copy(gamepadManager.getGamepad2());
 
 		MecanumDrive mecanumDrive = new MecanumDrive(hardwareMap);
-
+		mecanumDrive.setHeadingOffset(Math.toRadians(0));
 		waitForStart();
 
 		mecanumDrive.initialize();
@@ -51,9 +51,13 @@ public class MecanumDriveTesting extends LinearOpMode {
 
 			telemetryManager.addData("Position X", pose.getX());
 			telemetryManager.addData("Position Y", pose.getY());
-
+			telemetryManager.addData("Heading", Math.toDegrees(pose.getHeading()));
+			
 			telemetryManager.addData("Hold Position X", holdPose.getX());
 			telemetryManager.addData("Hold Position Y", holdPose.getY());
+			telemetryManager.addData("Hold Heading", Math.toDegrees(holdPose.getHeading()));
+
+			telemetryManager.update();
 		}
 	}
 }
