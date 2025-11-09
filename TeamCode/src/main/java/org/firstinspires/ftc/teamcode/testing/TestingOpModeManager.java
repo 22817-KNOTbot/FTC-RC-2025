@@ -37,6 +37,7 @@ public final class TestingOpModeManager {
 			ColourTesting.class,
 			HubLedTesting.class,
 			IntakeTesting.class,
+			ManualIndividualControl.class,
 			MecanumDriveTesting.class,
 			MotifDecodeTesting.class,
 			MotorPositionTesting.class,
