@@ -18,21 +18,25 @@ import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 @Config
 // @TeleOp(name="Manual Individual Control", group="Debug")
 public class ManualIndividualControl extends LinearOpMode {
-	public static String MOTOR_NAME_SPINDEXER = "testMotor";
-	public static String MOTOR_NAME_INTAKE = "testMotor2";
-	public static String MOTOR_NAME_SHOOTER_1 = "testMotor3";
-	public static String MOTOR_NAME_SHOOTER_2 = "testMotor4";
+	public static String MOTOR_NAME_SPINDEXER = "storageMotor";
+	public static String MOTOR_NAME_INTAKE = "intakeMotor";
+	public static String MOTOR_NAME_SHOOTER_1 = "shooterMotorLeft";
+	public static String MOTOR_NAME_SHOOTER_2 = "shooterMotorRight";
 	public static double POWER_SPINDEXER = 0;
 	public static double POWER_INTAKE = 0;
 	public static double POWER_SHOOTER = 0;
 	public static double SHOOTER_VELOCITY = 0;
-	public static boolean SHOOTER_USE_VELOCITY = false;
+	public static boolean SHOOTER_USE_VELOCITY = true;
 	public static int SPINDEXER_TARGET = 0;
 	public static boolean SPINDEXER_RESET_ENCODER = true;
 
 	public static double SPINDEXER_PID_P = 10;
 	public static double SPINDEXER_PID_I = 0;
 	public static double SPINDEXER_PID_D = 0;
+
+	public static double SHOOTER_PID_P = 10;
+	public static double SHOOTER_PID_I = 3;
+	public static double SHOOTER_PID_D = 0;
 
 	@Override
 	public void runOpMode() {
@@ -55,6 +59,7 @@ public class ManualIndividualControl extends LinearOpMode {
 		storageMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		storageMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+		intakeMotor.setDirection(DcMotor.Direction.REVERSE);
 		intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 		intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
@@ -78,6 +83,8 @@ public class ManualIndividualControl extends LinearOpMode {
 
 			intakeMotor.setPower(POWER_INTAKE);
 
+			shooterMotorLeft.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
+					new PIDCoefficients(SHOOTER_PID_P, SHOOTER_PID_I, SHOOTER_PID_D));
 			if (USING_VELOCITY) {
 				shooterMotorLeft.setVelocity(SHOOTER_VELOCITY);
 			} else {
