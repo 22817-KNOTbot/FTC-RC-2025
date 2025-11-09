@@ -106,6 +106,11 @@ public class TeleOp extends LinearOpMode {
 			if (gamepad1.aWasPressed()) {
 				automationHandler.intakeToggle();
 			}
+			if (gamepad1.right_trigger > 0.9) {
+				automationHandler.intakeEject();
+			} else if (automationHandler.getIntakeEjecting()) {
+				automationHandler.intakeEjectStop();
+			}
 			if (gamepad1.yWasPressed()) {
 				automationHandler.prepareOrShootArtifact(Artifact.Colour.PURPLE);
 			} else if (gamepad1.bWasPressed()) {
