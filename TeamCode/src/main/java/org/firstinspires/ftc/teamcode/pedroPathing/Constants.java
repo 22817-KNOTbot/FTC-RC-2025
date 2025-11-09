@@ -26,20 +26,21 @@ public class Constants {
 			.leftFrontMotorDirection(DcMotor.Direction.REVERSE)
 			.leftRearMotorDirection(DcMotor.Direction.REVERSE)
 			.rightFrontMotorDirection(DcMotor.Direction.FORWARD)
-			.rightRearMotorDirection(DcMotor.Direction.FORWARD);
+			.rightRearMotorDirection(DcMotor.Direction.FORWARD)
+			.useBrakeModeInTeleOp(true);
 
 	public static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
-			.forwardTicksToInches(0.0029750308)
-			.strafeTicksToInches(0.0029520205)
-			.turnTicksToInches(0.0029062348)
+			.forwardTicksToInches(0.0020153192)
+			.strafeTicksToInches(0.0019831647)
+			.turnTicksToInches(0.0020013505)
 			.leftPodY(7.286)
 			.rightPodY(-7.144)
-			.strafePodX(-7.4355)
+			.strafePodX(-7.042)
 			.leftEncoder_HardwareMapName("frontLeftMotor")
-			.rightEncoder_HardwareMapName("frontRightMotor")
-			.strafeEncoder_HardwareMapName("backLeftMotor")
-			.leftEncoderDirection(Encoder.FORWARD)
-			.rightEncoderDirection(Encoder.FORWARD)
+			.rightEncoder_HardwareMapName("backRightMotor")
+			.strafeEncoder_HardwareMapName("frontRightMotor")
+			.leftEncoderDirection(Encoder.REVERSE)
+			.rightEncoderDirection(Encoder.REVERSE)
 			.strafeEncoderDirection(Encoder.FORWARD);
 
 	public static Follower createFollower(HardwareMap hardwareMap) {
