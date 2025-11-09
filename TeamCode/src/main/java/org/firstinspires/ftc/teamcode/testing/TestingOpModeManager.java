@@ -39,6 +39,7 @@ public final class TestingOpModeManager {
 			IntakeTesting.class,
 			MecanumDriveTesting.class,
 			MotifDecodeTesting.class,
+			MotorPositionTesting.class,
 			MotorTesting.class,
 			MotorTwoTesting.class,
 			ServoTesting.class,
