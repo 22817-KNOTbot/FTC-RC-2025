@@ -13,20 +13,20 @@ import com.acmerobotics.dashboard.config.Config;
 @Configurable
 @Config
 public class Turret {
-	public static double BASE_ROTATION = 0.45;
+	public static double BASE_ROTATION = 0.4;
 	public static double BASE_PITCH = 0.05;
 
-	public static double min_rotation = 0.25;
-	public static double max_rotation = 0.65;
+	public static double min_rotation = 0.1;
+	public static double max_rotation = 0.7;
 	public static double min_pitch = 0.05;
 	public static double max_pitch = 0.6;
 	public static double rotation_increment = 0.0005;
-	public static double rotation_per_deg = 0.2/90;
+	public static double rotation_per_deg = 0.205/90;
 	public static double pitch_increment = 0.01;
 
 	private Servo turretYawServo1;
 	private Servo turretYawServo2;
-	private Servo turretPitchServo;
+	// private Servo turretPitchServo;
 
 	private static Position position = Position.BASE;
 	private static double rotation = BASE_ROTATION;
@@ -42,8 +42,8 @@ public class Turret {
 		turretYawServo2 = hardwareMap.get(Servo.class, "turretYawServo2");
 		turretYawServo1.setDirection(Servo.Direction.FORWARD);
 		turretYawServo2.setDirection(Servo.Direction.FORWARD);
-		turretPitchServo = hardwareMap.get(Servo.class, "turretPitchServo");
-		turretPitchServo.setDirection(Servo.Direction.FORWARD);
+		// turretPitchServo = hardwareMap.get(Servo.class, "turretPitchServo");
+		// turretPitchServo.setDirection(Servo.Direction.FORWARD);
 	}
 
 	public void abort() {
@@ -129,7 +129,7 @@ public class Turret {
 	private void setPitchInternal(double pitchTarget) {
 		pitchTarget = Range.clip(pitchTarget, min_pitch, max_pitch);
 
-		turretPitchServo.setPosition(pitchTarget);
+		// turretPitchServo.setPosition(pitchTarget);
 
 		Turret.pitch = pitchTarget;
 	}
