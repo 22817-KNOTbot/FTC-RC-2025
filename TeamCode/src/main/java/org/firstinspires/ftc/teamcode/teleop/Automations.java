@@ -102,7 +102,7 @@ public class Automations {
 		if (storageState == StorageState.WAITING) {
 			storage.intake();
 		} else if (
-				storageState == StorageState.TURNING && shooter.getVelocity() >= shooter.desiredVelocity){
+				storageState == StorageState.TURNING && shooter.getVelocity() >= shooter.shooterVelocity){
 			shootActiveArtifact();
 		} else if (storageState == StorageState.RELEASING && timer.time() > 0.5) {
 			storage.finishRelease();
