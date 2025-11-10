@@ -18,16 +18,18 @@ public class Shooter {
 	public Shooter(HardwareMap hardwareMap) {
 		shooterMotorLeft = hardwareMap.get(DcMotorEx.class, "shooterMotorLeft");
 		//shooterMotorLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+		shooterMotorLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 		shooterMotorLeft.setDirection(DcMotorEx.Direction.REVERSE);
 		shooterMotorRight = hardwareMap.get(DcMotorEx.class, "shooterMotorRight");
 		//shooterMotorRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-		shooterMotorLeft.setVelocity(shooterVelocity);
+		shooterMotorRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 	}
 	public void enable(boolean enabled) {
 		if (enabled) {
+			shooterMotorLeft.setVelocity(shooterVelocity);
+			shooterMotorRight.setVelocity(shooterVelocity);
 			shooterMotorLeft.setPower(power);
 			shooterMotorRight.setPower(power);
-			
 		} else {
 			shooterMotorLeft.setPower(0);
 			shooterMotorRight.setPower(0);
@@ -44,5 +46,9 @@ public class Shooter {
 	}
 	public double getVelocityRight() {
 		return shooterMotorRight.getVelocity();
+	}
+
+	public double getVelocity() {
+		return (shooterMotorLeft.getVelocity() + shooterMotorRight.getVelocity()) / 2;
 	}
 }

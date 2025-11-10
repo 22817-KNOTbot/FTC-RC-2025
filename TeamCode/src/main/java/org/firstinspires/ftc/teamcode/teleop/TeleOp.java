@@ -22,8 +22,6 @@ import org.firstinspires.ftc.teamcode.util.GamepadManager;
 
 import java.util.List;
 
-import com.pedropathing.math.Vector;
-
 @Configurable
 public class TeleOp extends LinearOpMode {
 	public static boolean DEBUG = false;

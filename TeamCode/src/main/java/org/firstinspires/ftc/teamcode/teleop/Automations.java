@@ -20,8 +20,6 @@ import org.firstinspires.ftc.teamcode.util.Alliance;
 
 import com.pedropathing.math.Vector;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.follower.Follower;
-
 
 public class Automations {
 	private HardwareMap hardwareMap;
@@ -101,20 +99,28 @@ public class Automations {
 	public void automationLoop() {
 		vision.updateMotifPattern();
 		pattern = vision.getLastMotifPattern();
-		Pose futurePose = pose.plus(new Pose(velocity.getXComponent(), velocity.getYComponent()));
 		if (storageState == StorageState.WAITING) {
 			storage.intake();
 		} else if (
-			storageState == StorageState.TURNING &&
-			shooter.getVelocityLeft() > shooter.desiredVelocity && 
-			shooter.getVelocityRight() > shooter.desiredVelocity &&
-			((futurePose.getX() > 72 && futurePose.getX() ==  futurePose.getY()) || 
-			(futurePose.getX() < 72 && Math.abs(futurePose.getX() - 72) ==  Math.abs(futurePose.getY() - 72)))){
-				
+				storageState == StorageState.TURNING && shooter.getVelocity() >= shooter.desiredVelocity){
 			shootActiveArtifact();
-		} else if (storageState == StorageState.RELEASING) {
+		} else if (storageState == StorageState.RELEASING && timer.time() > 0.5) {
 			storage.finishRelease();
 			storageState = StorageState.WAITING;
+		}
+		if (inShootingArea()) {
+			setShooterEnabled(true);
+		} else {
+			setShooterEnabled(false);
+		}
+	}
+
+	public boolean inShootingArea() {
+		Pose futurePose = pose.plus(new Pose(velocity.getXComponent(), velocity.getYComponent()));
+		if (futurePose.getY() >= 72) {
+			return (futurePose.getY() - 72) >= Math.abs(futurePose.getX() - 72);
+		} else {
+			return (futurePose.getY() - 23) <= Math.abs(futurePose.getX() - 72);
 		}
 	}
 
@@ -188,7 +194,6 @@ public class Automations {
 
 	public void shootActiveArtifact() {
 		storage.release();
-		shooter.enable(true);
 
 		storageState = StorageState.RELEASING;
 	}

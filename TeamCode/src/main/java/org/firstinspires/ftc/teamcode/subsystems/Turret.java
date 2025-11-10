@@ -26,6 +26,7 @@ public class Turret {
 	private Servo turretPitchServo;
 
 	private static Position position = Position.BASE;
+	
 	private static double rotation = BASE_ROTATION;
 	private static double pitch = BASE_PITCH;
 
