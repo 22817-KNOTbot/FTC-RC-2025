@@ -24,6 +24,7 @@ public class Storage {
 	public static int positionInterval = 128;
 	public static double transferMotorPower = 1;
 	public static int transferInterval = 5; // arbitary number, will change with further testing
+	
 
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
 	private static int numOfArtifacts = 0;
@@ -119,8 +120,39 @@ public class Storage {
 		artifactStored.set(2, intakeArtifact);
 	}
 
+	public void storageHalfTurnCW(boolean update) {
+		storageMotor.setPower(1);
+		storageMotor.setTargetPosition(storageMotor.getTargetPosition() + (int) (positionInterval/2));
+		if (update) {
+			Colour intakeArtifact = getActiveArtifact();
+			artifactStored.set(0, getBackLeftArtifact());
+			artifactStored.set(1, getBackRightArtifact());
+			artifactStored.set(2, intakeArtifact);
+		}
+	}
+
+	public void storageHalfTurnCCW(boolean update) {
+		storageMotor.setPower(1);
+		storageMotor.setTargetPosition(storageMotor.getTargetPosition() - (int) (positionInterval/2));
+		if (update) {
+			Colour intakeArtifact = getActiveArtifact();
+			artifactStored.set(0, getBackLeftArtifact());
+			artifactStored.set(1, getBackRightArtifact());
+			artifactStored.set(2, intakeArtifact);
+		}
+	}
+
 	public boolean storageFull() {
 		return !artifactStored.contains(null);
+	}
+
+	public boolean storageEmpty() {
+		for (int i = 0; i < artifactStored.size(); i++) {
+			if (artifactStored.get(i) != null) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public TurnDirection turnToArtifact(Colour desiredArtifact) {
