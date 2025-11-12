@@ -44,6 +44,7 @@ public final class TestingOpModeManager {
 			MotorTesting.class,
 			MotorTwoTesting.class,
 			ServoTesting.class,
+			ServoTwoTesting.class,
 			ShooterTesting.class,
 			StorageTesting.class,
 			TurretTesting.class
