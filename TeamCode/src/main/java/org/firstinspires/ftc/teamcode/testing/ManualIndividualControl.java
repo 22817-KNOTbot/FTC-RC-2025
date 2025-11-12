@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
@@ -18,10 +19,13 @@ import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 @Config
 // @TeleOp(name="Manual Individual Control", group="Debug")
 public class ManualIndividualControl extends LinearOpMode {
-	public static String MOTOR_NAME_SPINDEXER = "storageMotor";
-	public static String MOTOR_NAME_INTAKE = "intakeMotor";
-	public static String MOTOR_NAME_SHOOTER_1 = "shooterMotorLeft";
-	public static String MOTOR_NAME_SHOOTER_2 = "shooterMotorRight";
+	public static final String MOTOR_NAME_SPINDEXER = "storageMotor";
+	public static final String MOTOR_NAME_INTAKE = "intakeMotor";
+	public static final String MOTOR_NAME_SHOOTER_1 = "shooterMotorLeft";
+	public static final String MOTOR_NAME_SHOOTER_2 = "shooterMotorRight";
+	public static final String SERVO_NAME_TRANSFER_RIGHT = "testServo";
+	public static final String SERVO_NAME_GATE = "turretYawServo1";
+	public static final String SERVO_NAME_FLIPPER = "miniFlipperServo";
 	public static double POWER_SPINDEXER = 0;
 	public static double POWER_INTAKE = 0;
 	public static double POWER_SHOOTER = 0;
@@ -29,14 +33,17 @@ public class ManualIndividualControl extends LinearOpMode {
 	public static boolean SHOOTER_USE_VELOCITY = true;
 	public static int SPINDEXER_TARGET = 0;
 	public static boolean SPINDEXER_RESET_ENCODER = true;
+	public static double TRANSFER_RIGHT_POSITION = 0.47;
+	public static double GATE_POSITION = 0.315;
+	public static double FLIPPER_POSITION = 0.1;
 
-	public static double SPINDEXER_PID_P = 10;
-	public static double SPINDEXER_PID_I = 0;
-	public static double SPINDEXER_PID_D = 0;
+	public static final double SPINDEXER_PID_P = 10;
+	public static final double SPINDEXER_PID_I = 0;
+	public static final double SPINDEXER_PID_D = 0;
 
-	public static double SHOOTER_PID_P = 10;
-	public static double SHOOTER_PID_I = 3;
-	public static double SHOOTER_PID_D = 0;
+	public static final double SHOOTER_PID_P = 10;
+	public static final double SHOOTER_PID_I = 3;
+	public static final double SHOOTER_PID_D = 0;
 
 	@Override
 	public void runOpMode() {
@@ -52,12 +59,17 @@ public class ManualIndividualControl extends LinearOpMode {
 		DcMotorEx shooterMotorLeft = hardwareMap.get(DcMotorEx.class, MOTOR_NAME_SHOOTER_1);
 		DcMotorEx shooterMotorRight = hardwareMap.get(DcMotorEx.class, MOTOR_NAME_SHOOTER_2);
 
+		Servo transferRightServo = hardwareMap.get(Servo.class, SERVO_NAME_TRANSFER_RIGHT);
+		Servo gateServo = hardwareMap.get(Servo.class, SERVO_NAME_GATE);
+		Servo miniFlipperServo = hardwareMap.get(Servo.class, SERVO_NAME_FLIPPER);
+
 		if (SPINDEXER_RESET_ENCODER) {
 			storageMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		}
 		storageMotor.setTargetPosition(SPINDEXER_TARGET);
 		storageMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		storageMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		// storageMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		storageMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
 		intakeMotor.setDirection(DcMotor.Direction.REVERSE);
 		intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -91,6 +103,10 @@ public class ManualIndividualControl extends LinearOpMode {
 				shooterMotorLeft.setPower(POWER_SHOOTER);				
 			}
 			shooterMotorRight.setPower(shooterMotorLeft.getPower());
+
+			transferRightServo.setPosition(TRANSFER_RIGHT_POSITION);
+			gateServo.setPosition(GATE_POSITION);
+			miniFlipperServo.setPosition(FLIPPER_POSITION);
 
 			telemetryManager.addData("Spindexer - Position", storageMotor.getCurrentPosition());
 			telemetryManager.addData("Spindexer - Position Error", storageMotor.getCurrentPosition() - storageMotor.getTargetPosition());
