@@ -44,7 +44,7 @@ public class Automations {
 	public enum StorageState {
 		WAITING,
 		TURNING,
-		RELEASING
+		TRANFERING
 	}
 
 	public Automations(HardwareMap hardwareMap, Alliance alliance) {
@@ -100,8 +100,8 @@ public class Automations {
 			storage.intake();
 		} else if (storageState == StorageState.TURNING && timer.time() > 0.5) {
 			shootActiveArtifact();
-		} else if (storageState == StorageState.RELEASING && timer.time() > 0.5) {
-			storage.finishRelease();
+		} else if (storageState == StorageState.TRANFERING && timer.time() > 0.5) {
+			storage.finishTransfer();
 			storageState = StorageState.WAITING;
 		}
 	}
@@ -147,7 +147,7 @@ public class Automations {
 	}
 
 	public Storage.TurnDirection prepareArtifact(Artifact.Colour colour) {
-		Storage.TurnDirection turnDirection = storage.turnToArtifact(colour);
+		Storage.TurnDirection turnDirection = storage.turnToArtifact(colour, true);
 		timer.reset();
 		storageState = StorageState.TURNING;
 		return turnDirection;
@@ -155,7 +155,7 @@ public class Automations {
 
 	// Returns true if already prepared and has been shot
 	public boolean prepareOrShootArtifact(Artifact.Colour colour) {
-		Storage.TurnDirection turnDirection = storage.turnToArtifact(colour);
+		Storage.TurnDirection turnDirection = storage.turnToArtifact(colour, true);
 		if (turnDirection == Storage.TurnDirection.AVAILABLE) {
 			shootActiveArtifact();
 			return true;
@@ -177,9 +177,9 @@ public class Automations {
 	}
 
 	public void shootActiveArtifact() {
-		storage.release();
 		shooter.enable(true);
-		storageState = StorageState.RELEASING;
+		storage.transfer();
+		storageState = StorageState.TRANFERING;
 	}
 
 	public boolean colourSensorResponding() {

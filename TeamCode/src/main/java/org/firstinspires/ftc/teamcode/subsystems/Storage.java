@@ -24,14 +24,21 @@ public class Storage {
 	public static int positionInterval = 128;
 	public static double transferMotorPower = 1;
 	public static int transferInterval = 5; // arbitary number, will change with further testing
+	public static double intakeGatePosition = 0;
+	public static double miniFlipperPosition = 0;
+	public static double transferLeftPosition = 0;
+	public static double transferRightPosition = 0;
 	
 
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
 	private static int numOfArtifacts = 0;
 
 	private DcMotor storageMotor;
-	private DcMotor transferMotor;
 	private ColorRangeSensor colourSensor;
+	private Servo intakeGate;
+	private Servo miniFlipper;
+	private Servo transferLeftRamp;
+	private Servo transferRightRamp;
 
 	public enum TurnDirection {
 		AVAILABLE, // AVAILABLE is equal to NONE as in no turn is performed.
@@ -48,19 +55,24 @@ public class Storage {
 		storageMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		storageMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-		transferMotor = hardwareMap.get(DcMotor.class, "transferMotor");
-		transferMotor.setTargetPosition(0);
-		transferMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		transferMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		intakeGate = hardwareMap.get(Servo.class, "intakeGate");
+		intakeGate.setPosition(0);
+
+		miniFlipper = hardwareMap.get(Servo.class, "miniFlipper");
+		miniFlipper.setPosition(0);
+
+		transferLeftRamp = hardwareMap.get(Servo.class, "transferLeftRamp");
+		transferLeftRamp.setPosition(0);
+
+		transferRightRamp = hardwareMap.get(Servo.class, "transferRightRamp");
+		transferRightRamp.setPosition(0);
 
 		if (resetEncoder) {
 			storageMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-			transferMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		}
 	}
 
 	public void abort() {
-		transferMotor.setPower(0);
 	}
 
 	/*
@@ -84,7 +96,7 @@ public class Storage {
 	 */
 
 	public boolean intake() {
-		turnToArtifact(null);
+		turnToArtifact(null, true);
 		Colour colour = getArtifactColour();
 		if (isArtifactLoaded() && !storageFull() && colour != null) {
 			artifactStored.set(0, colour);
@@ -155,15 +167,38 @@ public class Storage {
 		return true;
 	}
 
-	public TurnDirection turnToArtifact(Colour desiredArtifact) {
+	public void turnToDirection(TurnDirection direction) {
+		switch (direction) {
+			case CCW:
+				transferLeftRamp.setPosition(transferLeftPosition);
+				storageTurnCCW();
+				transferLeftRamp.setPosition(0);
+				break;
+
+			case CW:
+				transferRightRamp.setPosition(transferRightPosition);
+				storageTurnCW();
+				transferRightRamp.setPosition(0);
+				break;
+
+			default:
+				break;
+		}
+	}
+
+	public TurnDirection turnToArtifact(Colour desiredArtifact, boolean move) {
 		if (numOfArtifacts > 0) {
 			if (getActiveArtifact() == desiredArtifact) {
 				return TurnDirection.AVAILABLE;
 			} else if (getBackLeftArtifact() == desiredArtifact) {
-				storageTurnCCW();
+				if (move) {
+					storageTurnCCW();
+				}
 				return TurnDirection.CCW;
 			} else if (getBackRightArtifact() == desiredArtifact) {
-				storageTurnCW();
+				if (move) {
+					storageTurnCW();
+				}
 				return TurnDirection.CW;
 			} else {
 				return TurnDirection.NONE;
@@ -173,21 +208,36 @@ public class Storage {
 		}
 	}
 
-	public boolean release() {
+	public boolean checkDirection(Colour desiredColour) {
+		return (turnToArtifact(Colour.PURPLE, false) != TurnDirection.AVAILABLE && turnToArtifact(Colour.PURPLE, false) != TurnDirection.NONE);
+	}
+
+	public boolean transfer() {
 		if (getActiveArtifact() != null) {
 			artifactStored.set(0, null);
 			numOfArtifacts -= 1;
-			transferMotor.setPower(transferMotorPower);
-			transferMotor.setTargetPosition(transferMotor.getTargetPosition() + transferInterval);
+			if (numOfArtifacts > 0) {
+				if (checkDirection(Colour.PURPLE)) {
+					turnToDirection(turnToArtifact(Colour.PURPLE, true));
+				} else {
+					turnToDirection(turnToArtifact(Colour.GREEN, true));
+				}
+			} else {
+				transferLeftRamp.setPosition(transferLeftPosition);
+				miniFlipper.setPosition(miniFlipperPosition);
+				miniFlipper.setPosition(0);
+				transferLeftRamp.setPosition(0);
+			}
 			return true;
 		} else {
 			return false;
 		}
 	}
 
-	public void finishRelease() {
+	
+
+	public void finishTransfer() {
 		// Wait
-		transferMotor.setPower(0);
 	}
 
 	/*
