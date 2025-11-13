@@ -167,13 +167,25 @@ public class UpperRed9Artifacts extends LinearOpMode {
 				break;
 			case 3:
 				if (!follower.isBusy()) {
-					follower.followPath(secondIntake, true);
+					follower.followPath(secondApproch, true);
 					setPathState(4);
 				}
 				break;
 			case 4:
 				if (!follower.isBusy()) {
+					follower.followPath(secondIntake, true);
+					setPathState(4);
+				}
+				break;
+			case 5:
+				if (!follower.isBusy()) {
 					follower.followPath(secondLaunch, true);
+					setPathState(6);
+				}
+				break;
+			case 6:
+				if (!follower.isBusy()) {
+					follower.followPath(exitShootingZone, true);
 					setPathState(-1);
 				}
 				break;
