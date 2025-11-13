@@ -47,7 +47,7 @@ public class Automations {
 	public enum StorageState {
 		WAITING,
 		TURNING,
-		TRANSFERING
+		TRANSFERRING
 	}
 
 	public Automations(HardwareMap hardwareMap, Alliance alliance) {
@@ -106,7 +106,7 @@ public class Automations {
 				&& timer.time() > 0.1){ // may change time later
 			shootActiveArtifact();
 			timer.reset();
-		} else if (storageState == StorageState.TRANSFERING && storage.transferState == Storage.TransferState.RESET) {
+		} else if (storageState == StorageState.TRANSFERRING && storage.transferState == Storage.TransferState.RESET) {
 			if (storage.transferAll && storage.numOfArtifacts > 0) {
 				storage.transfer();
 				storageState = StorageState.TURNING;
@@ -190,7 +190,7 @@ public class Automations {
 	public void shootActiveArtifact() {
 		shooter.enable(true);
 		storage.transfer();
-		storageState = StorageState.TRANSFERING;
+		storageState = StorageState.TRANSFERRING;
 	}
 
 	public boolean colourSensorResponding() {
