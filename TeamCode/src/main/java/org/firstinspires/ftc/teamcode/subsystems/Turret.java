@@ -12,6 +12,7 @@ import com.bylazar.configurables.annotations.Configurable;
 public class Turret {
 	public static double BASE_ROTATION = 0.5;
 	public static double BASE_PITCH = 0.5;
+
 	public static double min_rotation = 0.4;
 	public static double max_rotation = 0.6;
 	public static double min_pitch = 0.45;
@@ -25,7 +26,6 @@ public class Turret {
 	private Servo turretPitchServo;
 
 	private static Position position = Position.BASE;
-	
 	private static double rotation = BASE_ROTATION;
 	private static double pitch = BASE_PITCH;
 

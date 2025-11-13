@@ -31,7 +31,7 @@ public class Automations {
 	private Intake intake;
 	private Storage storage;
 	private Turret turret;
-	private Shooter shooter;
+	private Shooter Shooter;
 	private Vision vision;
 
 	private Gamepad gamepad1;
@@ -63,7 +63,7 @@ public class Automations {
 		intake = new Intake(hardwareMap);
 		storage = new Storage(hardwareMap, false);
 		turret = new Turret(hardwareMap);
-		shooter = new Shooter(hardwareMap);
+		Shooter = new Shooter(hardwareMap);
 
 		Vision.DEBUG = DEBUG;
 		vision = new Vision(hardwareMap, null);
@@ -86,7 +86,7 @@ public class Automations {
 	public void abort() {
 		intake.enable(false);
 		storage.abort();
-		shooter.enable(false);
+		Shooter.enable(false);
 	}
 
 	// Code that should be run on start but not during init
@@ -101,7 +101,7 @@ public class Automations {
 		pattern = vision.getLastMotifPattern();
 		if (storageState == StorageState.WAITING) {
 			storage.intake();
-		} else if (storageState == StorageState.TURNING && shooter.getVelocity() >= shooter.shooterVelocity 
+		} else if (storageState == StorageState.TURNING && Shooter.getVelocity() >= Shooter.shooterVelocity 
 				&& timer.time() > 0.1){ // may change time later
 			shootActiveArtifact();
 		} else if (storageState == StorageState.RELEASING && timer.time() > 0.5) {
@@ -114,8 +114,6 @@ public class Automations {
 			setShooterEnabled(false);
 		}
 	}
-
-	
 
 	// Should only be called once as the opmode ends
 	public void end() {
@@ -233,17 +231,14 @@ public class Automations {
 
 	public boolean inShootingArea() {
 		Pose futurePose = pose.plus(new Pose(velocity.getXComponent(), velocity.getYComponent()));
-		if (futurePose.getY() >= 72) {
-			return (futurePose.getY() - 72) >= Math.abs(futurePose.getX() - 72) ||
-			(pose.getY() - 72) >= Math.abs(pose.getX() - 72);
-		} else {
-			return (futurePose.getY() + (Math.abs(futurePose.getX() - 72)) <= 24) ||
-			(pose.getY() + (Math.abs(pose.getX() - 72)) <= 24);
-		}
+		return ((futurePose.getY() - 72) >= Math.abs(futurePose.getX() - 72) ||
+				(pose.getY() - 72) >= Math.abs(pose.getX() - 72)) ||
+				((futurePose.getY() + (Math.abs(futurePose.getX() - 72)) <= 24) ||
+				(pose.getY() + (Math.abs(pose.getX() - 72)) <= 24));
 	}
 
 	public void setShooterEnabled(boolean enabled) {
-		shooter.enable(enabled);
+		Shooter.enable(enabled);
 		shooterEnabled = enabled;
 	}
 
@@ -257,5 +252,4 @@ public class Automations {
 		if (gamepad2 != null)
 			gamepad2.rumble(1, 1, durationMs);
 	}
-
 }
