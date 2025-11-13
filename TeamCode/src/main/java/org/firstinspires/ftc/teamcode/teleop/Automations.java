@@ -31,7 +31,7 @@ public class Automations {
 	private Intake intake;
 	private Storage storage;
 	private Turret turret;
-	private Shooter Shooter;
+	private Shooter shooter;
 	private Vision vision;
 
 	private Gamepad gamepad1;
@@ -63,7 +63,7 @@ public class Automations {
 		intake = new Intake(hardwareMap);
 		storage = new Storage(hardwareMap, false);
 		turret = new Turret(hardwareMap);
-		Shooter = new Shooter(hardwareMap);
+		shooter = new Shooter(hardwareMap);
 
 		Vision.DEBUG = DEBUG;
 		vision = new Vision(hardwareMap, null);
@@ -86,7 +86,7 @@ public class Automations {
 	public void abort() {
 		intake.enable(false);
 		storage.abort();
-		Shooter.enable(false);
+		shooter.enable(false);
 	}
 
 	// Code that should be run on start but not during init
@@ -101,7 +101,7 @@ public class Automations {
 		pattern = vision.getLastMotifPattern();
 		if (storageState == StorageState.WAITING) {
 			storage.intake();
-		} else if (storageState == StorageState.TURNING && Shooter.getVelocity() >= Shooter.shooterVelocity 
+		} else if (storageState == StorageState.TURNING && shooter.getVelocity() >= Shooter.shooterVelocity 
 				&& timer.time() > 0.1){ // may change time later
 			shootActiveArtifact();
 		} else if (storageState == StorageState.RELEASING && timer.time() > 0.5) {
@@ -238,7 +238,7 @@ public class Automations {
 	}
 
 	public void setShooterEnabled(boolean enabled) {
-		Shooter.enable(enabled);
+		shooter.enable(enabled);
 		shooterEnabled = enabled;
 	}
 
