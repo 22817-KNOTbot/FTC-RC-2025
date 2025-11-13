@@ -6,7 +6,7 @@ import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.util.Alliance;
-import org.firstinspires.ftc.teamcode.util.BlueAlliance;
+import org.firstinspires.ftc.teamcode.util.RedAlliance;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
