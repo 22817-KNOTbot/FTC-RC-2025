@@ -113,6 +113,7 @@ public class TeleOp extends LinearOpMode {
 			}
 
 			automationHandler.updatePose(mecanumDrive.getPose());
+			automationHandler.updateVelocity(mecanumDrive.getVelocity());
 			automationHandler.automationLoop();
 
 			if (gamepad1.back || gamepad2.back) {
