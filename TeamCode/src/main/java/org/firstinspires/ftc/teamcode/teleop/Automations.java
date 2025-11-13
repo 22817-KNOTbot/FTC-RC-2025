@@ -101,8 +101,8 @@ public class Automations {
 		pattern = vision.getLastMotifPattern();
 		if (storageState == StorageState.WAITING) {
 			storage.intake();
-		} else if (
-				storageState == StorageState.TURNING && shooter.getVelocity() >= shooter.shooterVelocity){
+		} else if (storageState == StorageState.TURNING && shooter.getVelocity() >= shooter.shooterVelocity 
+				&& timer.time() > 0.1){ // may change time later
 			shootActiveArtifact();
 		} else if (storageState == StorageState.RELEASING && timer.time() > 0.5) {
 			storage.finishRelease();
@@ -115,14 +115,7 @@ public class Automations {
 		}
 	}
 
-	public boolean inShootingArea() {
-		Pose futurePose = pose.plus(new Pose(velocity.getXComponent(), velocity.getYComponent()));
-		if (futurePose.getY() >= 72) {
-			return (futurePose.getY() - 72) >= Math.abs(futurePose.getX() - 72);
-		} else {
-			return (futurePose.getY() - 23) <= Math.abs(futurePose.getX() - 72);
-		}
-	}
+	
 
 	// Should only be called once as the opmode ends
 	public void end() {
@@ -237,6 +230,17 @@ public class Automations {
 	/*
 	 * Misc. util methods
 	 */
+
+	public boolean inShootingArea() {
+		Pose futurePose = pose.plus(new Pose(velocity.getXComponent(), velocity.getYComponent()));
+		if (futurePose.getY() >= 72) {
+			return (futurePose.getY() - 72) >= Math.abs(futurePose.getX() - 72) ||
+			(pose.getY() - 72) >= Math.abs(pose.getX() - 72);
+		} else {
+			return (futurePose.getY() + (Math.abs(futurePose.getX() - 72)) <= 24) ||
+			(pose.getY() + (Math.abs(pose.getX() - 72)) <= 24);
+		}
+	}
 
 	public void setShooterEnabled(boolean enabled) {
 		shooter.enable(enabled);

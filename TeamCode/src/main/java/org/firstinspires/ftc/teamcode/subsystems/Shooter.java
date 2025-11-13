@@ -36,13 +36,6 @@ public class Shooter {
 		shooterMotorRight.setPower(pow);
 	}
 
-	public double getVelocityLeft() {
-		return shooterMotorLeft.getVelocity();
-	}
-	public double getVelocityRight() {
-		return shooterMotorRight.getVelocity();
-	}
-
 	public double getVelocity() {
 		return shooterMotorLeft.getVelocity();
 	}
