@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
@@ -25,21 +26,32 @@ public class Storage {
 	public static double transferMotorPower = 1;
 	public static int transferInterval = 5; // arbitary number, will change with further testing
 	public static double intakeGatePosition = 0;
-	public static double miniFlipperPosition = 0;
-	public static double transferLeftPosition = 0;
-	public static double transferRightPosition = 0;
-	
+	public static double miniFlipperInPosition = 0;
+	public static double miniFlipperOutPosition = 0;
+	public static double transferRampPosition = 0;
+	public static boolean transferAll;
+	public static int numOfArtifacts = 0;
+	public static TransferState transferState = TransferState.IDLE;
 
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
-	private static int numOfArtifacts = 0;
 
 	private DcMotor storageMotor;
 	private ColorRangeSensor colourSensor;
 	private Servo intakeGate;
 	private Servo miniFlipper;
-	private Servo transferLeftRamp;
-	private Servo transferRightRamp;
+	private Servo transferRamp;
+	private ElapsedTime timer;
 
+	public enum TransferState {
+		IDLE,
+		RAMPOUT,
+		TURNINGFULL,
+		TURNINGHALF,
+		FLIPPEROUT,
+		FLIPPERIN, 
+		RESET
+	}
+	
 	public enum TurnDirection {
 		AVAILABLE, // AVAILABLE is equal to NONE as in no turn is performed.
 		NONE, // But, in AVAILABLE, the Artifact is already in the intake slot.
@@ -61,11 +73,7 @@ public class Storage {
 		miniFlipper = hardwareMap.get(Servo.class, "miniFlipper");
 		miniFlipper.setPosition(0);
 
-		transferLeftRamp = hardwareMap.get(Servo.class, "transferLeftRamp");
-		transferLeftRamp.setPosition(0);
-
-		transferRightRamp = hardwareMap.get(Servo.class, "transferRightRamp");
-		transferRightRamp.setPosition(0);
+		transferRamp = hardwareMap.get(Servo.class, "transferRamp");
 
 		if (resetEncoder) {
 			storageMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -170,15 +178,11 @@ public class Storage {
 	public void turnToDirection(TurnDirection direction) {
 		switch (direction) {
 			case CCW:
-				transferLeftRamp.setPosition(transferLeftPosition);
 				storageTurnCCW();
-				transferLeftRamp.setPosition(0);
 				break;
 
 			case CW:
-				transferRightRamp.setPosition(transferRightPosition);
 				storageTurnCW();
-				transferRightRamp.setPosition(0);
 				break;
 
 			default:
@@ -216,28 +220,55 @@ public class Storage {
 		if (getActiveArtifact() != null) {
 			artifactStored.set(0, null);
 			numOfArtifacts -= 1;
-			if (numOfArtifacts > 0) {
-				if (checkDirection(Colour.PURPLE)) {
-					turnToDirection(turnToArtifact(Colour.PURPLE, true));
-				} else {
-					turnToDirection(turnToArtifact(Colour.GREEN, true));
-				}
-			} else {
-				transferLeftRamp.setPosition(transferLeftPosition);
-				miniFlipper.setPosition(miniFlipperPosition);
-				miniFlipper.setPosition(0);
-				transferLeftRamp.setPosition(0);
-			}
+			transferRamp.setPosition(transferRampPosition);
+			timer.reset();
+			transferState = TransferState.RAMPOUT;
 			return true;
 		} else {
 			return false;
 		}
 	}
 
-	
+	public void transferUpdate() {
+		switch (transferState) {
+			case RAMPOUT:
+				if (timer.time() > 0.5 && getBackLeftArtifact() != null) {
+					storageTurnCW();
+					timer.reset();
+					transferState = TransferState.TURNINGFULL;
+				} else {
+					storageHalfTurnCW(false);
+					timer.reset();
+					transferState = TransferState.TURNINGHALF;
+				}
+				break;
+		
+			case TURNINGHALF:
+				if (timer.time() > 0.5) {
+					miniFlipper.setPosition(miniFlipperInPosition);
+					timer.reset();
+					transferState = TransferState.FLIPPERIN;
+				}				
+				break;
+			
+			case FLIPPERIN:
+				if (timer.time() > 0.5) {
+					miniFlipper.setPosition(miniFlipperOutPosition);;
+					timer.reset();
+					transferState = TransferState.FLIPPEROUT;
+				}
+				break;
+			case FLIPPEROUT:
+				if (timer.time() > 0.5) {
+					storageHalfTurnCW(true);
+					timer.reset();
+					transferState = TransferState.RESET;
+				}
+		}
+	}
 
 	public void finishTransfer() {
-		// Wait
+		transferRamp.setPosition(0);
 	}
 
 	/*

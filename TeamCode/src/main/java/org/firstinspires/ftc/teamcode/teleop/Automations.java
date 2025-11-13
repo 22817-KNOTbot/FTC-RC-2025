@@ -44,7 +44,7 @@ public class Automations {
 	public enum StorageState {
 		WAITING,
 		TURNING,
-		TRANFERING
+		TRANSFERING
 	}
 
 	public Automations(HardwareMap hardwareMap, Alliance alliance) {
@@ -96,13 +96,22 @@ public class Automations {
 	public void automationLoop() {
 		vision.updateMotifPattern();
 		pattern = vision.getLastMotifPattern();
+		storage.transferUpdate();
 		if (storageState == StorageState.WAITING) {
 			storage.intake();
 		} else if (storageState == StorageState.TURNING && timer.time() > 0.5) {
 			shootActiveArtifact();
-		} else if (storageState == StorageState.TRANFERING && timer.time() > 0.5) {
-			storage.finishTransfer();
-			storageState = StorageState.WAITING;
+			timer.reset();
+		} else if (storageState == StorageState.TRANSFERING && storage.transferState == Storage.TransferState.RESET) {
+			if (storage.transferAll && storage.numOfArtifacts > 0) {
+				storage.transfer();
+				storageState = StorageState.TURNING;
+				timer.reset();
+			} else {
+				shooter.enable(false);
+				storage.finishTransfer();
+				storageState = StorageState.WAITING;
+			}
 		}
 	}
 
@@ -179,7 +188,7 @@ public class Automations {
 	public void shootActiveArtifact() {
 		shooter.enable(true);
 		storage.transfer();
-		storageState = StorageState.TRANFERING;
+		storageState = StorageState.TRANSFERING;
 	}
 
 	public boolean colourSensorResponding() {
