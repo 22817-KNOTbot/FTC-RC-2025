@@ -19,7 +19,7 @@ import com.pedropathing.paths.PathChain;
 
 @Configurable
 @Autonomous(name = "Upper Blue Leave", group = "Autonomous")
-public class UpperBlueLeaveAuto extends LinearOpMode {
+public class BlueUp0Artifacts extends LinearOpMode {
 	public static boolean doMovement = true;
 	public static boolean doActions = true;
 	public static boolean DEBUG = false;
@@ -31,21 +31,16 @@ public class UpperBlueLeaveAuto extends LinearOpMode {
 	private Alliance alliance = new BlueAlliance();
 	private Automations automationHandler;
 	private Follower follower;
-	private Pose startPose;
+	private Pose startPose = follower.getPose();
 	private Artifact.Colour[] patternColours;
 
 	// blackboard
-	public static final String POSE = "pose";
-	public static final String ALLIANCE = "alliance";
 
 	private PathChain leaveline;
 
 	@Override
 	public void runOpMode() {
-		Object blackboardObject = blackboard.getOrDefault(POSE, new Pose(21.000, 124.000));
-		blackboard.put(ALLIANCE, alliance);
-		blackboard.put(POSE, new Pose(21.000, 124.000));
-
+		blackboard.put("alliance", alliance);
 		follower = Constants.createFollower(hardwareMap);
 		follower.setStartingPose(startPose);
 		automationHandler = new Automations(hardwareMap, alliance, DEBUG);
@@ -54,28 +49,12 @@ public class UpperBlueLeaveAuto extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
-			if (doActions) {
-				automationHandler.automationLoop();
-				automationHandler.updatePose(follower.getPose());
-				automationHandler.updateTurret();
-				if (shotsFired >= 3) {
-					shotsFired = 0;
-					shooting = false;
-					follower.resumePathFollowing();
-				}
-				if (shooting) {
-					if (automationHandler.getStorageState() == Automations.StorageState.WAITING) {
-						automationHandler.prepareOrShootArtifact(patternColours[shotsFired]);
-						shotsFired += 1;
-					}
-				}
-			}
 			if (doMovement) {
 				follower.update();
 				pathUpdate();
 			}
 		}
-
+		blackboard.put("pose", follower.getPose());
 		automationHandler.end();
 	}
 
@@ -83,7 +62,6 @@ public class UpperBlueLeaveAuto extends LinearOpMode {
 		leaveline = follower.pathBuilder()
 				.addPath(new BezierLine(new Pose(21.000, 124.000), new Pose(37.000, 130.000)))
 				.setConstantHeadingInterpolation(Math.toRadians(215))
-				.addParametricCallback(0, this::backboardPose)
 				.build();
 	}
 
@@ -99,9 +77,5 @@ public class UpperBlueLeaveAuto extends LinearOpMode {
 					setPathState(-1);
 				}
 		}
-	}
-
-	public void backboardPose() {
-		blackboard.put(POSE, follower.getPose());
 	}
 }

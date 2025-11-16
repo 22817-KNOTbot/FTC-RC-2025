@@ -6,7 +6,7 @@ import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.util.Alliance;
-import org.firstinspires.ftc.teamcode.util.RedAlliance;
+import org.firstinspires.ftc.teamcode.util.BlueAlliance;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -17,9 +17,11 @@ import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.paths.PathChain;
 
+// TODO fix the autos UpperBlue9Artifacts and UpperRed9Artifacts
+
 @Configurable
-@Autonomous(name = "Upper Red 9 Artifacts", group = "Autonomous")
-public class UpperRed9Artifacts extends LinearOpMode {
+@Autonomous(name = "Upper Blue 9 Artifacts", group = "Autonomous")
+public class BlueUp9Arifacts extends LinearOpMode {
 	public static boolean doMovement = true;
 	public static boolean doActions = true;
 	public static boolean DEBUG = false;
@@ -28,25 +30,18 @@ public class UpperRed9Artifacts extends LinearOpMode {
 	private int pathState = 0;
 	private int shotsFired = 0;
 
-	private Alliance alliance = new RedAlliance();
+	private Alliance alliance = new BlueAlliance();
 	private Automations automationHandler;
 	private Follower follower;
-	private Pose startPose;
+	private Pose startPose = follower.getPose();
 	private Artifact.Colour[] patternColours;
-
-	// blackboard
-	public static final String POSE = "pose";
-	public static final String ALLIANCE = "alliance";
 
 	private PathChain firstApproach, firstIntake, firstLaunch,
 			secondApproch, secondIntake, secondLaunch, exitShootingZone;
 
 	@Override
 	public void runOpMode() {
-		Object blackboardObject = blackboard.getOrDefault(POSE, new Pose(123.000, 124.000));
-		blackboard.put(ALLIANCE, alliance);
-		blackboard.put(POSE, new Pose(123.000, 124.000));
-
+		blackboard.put("alliance", alliance);
 		follower = Constants.createFollower(hardwareMap);
 		follower.setStartingPose(startPose);
 		automationHandler = new Automations(hardwareMap, alliance, DEBUG);
@@ -76,24 +71,26 @@ public class UpperRed9Artifacts extends LinearOpMode {
 				pathUpdate();
 			}
 		}
-
+		blackboard.put("pose", follower.getPose());
 		automationHandler.end();
 	}
 
 	public void buildPaths() {
-		firstApproach = follower.pathBuilder()
+		firstApproach = follower
+				.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(123.000, 124.000),
+								new Pose(21.000, 124.000),
 								new Pose(80.000, 84.000),
-								new Pose(104.000, 84.000)))
-				.setLinearHeadingInterpolation(Math.toRadians(215), Math.toRadians(0))
+								new Pose(40.000, 84.000)))
+				.setLinearHeadingInterpolation(Math.toRadians(325), Math.toRadians(180))
+				.setReversed()
 				.addParametricCallback(0, this::readyToShoot)
 				.addParametricCallback(0, this::startShooting)
 				.build();
 
 		firstIntake = follower.pathBuilder()
-				.addPath(new BezierLine(new Pose(104.000, 84.000), new Pose(120.000, 84.000)))
+				.addPath(new BezierLine(new Pose(40.000, 84.000), new Pose(24.000, 84.000)))
 				.setTangentHeadingInterpolation()
 				.addParametricCallback(0, this::intakeToggle)
 				.addParametricCallback(1, this::intakeToggle)
@@ -102,9 +99,9 @@ public class UpperRed9Artifacts extends LinearOpMode {
 		firstLaunch = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(120.000, 84.000),
-								new Pose(100.000, 84.000),
-								new Pose(90.000, 96.000)))
+								new Pose(24.000, 84.000),
+								new Pose(44.000, 84.000),
+								new Pose(54.000, 96.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
 				.addParametricCallback(1, this::startShooting)
@@ -113,16 +110,16 @@ public class UpperRed9Artifacts extends LinearOpMode {
 		secondApproch = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(90.000, 96.000),
-								new Pose(102.000, 82.000),
-								new Pose(90.000, 60.000),
-								new Pose(105.000, 60.000)))
+								new Pose(54.000, 96.000),
+								new Pose(42.000, 82.000),
+								new Pose(54.000, 60.000),
+								new Pose(39.000, 60.000)))
 				.setTangentHeadingInterpolation()
 				.build();
 
 		secondIntake = follower.pathBuilder()
 				.addPath(
-						new BezierLine(new Pose(105.000, 60.000), new Pose(120.000, 60.000)))
+						new BezierLine(new Pose(39.000, 60.000), new Pose(24.000, 60.000)))
 				.setTangentHeadingInterpolation()
 				.addParametricCallback(0, this::intakeToggle)
 				.addParametricCallback(1, this::intakeToggle)
@@ -131,24 +128,22 @@ public class UpperRed9Artifacts extends LinearOpMode {
 		secondLaunch = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(120.000, 60.000),
-								new Pose(100.000, 60.000),
-								new Pose(84.000, 84.000)))
+								new Pose(24.000, 60.000),
+								new Pose(44.000, 60.000),
+								new Pose(60.000, 84.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
 				.addParametricCallback(1, this::startShooting)
 				.build();
 
-		exitShootingZone = follower
-				.pathBuilder()
+		exitShootingZone = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(84.000, 84.000),
-								new Pose(89.000, 77.000),
-								new Pose(90.000, 34.000),
-								new Pose(102.000, 34.000)))
+								new Pose(60.000, 84.000),
+								new Pose(55.000, 77.000),
+								new Pose(54.000, 34.000),
+								new Pose(42.000, 34.000)))
 				.setTangentHeadingInterpolation()
-				.addParametricCallback(1, this::backboardPose)
 				.build();
 	}
 
@@ -221,8 +216,5 @@ public class UpperRed9Artifacts extends LinearOpMode {
 		if (doActions) {
 			automationHandler.intakeToggle();
 		}
-	}
-	public void backboardPose() {
-		blackboard.put(POSE, follower.getPose());
 	}
 }
