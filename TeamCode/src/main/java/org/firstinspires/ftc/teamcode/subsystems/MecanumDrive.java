@@ -39,8 +39,8 @@ public class MecanumDrive {
 
 		double relativeHeading = follower.getPose().getHeading() + headingOffset;
 
-		double forwardRotated = forward * Math.sin(-relativeHeading) + lateral * Math.cos(-relativeHeading);
-		double lateralRotated = forward * Math.cos(-relativeHeading) - lateral * Math.sin(-relativeHeading);
+		double forwardRotated = lateral * Math.sin(-relativeHeading) + forward * Math.cos(-relativeHeading);
+		double lateralRotated = lateral * Math.cos(-relativeHeading) - forward * Math.sin(-relativeHeading);
 
 		double denominator = Math.max(Math.abs(forwardRotated) + Math.abs(lateralRotated) + Math.abs(rotation), 1);
 		follower.setTeleOpDrive(

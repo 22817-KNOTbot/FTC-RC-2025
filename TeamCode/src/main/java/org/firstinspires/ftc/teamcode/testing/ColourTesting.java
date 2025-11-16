@@ -49,6 +49,8 @@ public class ColourTesting extends LinearOpMode {
 			telemetry.addData("2 - Sample Yellow", (green > 150) && (green > red) && (red > blue));
 			telemetry.addData("2 - Sample Red", (red > green) && (green > blue));
 			telemetry.addData("2 - Sample Blue", (blue > green) && (green > red));
+			telemetry.addData("Artifact Purple", red < green && green < blue && blue > red);
+			telemetry.addData("Artifact Green", red < green && green > blue && blue > red && green < 3500);
 			telemetry.update();
 		}
 	}
