@@ -25,7 +25,6 @@ public class Storage {
 	public static int positionInterval = 128;
 	public static double transferMotorPower = 0.4;
 	public static double intakeGatePosition = 0;
-	public static double intakePower = 1;
 	public static double transferRampOutPosition = 0.535;
 	public static double transferRampInPosition = 0.47;
 	public static boolean transferAll;
@@ -35,7 +34,6 @@ public class Storage {
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
 
 	private DcMotor storageMotor;
-	private DcMotor intakeMotor;
 	private ColorRangeSensor colourSensor;
 	private Servo intakeGate;
 	private Servo transferRamp;
@@ -44,10 +42,7 @@ public class Storage {
 	public enum TransferState {
 		IDLE,
 		RAMPOUT,
-		TURNINGFULL,
-		TURNINGHALF,
-		FLIPPEROUT,
-		FLIPPERIN, 
+		TURNING,
 		RESET
 	}
 	
@@ -65,8 +60,6 @@ public class Storage {
 		storageMotor.setTargetPosition(0);
 		storageMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		storageMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-		intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
 
 		intakeGate = hardwareMap.get(Servo.class, "intakeGate");
 		intakeGate.setPosition(0);
@@ -219,7 +212,6 @@ public class Storage {
 			artifactStored.set(0, null);
 			numOfArtifacts -= 1;
 			transferRamp.setPosition(transferRampOutPosition);
-			intakeMotor.setPower(intakePower);
 			timer.reset();
 			transferState = TransferState.RAMPOUT;
 			return true;
@@ -231,42 +223,28 @@ public class Storage {
 	public void transferUpdate() {
 		switch (transferState) {
 			case RAMPOUT:
-				if (timer.time() > 0.5 && getBackLeftArtifact() != null) {
+				if (timer.time() > 0.5) {
 					storageTurnCW();
 					timer.reset();
-					transferState = TransferState.TURNINGFULL;
-				} else {
-					storageHalfTurnCW(false);
-					timer.reset();
-					transferState = TransferState.TURNINGHALF;
+					transferState = TransferState.TURNING;
 				}
 				break;
 		
-			case TURNINGHALF:
+			case TURNING:
 				if (timer.time() > 0.5) {
 					timer.reset();
-					transferState = TransferState.FLIPPERIN;
+					transferState = TransferState.RESET;
 				}				
 				break;
 			
-			case FLIPPERIN:
-				if (timer.time() > 0.5) {
-					timer.reset();
-					transferState = TransferState.FLIPPEROUT;
-				}
+			default:
 				break;
-			case FLIPPEROUT:
-				if (timer.time() > 0.5) {
-					storageHalfTurnCW(true);
-					timer.reset();
-					transferState = TransferState.RESET;
-				}
 		}
 	}
 
 	public void finishTransfer() {
 		transferRamp.setPosition(transferRampInPosition);
-		intakeMotor.setPower(0);
+		transferState = TransferState.IDLE;
 	}
 
 	/*
