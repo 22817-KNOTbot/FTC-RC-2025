@@ -17,7 +17,6 @@ import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.paths.PathChain;
 
-
 @Configurable
 @Autonomous(name = "Red 9 Artifacts", group = "Autonomous")
 public class Red9Artifacts extends LinearOpMode {
@@ -35,11 +34,19 @@ public class Red9Artifacts extends LinearOpMode {
 	private Pose startPose;
 	private Artifact.Colour[] patternColours;
 
+	// blackboard
+	public static final String POSE = "pose";
+	public static final String ALLIANCE = "alliance";
+
 	private PathChain firstApproach, firstIntake, firstLaunch,
-			secondIntake, secondLaunch;
+			secondIntake, secondLaunch, exitShootingZone;
 
 	@Override
 	public void runOpMode() {
+		Object blackboardObject = blackboard.getOrDefault(POSE, new Pose(104.000, 35.800));
+		blackboard.put(ALLIANCE, alliance);
+		blackboard.put(POSE, new Pose(104.000, 35.800));
+
 		follower = Constants.createFollower(hardwareMap);
 		follower.setStartingPose(startPose);
 		automationHandler = new Automations(hardwareMap, alliance, DEBUG);
@@ -78,7 +85,7 @@ public class Red9Artifacts extends LinearOpMode {
 				.addPath(
 						new BezierCurve(
 								new Pose(96.000, 8.000),
-								new Pose(93.061, 27.820),
+								new Pose(93.000, 28.000),
 								new Pose(104.000, 35.800)))
 				.setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(0))
 				.addParametricCallback(0, this::readyToShoot)
@@ -97,7 +104,7 @@ public class Red9Artifacts extends LinearOpMode {
 				.addPath(
 						new BezierCurve(
 								new Pose(120.000, 35.800),
-								new Pose(108.539, 35.853),
+								new Pose(109.000, 36.000),
 								new Pose(84.000, 76.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
@@ -108,7 +115,7 @@ public class Red9Artifacts extends LinearOpMode {
 				.addPath(
 						new BezierCurve(
 								new Pose(84.000, 76.000),
-								new Pose(94.041, 58.776),
+								new Pose(94.000, 59.000),
 								new Pose(120.000, 59.800)))
 				.setTangentHeadingInterpolation()
 				.addPoseCallback(new Pose(99.000, 63.000), this::intakeToggle, 0.4)
@@ -119,11 +126,18 @@ public class Red9Artifacts extends LinearOpMode {
 				.addPath(
 						new BezierCurve(
 								new Pose(120.000, 59.800),
-								new Pose(115.788, 59.755),
+								new Pose(116.000, 60.000),
 								new Pose(84.000, 76.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
 				.addParametricCallback(1, this::startShooting)
+				.build();
+
+		exitShootingZone = follower.pathBuilder()
+				.addPath(
+						new BezierLine(new Pose(84.000, 76.000), new Pose(95.000, 70.000)))
+				.setTangentHeadingInterpolation()
+				.addParametricCallback(1, this::backboardPose)
 				.build();
 	}
 
@@ -160,6 +174,12 @@ public class Red9Artifacts extends LinearOpMode {
 			case 4:
 				if (!follower.isBusy()) {
 					follower.followPath(secondLaunch, true);
+					setPathState(5);
+				}
+				break;
+			case 5:
+				if (!follower.isBusy()) {
+					follower.followPath(exitShootingZone, true);
 					setPathState(-1);
 				}
 				break;
@@ -184,5 +204,9 @@ public class Red9Artifacts extends LinearOpMode {
 		if (doActions) {
 			automationHandler.intakeToggle();
 		}
+	}
+
+	public void backboardPose() {
+		blackboard.put(POSE, follower.getPose());
 	}
 }

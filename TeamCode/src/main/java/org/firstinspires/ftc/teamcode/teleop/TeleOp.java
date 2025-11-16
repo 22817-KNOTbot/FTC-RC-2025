@@ -55,6 +55,9 @@ public class TeleOp extends LinearOpMode {
 			alliance = (Alliance) blackboard.getOrDefault("alliance", new RedAlliance());
 		}
 
+		Pose pose;
+		pose = (Pose) blackboard.getOrDefault("pose", new Pose());
+
 		// Bulk read
 		List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
 		for (LynxModule hub : allHubs) {
@@ -163,7 +166,7 @@ public class TeleOp extends LinearOpMode {
 				telemetry.addLine(String.format("Loop time: %.2fms - %.0fhz", loopTime.time(), 1000 / loopTime.time()));
 				loopTime.reset();
 
-				Pose pose = mecanumDrive.getPose();
+				pose = mecanumDrive.getPose();
 				Pose holdPose = mecanumDrive.getHoldPose();
 
 				telemetry.addData("Heading", Math.toDegrees(pose.getHeading()));

@@ -17,7 +17,6 @@ import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.paths.PathChain;
 
-
 @Configurable
 @Autonomous(name = "Blue 9 Artifacts", group = "Autonomous")
 public class Blue9Artifacts extends LinearOpMode {
@@ -35,11 +34,19 @@ public class Blue9Artifacts extends LinearOpMode {
 	private Pose startPose;
 	private Artifact.Colour[] patternColours;
 
+	// blackboard
+	public static final String POSE = "pose";
+	public static final String ALLIANCE = "alliance";
+
 	private PathChain firstApproach, firstIntake, firstLaunch,
-			secondIntake, secondLaunch;
+			secondIntake, secondLaunch, exitShootingZone;
 
 	@Override
 	public void runOpMode() {
+		Object blackboardObject = blackboard.getOrDefault(POSE, new Pose(39.771, 35.461));
+		blackboard.put(ALLIANCE, alliance);
+		blackboard.put(POSE, new Pose(39.771, 35.461));
+
 		follower = Constants.createFollower(hardwareMap);
 		follower.setStartingPose(startPose);
 		automationHandler = new Automations(hardwareMap, alliance, DEBUG);
@@ -124,6 +131,12 @@ public class Blue9Artifacts extends LinearOpMode {
 				.setReversed()
 				.addParametricCallback(1, this::startShooting)
 				.build();
+		exitShootingZone = follower.pathBuilder()
+				.addPath(
+						new BezierLine(new Pose(60.000, 76.000), new Pose(49.000, 70.000)))
+				.setTangentHeadingInterpolation()
+				.addParametricCallback(1, this::backboardPose)
+				.build();
 	}
 
 	public void setPathState(int state) {
@@ -159,6 +172,12 @@ public class Blue9Artifacts extends LinearOpMode {
 			case 4:
 				if (!follower.isBusy()) {
 					follower.followPath(secondLaunch, true);
+					setPathState(5);
+				}
+				break;
+			case 5:
+				if (!follower.isBusy()) {
+					follower.followPath(exitShootingZone, true);
 					setPathState(-1);
 				}
 				break;
@@ -183,5 +202,9 @@ public class Blue9Artifacts extends LinearOpMode {
 		if (doActions) {
 			automationHandler.intakeToggle();
 		}
+	}
+
+	public void backboardPose() {
+		blackboard.put(POSE, follower.getPose());
 	}
 }
