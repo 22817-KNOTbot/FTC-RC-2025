@@ -23,12 +23,11 @@ import com.acmerobotics.dashboard.config.Config;
 public class Storage {
 	public static double distance_threshold_mm = 90;
 	public static int positionInterval = 128;
-	public static double transferMotorPower = 1;
-	public static int transferInterval = 5; // arbitary number, will change with further testing
+	public static double transferMotorPower = 0.4;
 	public static double intakeGatePosition = 0;
-	public static double miniFlipperInPosition = 0;
-	public static double miniFlipperOutPosition = 0;
-	public static double transferRampPosition = 0;
+	public static double intakePower = 1;
+	public static double transferRampOutPosition = 0.535;
+	public static double transferRampInPosition = 0.47;
 	public static boolean transferAll;
 	public static int numOfArtifacts = 0;
 	public static TransferState transferState = TransferState.IDLE;
@@ -36,9 +35,9 @@ public class Storage {
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
 
 	private DcMotor storageMotor;
+	private DcMotor intakeMotor;
 	private ColorRangeSensor colourSensor;
 	private Servo intakeGate;
-	private Servo miniFlipper;
 	private Servo transferRamp;
 	private ElapsedTime timer;
 
@@ -67,11 +66,10 @@ public class Storage {
 		storageMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		storageMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+		intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
+
 		intakeGate = hardwareMap.get(Servo.class, "intakeGate");
 		intakeGate.setPosition(0);
-
-		miniFlipper = hardwareMap.get(Servo.class, "miniFlipper");
-		miniFlipper.setPosition(0);
 
 		transferRamp = hardwareMap.get(Servo.class, "transferRamp");
 
@@ -220,7 +218,8 @@ public class Storage {
 		if (getActiveArtifact() != null) {
 			artifactStored.set(0, null);
 			numOfArtifacts -= 1;
-			transferRamp.setPosition(transferRampPosition);
+			transferRamp.setPosition(transferRampOutPosition);
+			intakeMotor.setPower(intakePower);
 			timer.reset();
 			transferState = TransferState.RAMPOUT;
 			return true;
@@ -245,7 +244,6 @@ public class Storage {
 		
 			case TURNINGHALF:
 				if (timer.time() > 0.5) {
-					miniFlipper.setPosition(miniFlipperInPosition);
 					timer.reset();
 					transferState = TransferState.FLIPPERIN;
 				}				
@@ -253,7 +251,6 @@ public class Storage {
 			
 			case FLIPPERIN:
 				if (timer.time() > 0.5) {
-					miniFlipper.setPosition(miniFlipperOutPosition);;
 					timer.reset();
 					transferState = TransferState.FLIPPEROUT;
 				}
@@ -268,7 +265,8 @@ public class Storage {
 	}
 
 	public void finishTransfer() {
-		transferRamp.setPosition(0);
+		transferRamp.setPosition(transferRampInPosition);
+		intakeMotor.setPower(0);
 	}
 
 	/*
