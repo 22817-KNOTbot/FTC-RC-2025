@@ -1,6 +1,6 @@
 # Values
 spindexer: 0.4 power; 128 increment\
-gate: 0.317 = closed; 0.355 = open\
+gate: 0.318 = closed; 0.355 = open; 0.33 = middle\
 hood: positive = up. 0.4 = lower; 0.73 = highest\
 \
 transfer ramp left: lower = out. 0.83 = in; 0.43 = out\
