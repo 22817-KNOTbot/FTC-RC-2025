@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.pedropathing.math.Vector;
+
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -82,6 +84,9 @@ public class MecanumDrive {
 
 	public Pose getPose() {
 		return follower.getPose();
+	}
+	public Vector getVelocity() {
+		return follower.getVelocity();
 	}
 
 	public void resetPose() {
