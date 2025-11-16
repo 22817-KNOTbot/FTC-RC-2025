@@ -20,7 +20,6 @@ import com.pedropathing.paths.PathChain;
 @Configurable
 @Autonomous(name = "BACKUP Red Low 0 Arifacts", group = "Autonomous")
 public class RedLow0Arifacts extends LinearOpMode {
-	public static boolean doMovement = true;
 	public static boolean doActions = true;
 	public static boolean DEBUG = false;
 
@@ -47,10 +46,8 @@ public class RedLow0Arifacts extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
-			if (doMovement) {
-				follower.update();
-				pathUpdate();
-			}
+			follower.update();
+			pathUpdate();
 		}
 		blackboard.put("pose", follower.getPose());
 		automationHandler.end();

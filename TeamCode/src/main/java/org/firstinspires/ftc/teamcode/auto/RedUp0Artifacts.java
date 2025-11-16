@@ -20,7 +20,6 @@ import com.pedropathing.paths.PathChain;
 @Configurable
 @Autonomous(name = "Upper Red Leave", group = "Autonomous")
 public class RedUp0Artifacts extends LinearOpMode {
-	public static boolean doMovement = true;
 	public static boolean doActions = true;
 	public static boolean DEBUG = false;
 
@@ -47,10 +46,8 @@ public class RedUp0Artifacts extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
-			if (doMovement) {
-				follower.update();
-				pathUpdate();
-			}
+			follower.update();
+			pathUpdate();
 		}
 		blackboard.put("pose", follower.getPose());
 		automationHandler.end();

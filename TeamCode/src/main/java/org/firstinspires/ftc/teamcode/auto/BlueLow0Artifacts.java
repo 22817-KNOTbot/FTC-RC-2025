@@ -20,7 +20,6 @@ import com.pedropathing.paths.PathChain;
 @Configurable
 @Autonomous(name = "Lower Blue Leave", group = "Autonomous")
 public class BlueLow0Artifacts extends LinearOpMode {
-	public static boolean doMovement = true;
 	public static boolean DEBUG = false;
 
 	private boolean shooting = false;
@@ -46,10 +45,8 @@ public class BlueLow0Artifacts extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
-			if (doMovement) {
-				follower.update();
-				pathUpdate();
-			}
+			follower.update();
+			pathUpdate();
 		}
 		blackboard.put("pose", follower.getPose());
 		automationHandler.end();
