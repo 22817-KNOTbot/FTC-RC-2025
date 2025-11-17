@@ -43,7 +43,8 @@ public class Automations {
 	private Artifact.Pattern pattern;
 	private boolean intakeEnabled;
 	private boolean shooterEnabled;
-	public static boolean transferAll;
+	private boolean transferAll;
+	private boolean transferInit = false;
 
 	public enum StorageState {
 		WAITING,
@@ -114,7 +115,7 @@ public class Automations {
 					shootActiveArtifact();
 					timer.reset();
 				} else {
-					storage.finishTransfer();
+					storage.transferFinish();
 					intake.enable(false);
 					storageState = StorageState.WAITING;
 				}
@@ -192,7 +193,11 @@ public class Automations {
 
 	public void shootActiveArtifact() {
 		shooter.enable(true);
-		storage.transfer();
+		if (!storage.getTransferInit()) {
+			storage.transferInit();
+		} else {
+			storage.transferStart();
+		}
 		storageState = StorageState.TRANSFERRING;
 	}
 

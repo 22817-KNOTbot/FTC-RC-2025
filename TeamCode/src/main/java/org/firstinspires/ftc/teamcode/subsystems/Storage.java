@@ -32,6 +32,7 @@ public class Storage {
 
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
 	private TransferState transferState = TransferState.IDLE;
+	private boolean transferInit = false;
 
 	private DcMotor storageMotor;
 	private ColorRangeSensor colourSensor;
@@ -92,6 +93,10 @@ public class Storage {
 
 	public TransferState getTransferState() {
 		return transferState;
+	}
+
+	public boolean getTransferInit() {
+		return transferInit;
 	}
 
 	/*
@@ -194,14 +199,22 @@ public class Storage {
 	}
 
 	public TurnDirection turnToArtifact(Colour desiredArtifact) {
+		return turnToArtifact(desiredArtifact, true);
+	}
+
+	public TurnDirection turnToArtifact(Colour desiredArtifact, boolean move) {
 		if (numOfArtifacts > 0) {
 			if (getActiveArtifact() == desiredArtifact) {
 				return TurnDirection.AVAILABLE;
 			} else if (getBackLeftArtifact() == desiredArtifact) {
-				storageTurnCCW();
+				if (move) {
+					storageTurnCCW();
+				}
 				return TurnDirection.CCW;
 			} else if (getBackRightArtifact() == desiredArtifact) {
-				storageTurnCW();
+				if (move) {
+					storageTurnCW();
+				}
 				return TurnDirection.CW;
 			} else {
 				return TurnDirection.NONE;
@@ -211,26 +224,7 @@ public class Storage {
 		}
 	}
 
-	public TurnDirection turnToArtifact(Colour desiredArtifact, boolean move) {
-		if (move) {
-			if (numOfArtifacts > 0) {
-				if (getActiveArtifact() == desiredArtifact) {
-					return TurnDirection.AVAILABLE;
-				} else if (getBackLeftArtifact() == desiredArtifact) {
-					return TurnDirection.CCW;
-				} else if (getBackRightArtifact() == desiredArtifact) {
-					return TurnDirection.CW;
-				} else {
-					return TurnDirection.NONE;
-				}
-			} else {
-				return TurnDirection.NONE;
-			}
-		}
-		return TurnDirection.NONE;
-	}
-
-	public boolean transfer() {
+	public boolean transferInit() {
 		if (getActiveArtifact() != null) {
 			gateUp();
 			artifactStored.set(0, null);
@@ -238,6 +232,20 @@ public class Storage {
 			transferRamp.setPosition(transferRampOutPosition);
 			timer.reset();
 			transferState = TransferState.RAMPOUT;
+			transferInit = true;
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public boolean transferStart() {
+		if (getActiveArtifact() != null) {
+			artifactStored.set(0, null);
+			numOfArtifacts -= 1;
+			storageTurnCW();
+			timer.reset();
+			transferState = TransferState.TURNING;
 			return true;
 		} else {
 			return false;
@@ -247,7 +255,7 @@ public class Storage {
 	public void transferUpdate() {
 		switch (transferState) {
 			case RAMPOUT:
-				if (timer.time() > 0.5) {
+				if (timer.time() >= 0.5) {
 					storageTurnCW();
 					timer.reset();
 					transferState = TransferState.TURNING;
@@ -255,7 +263,7 @@ public class Storage {
 				break;
 		
 			case TURNING:
-				if (timer.time() > 0.5) {
+				if (timer.time() >= 0.5) {
 					timer.reset();
 					transferState = TransferState.RESET;
 				}				
@@ -266,9 +274,11 @@ public class Storage {
 		}
 	}
 
-	public void finishTransfer() {
+	public void transferFinish() {
 		transferRamp.setPosition(transferRampInPosition);
+		gateDown();
 		transferState = TransferState.IDLE;
+		transferInit = false;
 	}
 
 	/*

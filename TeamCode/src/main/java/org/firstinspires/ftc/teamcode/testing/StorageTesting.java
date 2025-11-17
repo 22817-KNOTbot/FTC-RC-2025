@@ -53,11 +53,11 @@ public class StorageTesting extends LinearOpMode {
 					case TURN_TO:
 						output = storage.turnToArtifact(desiredArtifact, true);
 					case RELEASE:
-						output = storage.transfer();
+						output = storage.transferInit();
 						command = Command.NONE;
 						break;
 					case FINISH_RELEASE:
-						storage.finishTransfer();
+						storage.transferFinish();
 						command = Command.NONE;
 				}
 			} else {
