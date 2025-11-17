@@ -28,7 +28,6 @@ public class RedLow0Arifacts extends LinearOpMode {
 	private int shotsFired = 0;
 
 	private Alliance alliance = new RedAlliance();
-	private Automations automationHandler;
 	private Follower follower;
 	private Pose startPose = follower.getPose();
 	private Artifact.Colour[] patternColours;
@@ -40,7 +39,6 @@ public class RedLow0Arifacts extends LinearOpMode {
 		blackboard.put("alliance", alliance);
 		follower = Constants.createFollower(hardwareMap);
 		follower.setStartingPose(startPose);
-		automationHandler = new Automations(hardwareMap, alliance, DEBUG);
 		buildPaths();
 
 		waitForStart();
@@ -50,7 +48,6 @@ public class RedLow0Arifacts extends LinearOpMode {
 			pathUpdate();
 		}
 		blackboard.put("pose", follower.getPose());
-		automationHandler.end();
 	}
 
 	public void buildPaths() {

@@ -11,7 +11,6 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.gamepad.PanelsGamepad;
 
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.follower.Follower;
 
 import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
@@ -31,7 +30,6 @@ public class TeleOp extends LinearOpMode {
 	private ElapsedTime loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 	private Automations automationHandler;
 	private MecanumDrive mecanumDrive;
-	private Follower follower;
 
 	@Override
 	public void runOpMode() {
@@ -57,9 +55,9 @@ public class TeleOp extends LinearOpMode {
 			alliance = (Alliance) blackboard.getOrDefault("alliance", new RedAlliance());
 		}
 
-		Pose pose;
-		pose = (Pose) blackboard.getOrDefault("pose", new Pose());
-		follower.setPose(pose);
+		Pose pose = (Pose) blackboard.getOrDefault("pose", new Pose());
+
+		mecanumDrive.setPoseFromAuto(pose);
 
 		// Bulk read
 		List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);

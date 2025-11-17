@@ -97,7 +97,7 @@ public class RedUp9Artifacts extends LinearOpMode {
 						new BezierCurve(
 								new Pose(120.000, 84.000),
 								new Pose(100.000, 84.000),
-								new Pose(90.000, 96.000)))
+								new Pose(84.000, 84.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
 				.addParametricCallback(1, this::startShooting)
@@ -106,8 +106,8 @@ public class RedUp9Artifacts extends LinearOpMode {
 		secondApproch = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(90.000, 96.000),
-								new Pose(102.000, 82.000),
+								new Pose(84.000, 84.000),
+								new Pose(105.000, 84.000),
 								new Pose(90.000, 60.000),
 								new Pose(105.000, 60.000)))
 				.setTangentHeadingInterpolation()

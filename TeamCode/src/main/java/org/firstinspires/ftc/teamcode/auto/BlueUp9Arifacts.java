@@ -80,8 +80,8 @@ public class BlueUp9Arifacts extends LinearOpMode {
 				.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(21.000, 124.000),
-								new Pose(80.000, 84.000),
+								new Pose(19.000, 124.000),
+								new Pose(64.000, 84.000),
 								new Pose(40.000, 84.000)))
 				.setLinearHeadingInterpolation(Math.toRadians(325), Math.toRadians(180))
 				.setReversed()
@@ -101,7 +101,7 @@ public class BlueUp9Arifacts extends LinearOpMode {
 						new BezierCurve(
 								new Pose(24.000, 84.000),
 								new Pose(44.000, 84.000),
-								new Pose(54.000, 96.000)))
+								new Pose(60.000, 84.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
 				.addParametricCallback(1, this::startShooting)
@@ -110,8 +110,8 @@ public class BlueUp9Arifacts extends LinearOpMode {
 		secondApproch = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(54.000, 96.000),
-								new Pose(42.000, 82.000),
+								new Pose(60.000, 84.000),
+								new Pose(39.000, 84.000),
 								new Pose(54.000, 60.000),
 								new Pose(39.000, 60.000)))
 				.setTangentHeadingInterpolation()
