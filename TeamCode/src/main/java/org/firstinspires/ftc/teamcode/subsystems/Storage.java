@@ -24,7 +24,8 @@ public class Storage {
 	public static double distance_threshold_mm = 90;
 	public static int positionInterval = 128;
 	public static double transferMotorPower = 0.4;
-	public static double intakeGatePosition = 0;
+	public static double intakeGateUpPosition = 0.355;
+	public static double intakeGateDownPosition = 0.317;
 	public static double transferRampOutPosition = 0.535;
 	public static double transferRampInPosition = 0.47;
 	public static int numOfArtifacts = 0;
@@ -106,6 +107,14 @@ public class Storage {
 			return true;
 		}
 		return false;
+	}
+
+	public void gateUp() {
+		intakeGate.setPosition(intakeGateUpPosition);
+	}
+
+	public void gateDown() {
+		intakeGate.setPosition(intakeGateDownPosition);
 	}
 
 	public void storageMotorEnable(boolean enabled){
@@ -226,6 +235,7 @@ public class Storage {
 
 	public boolean transfer() {
 		if (getActiveArtifact() != null) {
+			gateDown();
 			artifactStored.set(0, null);
 			numOfArtifacts -= 1;
 			transferRamp.setPosition(transferRampOutPosition);
