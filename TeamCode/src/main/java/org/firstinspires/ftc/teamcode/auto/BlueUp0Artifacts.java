@@ -58,7 +58,7 @@ public class BlueUp0Artifacts extends LinearOpMode {
 	public void buildPaths() {
 		leaveline = follower.pathBuilder()
 				.addPath(new BezierLine(new Pose(21.000, 124.000), new Pose(37.000, 130.000)))
-				.setConstantHeadingInterpolation(Math.toRadians(215))
+				.setConstantHeadingInterpolation(Math.toRadians(325))
 				.build();
 	}
 
