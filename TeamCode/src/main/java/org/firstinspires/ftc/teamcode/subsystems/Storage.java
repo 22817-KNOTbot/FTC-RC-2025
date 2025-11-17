@@ -181,6 +181,24 @@ public class Storage {
 		}
 	}
 
+	public TurnDirection turnToArtifact(Colour desiredArtifact) {
+		if (numOfArtifacts > 0) {
+			if (getActiveArtifact() == desiredArtifact) {
+				return TurnDirection.AVAILABLE;
+			} else if (getBackLeftArtifact() == desiredArtifact) {
+				storageTurnCCW();
+				return TurnDirection.CCW;
+			} else if (getBackRightArtifact() == desiredArtifact) {
+				storageTurnCW();
+				return TurnDirection.CW;
+			} else {
+				return TurnDirection.NONE;
+			}
+		} else {
+			return TurnDirection.NONE;
+		}
+	}
+
 	public TurnDirection turnToArtifact(Colour desiredArtifact, boolean move) {
 		if (numOfArtifacts > 0) {
 			if (getActiveArtifact() == desiredArtifact) {
@@ -203,9 +221,9 @@ public class Storage {
 		}
 	}
 
-	public boolean checkDirection(Colour desiredColour) {
-		return (turnToArtifact(Colour.PURPLE, false) != TurnDirection.AVAILABLE && turnToArtifact(Colour.PURPLE, false) != TurnDirection.NONE);
-	}
+	// public boolean checkDirection(Colour desiredColour) {
+	// 	return (turnToArtifact(Colour.PURPLE, false) != TurnDirection.AVAILABLE && turnToArtifact(Colour.PURPLE, false) != TurnDirection.NONE);
+	// }
 
 	public boolean transfer() {
 		if (getActiveArtifact() != null) {

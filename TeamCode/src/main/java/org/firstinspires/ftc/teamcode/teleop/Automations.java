@@ -99,24 +99,25 @@ public class Automations {
 	public void automationLoop() {
 		vision.updateMotifPattern();
 		pattern = vision.getLastMotifPattern();
-		storage.transferUpdate();
 		if (storageState == StorageState.WAITING) {
 			storage.intake();
 		} else if (storageState == StorageState.TURNING && shooter.getVelocity() >= Shooter.shooterVelocity 
 				&& timer.time() > 0.1){ // may change time later
 			shootActiveArtifact();
 			timer.reset();
-		} else if (storageState == StorageState.TRANSFERRING && storage.transferState == Storage.TransferState.RESET) {
-			if (storage.transferAll && storage.numOfArtifacts > 0) {
+		} else if (storageState == StorageState.TRANSFERRING) {
+			storage.transferUpdate();
+			if (storage.transferAll && storage.transferState == Storage.TransferState.IDLE) {
 				intake.enable(true);
-				storage.transfer();
-				storageState = StorageState.TURNING;
-				timer.reset();
-			} else {
-				shooter.enable(false);
-				storage.finishTransfer();
-				intake.enable(false);
-				storageState = StorageState.WAITING;
+				if (storage.getActiveArtifact() != null) {
+					shootActiveArtifact();
+					timer.reset();
+				} else {
+					shooter.enable(false);
+					storage.finishTransfer();
+					intake.enable(false);
+					storageState = StorageState.WAITING;
+				}
 			}
 		}
 	}
