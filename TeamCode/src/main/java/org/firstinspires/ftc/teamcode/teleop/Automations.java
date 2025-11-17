@@ -43,6 +43,7 @@ public class Automations {
 	private Artifact.Pattern pattern;
 	private boolean intakeEnabled;
 	private boolean shooterEnabled;
+	public static boolean transferAll;
 
 	public enum StorageState {
 		WAITING,
@@ -107,19 +108,22 @@ public class Automations {
 			timer.reset();
 		} else if (storageState == StorageState.TRANSFERRING) {
 			storage.transferUpdate();
-			if (storage.transferAll && storage.transferState == Storage.TransferState.IDLE) {
-				intake.enable(true);
-				if (storage.getActiveArtifact() != null) {
-					shootActiveArtifact();
-					timer.reset();
+			if (storage.getTransferState() == Storage.TransferState.RESET) {
+				if (transferAll) {
+					intake.enable(true);
+					if (storage.getActiveArtifact() != null) {
+						shootActiveArtifact();
+						timer.reset();
+					} else { 
+						transferAll = false;
+					}
 				} else {
-					shooter.enable(false);
 					storage.finishTransfer();
 					intake.enable(false);
 					storageState = StorageState.WAITING;
 				}
-			}
-		}
+			} 
+		} 
 	}
 
 	// Should only be called once as the opmode ends

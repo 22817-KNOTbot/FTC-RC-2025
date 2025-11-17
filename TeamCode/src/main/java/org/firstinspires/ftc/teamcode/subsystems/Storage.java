@@ -27,11 +27,10 @@ public class Storage {
 	public static double intakeGatePosition = 0;
 	public static double transferRampOutPosition = 0.535;
 	public static double transferRampInPosition = 0.47;
-	public static boolean transferAll;
 	public static int numOfArtifacts = 0;
-	public static TransferState transferState = TransferState.IDLE;
 
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
+	private TransferState transferState = TransferState.IDLE;
 
 	private DcMotor storageMotor;
 	private ColorRangeSensor colourSensor;
@@ -42,7 +41,7 @@ public class Storage {
 	public enum TransferState {
 		IDLE,
 		RAMPOUT,
-		TURNING,
+		TURNING, 
 		RESET
 	}
 	
@@ -88,6 +87,10 @@ public class Storage {
 
 	public static Colour getBackRightArtifact() {
 		return artifactStored.get(2);
+	}
+
+	public TransferState getTransferState() {
+		return transferState;
 	}
 
 	/*
@@ -204,12 +207,12 @@ public class Storage {
 			if (getActiveArtifact() == desiredArtifact) {
 				return TurnDirection.AVAILABLE;
 			} else if (getBackLeftArtifact() == desiredArtifact) {
-				if (move) {
+				if (!move) {
 					storageTurnCCW();
 				}
 				return TurnDirection.CCW;
 			} else if (getBackRightArtifact() == desiredArtifact) {
-				if (move) {
+				if (!move) {
 					storageTurnCW();
 				}
 				return TurnDirection.CW;
@@ -220,10 +223,6 @@ public class Storage {
 			return TurnDirection.NONE;
 		}
 	}
-
-	// public boolean checkDirection(Colour desiredColour) {
-	// 	return (turnToArtifact(Colour.PURPLE, false) != TurnDirection.AVAILABLE && turnToArtifact(Colour.PURPLE, false) != TurnDirection.NONE);
-	// }
 
 	public boolean transfer() {
 		if (getActiveArtifact() != null) {
