@@ -17,8 +17,6 @@ import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.paths.PathChain;
 
-// TODO fix the autos UpperBlue9Artifacts and UpperRed9Artifacts
-
 @Configurable
 @Autonomous(name = "Upper Blue 9 Artifacts", group = "Autonomous")
 public class BlueUp9Arifacts extends LinearOpMode {
@@ -36,7 +34,7 @@ public class BlueUp9Arifacts extends LinearOpMode {
 	private Pose startPose = follower.getPose();
 	private Artifact.Colour[] patternColours;
 
-	private PathChain firstApproach, firstIntake, firstLaunch,
+	private PathChain zerothLaunch, firstApproach, firstIntake, firstLaunch,
 			secondApproch, secondIntake, secondLaunch, exitShootingZone;
 
 	@Override
@@ -76,21 +74,16 @@ public class BlueUp9Arifacts extends LinearOpMode {
 	}
 
 	public void buildPaths() {
-		firstApproach = follower
-				.pathBuilder()
+		zerothLaunch = follower.pathBuilder()
 				.addPath(
-						new BezierCurve(
-								new Pose(19.000, 124.000),
-								new Pose(64.000, 84.000),
-								new Pose(40.000, 84.000)))
-				.setLinearHeadingInterpolation(Math.toRadians(325), Math.toRadians(180))
-				.setReversed()
-				.addParametricCallback(0, this::readyToShoot)
-				.addParametricCallback(0, this::startShooting)
+						new BezierLine(new Pose(21.000, 124.000), new Pose(60.000, 84.000)))
+				.setLinearHeadingInterpolation(Math.toRadians(55), Math.toRadians(180))
+				.addParametricCallback(0.5, this::readyToShoot)
+				.addParametricCallback(0.5, this::startShooting)
 				.build();
 
 		firstIntake = follower.pathBuilder()
-				.addPath(new BezierLine(new Pose(40.000, 84.000), new Pose(24.000, 84.000)))
+				.addPath(new BezierLine(new Pose(60.000, 84.000), new Pose(24.000, 84.000)))
 				.setTangentHeadingInterpolation()
 				.addParametricCallback(0, this::intakeToggle)
 				.addParametricCallback(1, this::intakeToggle)
