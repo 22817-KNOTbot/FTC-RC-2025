@@ -212,30 +212,27 @@ public class Storage {
 	}
 
 	public TurnDirection turnToArtifact(Colour desiredArtifact, boolean move) {
-		if (numOfArtifacts > 0) {
-			if (getActiveArtifact() == desiredArtifact) {
-				return TurnDirection.AVAILABLE;
-			} else if (getBackLeftArtifact() == desiredArtifact) {
-				if (!move) {
-					storageTurnCCW();
+		if (move) {
+			if (numOfArtifacts > 0) {
+				if (getActiveArtifact() == desiredArtifact) {
+					return TurnDirection.AVAILABLE;
+				} else if (getBackLeftArtifact() == desiredArtifact) {
+					return TurnDirection.CCW;
+				} else if (getBackRightArtifact() == desiredArtifact) {
+					return TurnDirection.CW;
+				} else {
+					return TurnDirection.NONE;
 				}
-				return TurnDirection.CCW;
-			} else if (getBackRightArtifact() == desiredArtifact) {
-				if (!move) {
-					storageTurnCW();
-				}
-				return TurnDirection.CW;
 			} else {
 				return TurnDirection.NONE;
 			}
-		} else {
-			return TurnDirection.NONE;
 		}
+		return TurnDirection.NONE;
 	}
 
 	public boolean transfer() {
 		if (getActiveArtifact() != null) {
-			gateDown();
+			gateUp();
 			artifactStored.set(0, null);
 			numOfArtifacts -= 1;
 			transferRamp.setPosition(transferRampOutPosition);

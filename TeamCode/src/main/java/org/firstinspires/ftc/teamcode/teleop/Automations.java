@@ -109,14 +109,10 @@ public class Automations {
 		} else if (storageState == StorageState.TRANSFERRING) {
 			storage.transferUpdate();
 			if (storage.getTransferState() == Storage.TransferState.RESET) {
-				if (transferAll) {
+				if (transferAll && storage.getActiveArtifact() != null) {
 					intake.enable(true);
-					if (storage.getActiveArtifact() != null) {
-						shootActiveArtifact();
-						timer.reset();
-					} else { 
-						transferAll = false;
-					}
+					shootActiveArtifact();
+					timer.reset();
 				} else {
 					storage.finishTransfer();
 					intake.enable(false);
