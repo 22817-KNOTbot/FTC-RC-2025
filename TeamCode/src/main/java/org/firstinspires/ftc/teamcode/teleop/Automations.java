@@ -48,6 +48,7 @@ public class Automations {
 
 	public enum StorageState {
 		WAITING,
+		INTAKING,
 		TURNING,
 		TRANSFERRING
 	}
@@ -101,8 +102,15 @@ public class Automations {
 	public void automationLoop() {
 		vision.updateMotifPattern();
 		pattern = vision.getLastMotifPattern();
-		if (storageState == StorageState.WAITING) {
-			storage.intake();
+		if (storageState == StorageState.WAITING && intakeEnabled) {
+			if (storage.intake()) {
+				storageState = StorageState.INTAKING;
+			}
+		} else if (storageState == StorageState.INTAKING) {
+			storage.intakeUpdate();
+			if (storage.getIntakeState() == Storage.IntakeState.RESET) {
+				storageState = StorageState.WAITING;
+			}
 		} else if (storageState == StorageState.TURNING && shooter.getVelocity() >= Shooter.shooterVelocity 
 				&& timer.time() > 0.1){ // may change time later
 			shootActiveArtifact();
