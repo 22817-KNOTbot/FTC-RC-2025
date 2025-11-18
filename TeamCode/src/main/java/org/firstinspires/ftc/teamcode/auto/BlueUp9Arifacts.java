@@ -78,8 +78,8 @@ public class BlueUp9Arifacts extends LinearOpMode {
 				.addPath(
 						new BezierLine(new Pose(21.000, 124.000), new Pose(60.000, 84.000)))
 				.setLinearHeadingInterpolation(Math.toRadians(55), Math.toRadians(180))
-				.addParametricCallback(0.5, this::readyToShoot)
-				.addParametricCallback(0.5, this::startShooting)
+				.addParametricCallback(1, this::readyToShoot)
+				.addParametricCallback(1, this::startShooting)
 				.build();
 
 		firstIntake = follower.pathBuilder()
