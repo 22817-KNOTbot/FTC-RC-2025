@@ -31,7 +31,7 @@ public class BlueLow9Artifacts extends LinearOpMode {
 	private Alliance alliance = new BlueAlliance();
 	private Automations automationHandler;
 	private Follower follower;
-	private Pose startPose = follower.getPose();
+	private Pose startPose = new Pose(48.000, 8.000);
 	private Artifact.Colour[] patternColours;
 
 	private PathChain firstApproach, firstIntake, firstLaunch,

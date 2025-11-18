@@ -31,7 +31,7 @@ public class RedLow9Artifacts extends LinearOpMode {
 	private Alliance alliance = new RedAlliance();
 	private Automations automationHandler;
 	private Follower follower;
-	private Pose startPose = follower.getPose();
+	private Pose startPose = new Pose(96.000, 8.000);
 	private Artifact.Colour[] patternColours;
 
 	private PathChain firstApproach, firstIntake, firstLaunch,

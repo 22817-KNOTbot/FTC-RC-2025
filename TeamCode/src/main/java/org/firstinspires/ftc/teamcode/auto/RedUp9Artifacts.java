@@ -31,10 +31,10 @@ public class RedUp9Artifacts extends LinearOpMode {
 	private Alliance alliance = new RedAlliance();
 	private Automations automationHandler;
 	private Follower follower;
-	private Pose startPose = follower.getPose();
+	private Pose startPose = new Pose(123.000, 124.000);
 	private Artifact.Colour[] patternColours;
 
-	private PathChain zerothLaunch, firstApproach, firstIntake, firstLaunch,
+	private PathChain preloadLaunch, firstApproach, firstIntake, firstLaunch,
 			secondApproch, secondIntake, secondLaunch, exitShootingZone;
 
 	@Override
@@ -74,7 +74,7 @@ public class RedUp9Artifacts extends LinearOpMode {
 	}
 
 	public void buildPaths() {
-		zerothLaunch = follower.pathBuilder()
+		preloadLaunch = follower.pathBuilder()
 				.addPath(
 						new BezierLine(new Pose(123.000, 124.000), new Pose(84.000, 84.000)))
 				.setLinearHeadingInterpolation(Math.toRadians(125), Math.toRadians(0))
