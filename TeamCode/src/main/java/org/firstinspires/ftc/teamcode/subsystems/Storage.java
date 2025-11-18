@@ -15,10 +15,13 @@ import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.acmerobotics.dashboard.config.Config;
+
 @Configurable
+@Config
 public class Storage {
-	public static double distance_threshold_mm = 5;
-	public static int positionInterval = 5; // arbitary number, will change with further testing
+	public static double distance_threshold_mm = 90;
+	public static int positionInterval = 128;
 	public static double transferMotorPower = 1;
 	public static int transferInterval = 5; // arbitary number, will change with further testing
 
@@ -171,9 +174,9 @@ public class Storage {
 		Colour colour = null;
 		if (colourSensorResponding()) {
 			// TODO: Update checks after testing
-			if (red > green && green < blue && blue > red) {
+			if (red < green && green < blue && blue > red) {
 				colour = Colour.PURPLE;
-			} else if (red < green && green > blue && blue > red) {
+			} else if (red < green && green > blue && blue > red && green < 3500) {
 				colour = Colour.GREEN;
 			}
 		}

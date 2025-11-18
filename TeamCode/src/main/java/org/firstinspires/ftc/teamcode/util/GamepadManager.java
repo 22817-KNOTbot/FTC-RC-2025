@@ -6,7 +6,10 @@ import com.bylazar.configurables.annotations.Configurable;
 
 import java.util.function.Function;
 
+import com.acmerobotics.dashboard.config.Config;
+
 @Configurable
+@Config
 public class GamepadManager {
 	public static boolean PHYSICAL_GAMEPAD_1_ENABLED = true;
 	public static boolean PHYSICAL_GAMEPAD_2_ENABLED = true;

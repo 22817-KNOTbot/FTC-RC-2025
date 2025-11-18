@@ -8,22 +8,25 @@ import com.qualcomm.robotcore.util.Range;
 
 import com.bylazar.configurables.annotations.Configurable;
 
-@Configurable
-public class Turret {
-	public static double BASE_ROTATION = 0.5;
-	public static double BASE_PITCH = 0.5;
+import com.acmerobotics.dashboard.config.Config;
 
-	public static double min_rotation = 0.4;
-	public static double max_rotation = 0.6;
-	public static double min_pitch = 0.45;
-	public static double max_pitch = 0.55;
-	public static double rotation_increment = 0.01;
-	public static double rotation_per_deg = (1d/1800)*3;
-	public static double pitch_incremenet = 0.01;
+@Configurable
+@Config
+public class Turret {
+	public static double BASE_ROTATION = 0.4;
+	public static double BASE_PITCH = 0.05;
+
+	public static double min_rotation = 0.1;
+	public static double max_rotation = 0.7;
+	public static double min_pitch = 0.05;
+	public static double max_pitch = 0.6;
+	public static double rotation_increment = 0.0005;
+	public static double rotation_per_deg = 0.205/90;
+	public static double pitch_increment = 0.01;
 
 	private Servo turretYawServo1;
 	private Servo turretYawServo2;
-	private Servo turretPitchServo;
+	// private Servo turretPitchServo;
 
 	private static Position position = Position.BASE;
 	private static double rotation = BASE_ROTATION;
@@ -38,9 +41,9 @@ public class Turret {
 		turretYawServo1 = hardwareMap.get(Servo.class, "turretYawServo1");
 		turretYawServo2 = hardwareMap.get(Servo.class, "turretYawServo2");
 		turretYawServo1.setDirection(Servo.Direction.FORWARD);
-		turretYawServo2.setDirection(Servo.Direction.REVERSE);
-		turretPitchServo = hardwareMap.get(Servo.class, "turretPitchServo");
-		turretPitchServo.setDirection(Servo.Direction.FORWARD);
+		turretYawServo2.setDirection(Servo.Direction.FORWARD);
+		// turretPitchServo = hardwareMap.get(Servo.class, "turretPitchServo");
+		// turretPitchServo.setDirection(Servo.Direction.FORWARD);
 	}
 
 	public void abort() {
@@ -102,7 +105,7 @@ public class Turret {
 	
 	public void pitchTurret(double vector) {
 		vector = Range.clip(vector, -1, 1);
-		setPitch(pitch + (vector * pitch_incremenet));
+		setPitch(pitch + (vector * pitch_increment));
 	}
 
 	/*
@@ -126,7 +129,7 @@ public class Turret {
 	private void setPitchInternal(double pitchTarget) {
 		pitchTarget = Range.clip(pitchTarget, min_pitch, max_pitch);
 
-		turretPitchServo.setPosition(pitchTarget);
+		// turretPitchServo.setPosition(pitchTarget);
 
 		Turret.pitch = pitchTarget;
 	}

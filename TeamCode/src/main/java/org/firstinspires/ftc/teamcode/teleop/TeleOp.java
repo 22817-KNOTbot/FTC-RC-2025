@@ -22,7 +22,10 @@ import org.firstinspires.ftc.teamcode.util.GamepadManager;
 
 import java.util.List;
 
+import com.acmerobotics.dashboard.config.Config;
+
 @Configurable
+@Config
 public class TeleOp extends LinearOpMode {
 	public static boolean DEBUG = false;
 
@@ -48,9 +51,9 @@ public class TeleOp extends LinearOpMode {
 
 		Alliance alliance;
 		if (gamepad1.left_trigger > 0.9) {
-			alliance = new RedAlliance();
-		} else if (gamepad1.right_trigger > 0.9) {
 			alliance = new BlueAlliance();
+		} else if (gamepad1.right_trigger > 0.9) {
+			alliance = new RedAlliance();
 		} else {
 			alliance = (Alliance) blackboard.getOrDefault("alliance", new RedAlliance());
 		}
@@ -107,6 +110,11 @@ public class TeleOp extends LinearOpMode {
 			if (gamepad1.aWasPressed()) {
 				automationHandler.intakeToggle();
 			}
+			if (gamepad1.right_trigger > 0.9) {
+				automationHandler.intakeEject();
+			} else if (automationHandler.getIntakeEjecting()) {
+				automationHandler.intakeEjectStop();
+			}
 			if (gamepad1.yWasPressed()) {
 				automationHandler.prepareOrShootArtifact(Artifact.Colour.PURPLE);
 			} else if (gamepad1.bWasPressed()) {
@@ -114,6 +122,7 @@ public class TeleOp extends LinearOpMode {
 			}
 
 			automationHandler.updatePose(mecanumDrive.getPose());
+			automationHandler.updateVelocity(mecanumDrive.getVelocity());
 			automationHandler.automationLoop();
 
 			if (gamepad1.back || gamepad2.back) {

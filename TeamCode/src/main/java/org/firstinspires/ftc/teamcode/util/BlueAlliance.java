@@ -12,7 +12,7 @@ public class BlueAlliance implements Alliance {
 	}
 
 	public double getHeadingOffset() {
-		return -Math.PI;
+		return -Math.PI/2;
 	}
 
 	public Pose getBasePose() {

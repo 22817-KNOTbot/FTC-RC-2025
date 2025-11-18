@@ -18,6 +18,7 @@ import org.firstinspires.ftc.teamcode.subsystems.vision.Vision;
 import org.firstinspires.ftc.teamcode.subsystems.vision.AutoAlign.AlignmentDirection;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 
+import com.pedropathing.math.Vector;
 import com.pedropathing.geometry.Pose;
 
 public class Automations {
@@ -25,7 +26,8 @@ public class Automations {
 	private Alliance alliance;
 	private boolean DEBUG;
 	private StorageState storageState;
-	private ElapsedTime timer;
+	private ElapsedTime stateTimer;
+	private ElapsedTime ejectTimer;
 
 	private Intake intake;
 	private Storage storage;
@@ -37,8 +39,13 @@ public class Automations {
 	private Gamepad gamepad2;
 
 	private Pose pose;
+	private Vector velocity;
+
 	private Artifact.Pattern pattern;
 	private boolean intakeEnabled;
+	private boolean intakePreviouslyEnabled;
+	private boolean intakeEjecting;
+	private boolean intakeTimedEjecting;
 	private boolean shooterEnabled;
 
 	public enum StorageState {
@@ -56,7 +63,8 @@ public class Automations {
 		this.alliance = alliance;
 		this.DEBUG = DEBUG;
 		this.storageState = StorageState.WAITING;
-		this.timer = new ElapsedTime();
+		this.stateTimer = new ElapsedTime();
+		this.ejectTimer = new ElapsedTime();
 		intake = new Intake(hardwareMap);
 		storage = new Storage(hardwareMap, false);
 		turret = new Turret(hardwareMap);
@@ -97,12 +105,32 @@ public class Automations {
 		vision.updateMotifPattern();
 		pattern = vision.getLastMotifPattern();
 		if (storageState == StorageState.WAITING) {
-			storage.intake();
-		} else if (storageState == StorageState.TURNING && timer.time() > 0.5) {
+			boolean intaked = storage.intake();
+			if (intaked && storage.storageFull()) {
+				intake.enableReversed(true);
+				intakePreviouslyEnabled = intakeEnabled;
+				intakeEnabled = false;
+				intakeTimedEjecting = true;
+				ejectTimer.reset();
+			}
+		} else if (storageState == StorageState.TURNING && shooter.getVelocity() >= Shooter.shooterVelocity 
+				&& stateTimer.time() > 0.5) {
 			shootActiveArtifact();
-		} else if (storageState == StorageState.RELEASING && timer.time() > 0.5) {
+		} else if (storageState == StorageState.RELEASING && stateTimer.time() > 0.5) {
 			storage.finishRelease();
 			storageState = StorageState.WAITING;
+		}
+
+		if (inShootingArea()) {
+			setShooterEnabled(true);
+		} else {
+			setShooterEnabled(false);
+		}
+
+		if (intakeTimedEjecting && ejectTimer.time() > 0.5) {
+			intake.enable(intakePreviouslyEnabled);
+			intakeEnabled = intakePreviouslyEnabled;
+			intakeTimedEjecting = false;
 		}
 	}
 
@@ -113,26 +141,21 @@ public class Automations {
 
 	// Should be called every loop
 	public void updateTurret() {
-		AlignmentDirection direction = vision.getAlignmentDirection();
-		if (direction.directionKnown) {
-			turret.rotateTurret(direction.x);
-			turret.setPitch(Range.scale(direction.y, -1, 1, Turret.min_pitch, Turret.max_pitch));
-		} else {
-			Pose goalPose = alliance.getGoalPose();
-			Pose poseDifference = goalPose.minus(pose);
+		Pose goalPose = alliance.getGoalPose();
+		Pose poseDifference = goalPose.minus(pose);
 
-			// Converting to normal coordinate system where
-			// 0 = up, increases clockwise; In radians
-			double robotAngle = (0.5 * Math.PI) - pose.getHeading();
-			robotAngle = robotAngle % (2 * Math.PI);
-			double targetAngle = Math.atan2(poseDifference.getX(), poseDifference.getY());
+		// Converting to normal coordinate system where
+		// 0 = up, increases clockwise; In radians
+		double robotAngle = (0.5 * Math.PI) - pose.getHeading();
+		robotAngle = robotAngle % (2 * Math.PI);
+		double targetAngle = Math.atan2(poseDifference.getX(), poseDifference.getY());
 
-			double angleDifference = targetAngle - robotAngle;
-			double normalizedAngle = angleDifference - (Math.ceil((angleDifference + Math.PI) / (2 * Math.PI)) - 1)
-					* 2 * Math.PI;
+		double angleDifference = targetAngle - robotAngle;
+		double normalizedAngle = angleDifference - (Math.ceil((angleDifference + Math.PI) / (2 * Math.PI)) - 1)
+				* 2 * Math.PI;
 
-			turret.setRotation(Math.toDegrees(normalizedAngle) * Turret.rotation_per_deg);
-		}
+		turret.setRotation(Math.toDegrees(normalizedAngle) * Turret.rotation_per_deg);
+		
 	}
 
 	// Should be called every loop. Pose is used to estimate
@@ -141,14 +164,36 @@ public class Automations {
 		this.pose = pose;
 	}
 
+	public void updateVelocity(Vector velocity) {
+		this.velocity = velocity;
+	}
+
+	public void intakeEnable(boolean enable) {
+		intake.enable(enable);
+		intakeEnabled = enable;
+		intakeEjecting = false;
+		intakeTimedEjecting = false;
+	}
+
 	public void intakeToggle() {
-		intake.enable(!intakeEnabled);
-		intakeEnabled = !intakeEnabled;
+		intakeEnable(!intakeEnabled);
+	}
+
+	public void intakeEject() {
+		intake.enableReversed(true);
+		intakePreviouslyEnabled = intakeEnabled;
+		intakeEnabled = false;
+		intakeEjecting = true;
+		intakeTimedEjecting = false;
+	}
+
+	public void intakeEjectStop() {
+		intakeEnable(intakePreviouslyEnabled);
 	}
 
 	public Storage.TurnDirection prepareArtifact(Artifact.Colour colour) {
 		Storage.TurnDirection turnDirection = storage.turnToArtifact(colour);
-		timer.reset();
+		stateTimer.reset();
 		storageState = StorageState.TURNING;
 		return turnDirection;
 	}
@@ -162,7 +207,7 @@ public class Automations {
 		} else if (turnDirection == Storage.TurnDirection.NONE) {
 			vibrateControllers();
 		} else {
-			timer.reset();
+			stateTimer.reset();
 			storageState = StorageState.TURNING;
 		}
 		return false;
@@ -178,7 +223,7 @@ public class Automations {
 
 	public void shootActiveArtifact() {
 		storage.release();
-		shooter.enable(true);
+
 		storageState = StorageState.RELEASING;
 	}
 
@@ -218,9 +263,21 @@ public class Automations {
 		return pattern;
 	}
 
+	public boolean getIntakeEjecting() {
+		return intakeEjecting;
+	}
+
 	/*
 	 * Misc. util methods
 	 */
+
+	public boolean inShootingArea() {
+		Pose futurePose = pose.plus(new Pose(velocity.getXComponent(), velocity.getYComponent()));
+		return ((futurePose.getY() - 72) >= Math.abs(futurePose.getX() - 72) ||
+				(pose.getY() - 72) >= Math.abs(pose.getX() - 72)) ||
+				((futurePose.getY() + (Math.abs(futurePose.getX() - 72)) <= 24) ||
+				(pose.getY() + (Math.abs(pose.getX() - 72)) <= 24));
+	}
 
 	public void setShooterEnabled(boolean enabled) {
 		shooter.enable(enabled);
@@ -237,5 +294,4 @@ public class Automations {
 		if (gamepad2 != null)
 			gamepad2.rumble(1, 1, durationMs);
 	}
-
 }

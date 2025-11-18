@@ -6,7 +6,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import com.acmerobotics.dashboard.config.Config;
+
 @Configurable
+@Config
 // @TeleOp(name="Servo testing", group="Debug")
 public class ServoTesting extends LinearOpMode {
 	public static double POSITION = 0;

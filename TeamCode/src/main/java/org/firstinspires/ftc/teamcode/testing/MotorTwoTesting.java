@@ -6,7 +6,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import com.acmerobotics.dashboard.config.Config;
+
 @Configurable
+@Config
 // @TeleOp(name="Motor 2 testing", group="Debug")
 public class MotorTwoTesting extends LinearOpMode {
 	public static double POWER_1 = 0; // +0.7

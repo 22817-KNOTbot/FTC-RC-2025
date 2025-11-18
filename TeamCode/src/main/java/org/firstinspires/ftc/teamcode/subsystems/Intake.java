@@ -5,7 +5,10 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import com.acmerobotics.dashboard.config.Config;
+
 @Configurable
+@Config
 public class Intake {
 	public static float power = 1;
 
@@ -19,6 +22,14 @@ public class Intake {
 	public void enable(boolean enable) {
 		if (enable) {
 			intakeMotor.setPower(power);
+		} else {
+			intakeMotor.setPower(0);
+		}
+	}
+
+	public void enableReversed(boolean enable) {
+		if (enable) {
+			intakeMotor.setPower(-power);
 		} else {
 			intakeMotor.setPower(0);
 		}
