@@ -78,8 +78,8 @@ public class RedUp9Artifacts extends LinearOpMode {
 				.addPath(
 						new BezierLine(new Pose(123.000, 124.000), new Pose(84.000, 84.000)))
 				.setLinearHeadingInterpolation(Math.toRadians(125), Math.toRadians(0))
-				.addParametricCallback(0.5, this::readyToShoot)
-				.addParametricCallback(0.5, this::startShooting)
+				.addParametricCallback(1, this::readyToShoot)
+				.addParametricCallback(1, this::startShooting)
 				.build();	
 
 		firstIntake = follower.pathBuilder()
