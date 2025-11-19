@@ -119,7 +119,7 @@ public class Automations {
 				}
 			}
 		} else if (storageState == StorageState.INTAKING) {
-			boolean intaked = storage.intakeUpdate();
+			storage.intakeUpdate();
 			if (storage.getIntakeState() == Storage.IntakeState.RESET) {
 				storageState = StorageState.WAITING;
 			}
@@ -146,6 +146,12 @@ public class Automations {
 			intake.enable(intakePreviouslyEnabled);
 			intakeEnabled = intakePreviouslyEnabled;
 			intakeTimedEjecting = false;
+		}
+
+		if (inShootingArea()) {
+			setShooterEnabled(true);
+		} else {
+			setShooterEnabled(false);
 		}
 	}
 
