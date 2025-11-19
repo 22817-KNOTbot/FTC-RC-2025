@@ -24,13 +24,15 @@ public class Storage {
 	public static double distance_threshold_mm = 90;
 	public static int positionInterval = 128;
 	public static double transferMotorPower = 0.4;
-	public static double intakeGateUpPosition = 0.355;
-	public static double intakeGateDownPosition = 0.317;
-	public static double transferRampOutPosition = 0.535;
+	public static double intakeGateUpPosition = 0.318;
+	public static double intakeGateDownPosition = 0.355;
+	public static double intakeGateTurnPosition = 0.33;
+	public static double transferRampOutPosition = 0.533;
 	public static double transferRampInPosition = 0.47;
 	public static int numOfArtifacts = 0;
 
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
+	private IntakeState intakeState = IntakeState.IDLE;
 	private TransferState transferState = TransferState.IDLE;
 	private boolean transferInit = false;
 
@@ -40,9 +42,17 @@ public class Storage {
 	private Servo transferRamp;
 	private ElapsedTime timer;
 
+	public enum IntakeState {
+		IDLE, 
+		GATE_UP, 
+		TURNING,
+		GATE_DOWN,
+		RESET
+	}
+
 	public enum TransferState {
 		IDLE,
-		RAMPOUT,
+		RAMP_OUT,
 		TURNING, 
 		RESET
 	}
@@ -91,6 +101,10 @@ public class Storage {
 		return artifactStored.get(2);
 	}
 
+	public IntakeState getIntakeState() {
+		return intakeState;
+	}
+
 	public TransferState getTransferState() {
 		return transferState;
 	}
@@ -109,9 +123,47 @@ public class Storage {
 		if (isArtifactLoaded() && !storageFull() && colour != null) {
 			artifactStored.set(0, colour);
 			numOfArtifacts += 1;
+			intakeGate.setPosition(intakeGateTurnPosition);
+			timer.reset();
+			intakeState = IntakeState.GATE_UP;
 			return true;
 		}
 		return false;
+	}
+
+	public void intakeUpdate() {
+		switch (intakeState) {
+			case GATE_UP:
+				if (timer.time() >= 0.5) {
+					storageTurnCCW();
+					timer.reset();
+					intakeState = IntakeState.TURNING;
+				}
+				break;
+
+			case TURNING:
+				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 20) {
+					if (!storageFull()) {
+						gateUp();
+						intakeState = IntakeState.RESET;
+						break;
+					}
+					gateDown();
+					timer.reset();
+					intakeState = IntakeState.GATE_DOWN;
+				}
+				break;
+
+			case GATE_DOWN:
+				if (timer.time() >= 0.5) {
+					timer.reset();
+					intakeState = IntakeState.RESET;
+				}
+				break;
+
+			default:
+				break;
+		}
 	}
 
 	public void gateUp() {
@@ -231,7 +283,7 @@ public class Storage {
 			numOfArtifacts -= 1;
 			transferRamp.setPosition(transferRampOutPosition);
 			timer.reset();
-			transferState = TransferState.RAMPOUT;
+			transferState = TransferState.RAMP_OUT;
 			transferInit = true;
 			return true;
 		} else {
@@ -254,7 +306,7 @@ public class Storage {
 
 	public void transferUpdate() {
 		switch (transferState) {
-			case RAMPOUT:
+			case RAMP_OUT:
 				if (timer.time() >= 0.5) {
 					storageTurnCW();
 					timer.reset();

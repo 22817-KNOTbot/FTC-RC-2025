@@ -52,6 +52,7 @@ public class Automations {
 
 	public enum StorageState {
 		WAITING,
+		INTAKING,
 		TURNING,
 		TRANSFERRING
 	}
@@ -106,14 +107,21 @@ public class Automations {
 	public void automationLoop() {
 		vision.updateMotifPattern();
 		pattern = vision.getLastMotifPattern();
-		if (storageState == StorageState.WAITING) {
-			boolean intaked = storage.intake();
-			if (intaked && storage.storageFull()) {
-				intake.enableReversed(true);
-				intakePreviouslyEnabled = intakeEnabled;
-				intakeEnabled = false;
-				intakeTimedEjecting = true;
-				ejectTimer.reset();
+		if (storageState == StorageState.WAITING && intakeEnabled) {
+			if (storage.intake()) {
+				storageState = StorageState.INTAKING;
+				if (storage.storageFull()) {
+					intake.enableReversed(true);
+					intakePreviouslyEnabled = intakeEnabled;
+					intakeEnabled = false;
+					intakeTimedEjecting = true;
+					ejectTimer.reset();
+				}
+			}
+		} else if (storageState == StorageState.INTAKING) {
+			storage.intakeUpdate();
+			if (storage.getIntakeState() == Storage.IntakeState.RESET) {
+				storageState = StorageState.WAITING;
 			}
 		} else if (storageState == StorageState.TURNING && shooter.getVelocity() >= Shooter.shooterVelocity 
 				&& stateTimer.time() > 0.5) {
@@ -132,7 +140,19 @@ public class Automations {
 					storageState = StorageState.WAITING;
 				}
 			} 
-		} 
+		}
+
+		if (intakeTimedEjecting && ejectTimer.time() > 0.5) {
+			intake.enable(intakePreviouslyEnabled);
+			intakeEnabled = intakePreviouslyEnabled;
+			intakeTimedEjecting = false;
+		}
+
+		if (inShootingArea()) {
+			setShooterEnabled(true);
+		} else {
+			setShooterEnabled(false);
+		}
 	}
 
 	// Should only be called once as the opmode ends
