@@ -8,7 +8,7 @@ public class BlueAlliance implements Alliance {
 	}
 
 	public Pose getGoalPose() {
-		return new Pose(144, 144);
+		return new Pose(6, 144);
 	}
 
 	public double getHeadingOffset() {
