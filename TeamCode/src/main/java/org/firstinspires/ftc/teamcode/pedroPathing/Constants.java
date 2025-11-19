@@ -37,8 +37,8 @@ public class Constants {
 			.rightPodY(-7.144)
 			.strafePodX(-7.042)
 			.leftEncoder_HardwareMapName("frontLeftMotor")
-			.rightEncoder_HardwareMapName("backRightMotor")
-			.strafeEncoder_HardwareMapName("frontRightMotor")
+			.rightEncoder_HardwareMapName("shooterMotorRight")
+			.strafeEncoder_HardwareMapName("backLeftMotor")
 			.leftEncoderDirection(Encoder.REVERSE)
 			.rightEncoderDirection(Encoder.REVERSE)
 			.strafeEncoderDirection(Encoder.FORWARD);

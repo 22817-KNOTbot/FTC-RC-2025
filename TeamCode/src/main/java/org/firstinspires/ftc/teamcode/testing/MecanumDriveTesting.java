@@ -36,6 +36,7 @@ public class MecanumDriveTesting extends LinearOpMode {
 		waitForStart();
 
 		mecanumDrive.initialize();
+		mecanumDrive.setAutoDriveTarget(new Pose());
 
 		while (opModeIsActive()) {
 			mecanumDrive.move(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
@@ -45,6 +46,8 @@ public class MecanumDriveTesting extends LinearOpMode {
 			if (gamepad1.start || gamepad2.start) {
 				mecanumDrive.resetPose();
 			}
+
+			mecanumDrive.setAutoDrive(gamepad1.right_bumper);
 
 			Pose pose = mecanumDrive.getPose();
 			Pose holdPose = mecanumDrive.getHoldPose();
