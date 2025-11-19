@@ -118,14 +118,14 @@ public class Automations {
 		} else if (storageState == StorageState.TURNING && shooter.getVelocity() >= Shooter.shooterVelocity 
 				&& stateTimer.time() > 0.5) {
 			shootActiveArtifact();
-			timer.reset();
+			stateTimer.reset();
 		} else if (storageState == StorageState.TRANSFERRING) {
 			storage.transferUpdate();
 			if (storage.getTransferState() == Storage.TransferState.RESET) {
 				if (transferAll && storage.getActiveArtifact() != null) {
 					intake.enable(true);
 					shootActiveArtifact();
-					timer.reset();
+					stateTimer.reset();
 				} else {
 					storage.transferFinish();
 					intake.enable(false);
