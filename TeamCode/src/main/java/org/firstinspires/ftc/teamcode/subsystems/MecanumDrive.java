@@ -35,17 +35,12 @@ public class MecanumDrive {
 		if (autoDrive)
 			return;
 
-		double relativeHeading = follower.getPose().getHeading() + headingOffset;
-
-		double forwardRotated = lateral * Math.sin(-relativeHeading) + forward * Math.cos(-relativeHeading);
-		double lateralRotated = lateral * Math.cos(-relativeHeading) - forward * Math.sin(-relativeHeading);
-
-		double denominator = Math.max(Math.abs(forwardRotated) + Math.abs(lateralRotated) + Math.abs(rotation), 1);
+		double denominator = Math.max(Math.abs(forward) + Math.abs(lateral) + Math.abs(rotation), 1);
 		follower.setTeleOpDrive(
-				forwardRotated / denominator,
-				-lateralRotated / denominator,
+				forward / denominator,
+				-lateral / denominator,
 				-rotation / denominator,
-				true);
+				headingOffset);
 	}
 
 	public void lockingMecanum(boolean enabled) {
