@@ -26,7 +26,8 @@ public class Automations {
 	private Alliance alliance;
 	private boolean DEBUG;
 	private StorageState storageState;
-	private ElapsedTime timer;
+	private ElapsedTime stateTimer;
+	private ElapsedTime ejectTimer;
 
 	private Intake intake;
 	private Storage storage;
@@ -42,6 +43,9 @@ public class Automations {
 
 	private Artifact.Pattern pattern;
 	private boolean intakeEnabled;
+	private boolean intakePreviouslyEnabled;
+	private boolean intakeEjecting;
+	private boolean intakeTimedEjecting;
 	private boolean shooterEnabled;
 	private boolean transferAll;
 	private boolean transferInit = false;
@@ -62,7 +66,8 @@ public class Automations {
 		this.alliance = alliance;
 		this.DEBUG = DEBUG;
 		this.storageState = StorageState.WAITING;
-		this.timer = new ElapsedTime();
+		this.stateTimer = new ElapsedTime();
+		this.ejectTimer = new ElapsedTime();
 		intake = new Intake(hardwareMap);
 		storage = new Storage(hardwareMap, false);
 		turret = new Turret(hardwareMap);
@@ -105,30 +110,43 @@ public class Automations {
 		if (storageState == StorageState.WAITING && intakeEnabled) {
 			if (storage.intake()) {
 				storageState = StorageState.INTAKING;
+				if (storage.storageFull()) {
+					intake.enableReversed(true);
+					intakePreviouslyEnabled = intakeEnabled;
+					intakeEnabled = false;
+					intakeTimedEjecting = true;
+					ejectTimer.reset();
+				}
 			}
 		} else if (storageState == StorageState.INTAKING) {
-			storage.intakeUpdate();
+			boolean intaked = storage.intakeUpdate();
 			if (storage.getIntakeState() == Storage.IntakeState.RESET) {
 				storageState = StorageState.WAITING;
 			}
 		} else if (storageState == StorageState.TURNING && shooter.getVelocity() >= Shooter.shooterVelocity 
-				&& timer.time() > 0.1){ // may change time later
+				&& stateTimer.time() > 0.5) {
 			shootActiveArtifact();
-			timer.reset();
+			stateTimer.reset();
 		} else if (storageState == StorageState.TRANSFERRING) {
 			storage.transferUpdate();
 			if (storage.getTransferState() == Storage.TransferState.RESET) {
 				if (transferAll && storage.getActiveArtifact() != null) {
 					intake.enable(true);
 					shootActiveArtifact();
-					timer.reset();
+					stateTimer.reset();
 				} else {
 					storage.transferFinish();
 					intake.enable(false);
 					storageState = StorageState.WAITING;
 				}
 			} 
-		} 
+		}
+
+		if (intakeTimedEjecting && ejectTimer.time() > 0.5) {
+			intake.enable(intakePreviouslyEnabled);
+			intakeEnabled = intakePreviouslyEnabled;
+			intakeTimedEjecting = false;
+		}
 	}
 
 	// Should only be called once as the opmode ends
@@ -160,18 +178,37 @@ public class Automations {
 	public void updatePose(Pose pose) {
 		this.pose = pose;
 	}
+
 	public void updateVelocity(Vector velocity) {
 		this.velocity = velocity;
 	}
 
+	public void intakeEnable(boolean enable) {
+		intake.enable(enable);
+		intakeEnabled = enable;
+		intakeEjecting = false;
+		intakeTimedEjecting = false;
+	}
+
 	public void intakeToggle() {
-		intake.enable(!intakeEnabled);
-		intakeEnabled = !intakeEnabled;
+		intakeEnable(!intakeEnabled);
+	}
+
+	public void intakeEject() {
+		intake.enableReversed(true);
+		intakePreviouslyEnabled = intakeEnabled;
+		intakeEnabled = false;
+		intakeEjecting = true;
+		intakeTimedEjecting = false;
+	}
+
+	public void intakeEjectStop() {
+		intakeEnable(intakePreviouslyEnabled);
 	}
 
 	public Storage.TurnDirection prepareArtifact(Artifact.Colour colour) {
-		Storage.TurnDirection turnDirection = storage.turnToArtifact(colour, true);
-		timer.reset();
+		Storage.TurnDirection turnDirection = storage.turnToArtifact(colour);
+		stateTimer.reset();
 		storageState = StorageState.TURNING;
 		return turnDirection;
 	}
@@ -185,7 +222,7 @@ public class Automations {
 		} else if (turnDirection == Storage.TurnDirection.NONE) {
 			vibrateControllers();
 		} else {
-			timer.reset();
+			stateTimer.reset();
 			storageState = StorageState.TURNING;
 		}
 		return false;
@@ -243,6 +280,10 @@ public class Automations {
 
 	public Artifact.Pattern getArtifactPattern() {
 		return pattern;
+	}
+
+	public boolean getIntakeEjecting() {
+		return intakeEjecting;
 	}
 
 	/*
