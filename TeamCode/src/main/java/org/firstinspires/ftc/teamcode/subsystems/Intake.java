@@ -27,6 +27,14 @@ public class Intake {
 		}
 	}
 
+	public void enableReversed(boolean enable) {
+		if (enable) {
+			intakeMotor.setPower(-power);
+		} else {
+			intakeMotor.setPower(0);
+		}
+	}
+
 	public void setPower(float pow) {
 		intakeMotor.setPower(pow);
 	}

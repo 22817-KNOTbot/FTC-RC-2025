@@ -58,6 +58,10 @@ public class TeleOp extends LinearOpMode {
 			alliance = (Alliance) blackboard.getOrDefault("alliance", new RedAlliance());
 		}
 
+		Pose pose = (Pose) blackboard.getOrDefault("pose", new Pose());
+
+		mecanumDrive.setPoseFromAuto(pose);
+
 		// Bulk read
 		List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
 		for (LynxModule hub : allHubs) {
@@ -105,6 +109,11 @@ public class TeleOp extends LinearOpMode {
 
 			if (gamepad1.aWasPressed()) {
 				automationHandler.intakeToggle();
+			}
+			if (gamepad1.right_trigger > 0.9) {
+				automationHandler.intakeEject();
+			} else if (automationHandler.getIntakeEjecting()) {
+				automationHandler.intakeEjectStop();
 			}
 			if (gamepad1.yWasPressed()) {
 				automationHandler.prepareOrShootArtifact(Artifact.Colour.PURPLE);
@@ -167,13 +176,13 @@ public class TeleOp extends LinearOpMode {
 				telemetry.addLine(String.format("Loop time: %.2fms - %.0fhz", loopTime.time(), 1000 / loopTime.time()));
 				loopTime.reset();
 
-				Pose pose = mecanumDrive.getPose();
+				Pose currentPose = mecanumDrive.getPose();
 				Pose holdPose = mecanumDrive.getHoldPose();
 
-				telemetry.addData("Heading", Math.toDegrees(pose.getHeading()));
+				telemetry.addData("Heading", Math.toDegrees(currentPose.getHeading()));
 
-				telemetry.addData("Position X", pose.getX());
-				telemetry.addData("Position Y", pose.getY());
+				telemetry.addData("Position X", currentPose.getX());
+				telemetry.addData("Position Y", currentPose.getY());
 
 				telemetry.addData("Hold Position X", holdPose.getX());
 				telemetry.addData("Hold Position Y", holdPose.getY());
