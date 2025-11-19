@@ -47,11 +47,13 @@ public class Automations {
 	private boolean intakeEjecting;
 	private boolean intakeTimedEjecting;
 	private boolean shooterEnabled;
+	private boolean transferAll;
+	private boolean transferInit = false;
 
 	public enum StorageState {
 		WAITING,
 		TURNING,
-		RELEASING
+		TRANSFERRING
 	}
 
 	public Automations(HardwareMap hardwareMap, Alliance alliance) {
@@ -116,22 +118,21 @@ public class Automations {
 		} else if (storageState == StorageState.TURNING && shooter.getVelocity() >= Shooter.shooterVelocity 
 				&& stateTimer.time() > 0.5) {
 			shootActiveArtifact();
-		} else if (storageState == StorageState.RELEASING && stateTimer.time() > 0.5) {
-			storage.finishRelease();
-			storageState = StorageState.WAITING;
-		}
-
-		if (inShootingArea()) {
-			setShooterEnabled(true);
-		} else {
-			setShooterEnabled(false);
-		}
-
-		if (intakeTimedEjecting && ejectTimer.time() > 0.5) {
-			intake.enable(intakePreviouslyEnabled);
-			intakeEnabled = intakePreviouslyEnabled;
-			intakeTimedEjecting = false;
-		}
+			stateTimer.reset();
+		} else if (storageState == StorageState.TRANSFERRING) {
+			storage.transferUpdate();
+			if (storage.getTransferState() == Storage.TransferState.RESET) {
+				if (transferAll && storage.getActiveArtifact() != null) {
+					intake.enable(true);
+					shootActiveArtifact();
+					stateTimer.reset();
+				} else {
+					storage.transferFinish();
+					intake.enable(false);
+					storageState = StorageState.WAITING;
+				}
+			} 
+		} 
 	}
 
 	// Should only be called once as the opmode ends
@@ -200,7 +201,7 @@ public class Automations {
 
 	// Returns true if already prepared and has been shot
 	public boolean prepareOrShootArtifact(Artifact.Colour colour) {
-		Storage.TurnDirection turnDirection = storage.turnToArtifact(colour);
+		Storage.TurnDirection turnDirection = storage.turnToArtifact(colour, true);
 		if (turnDirection == Storage.TurnDirection.AVAILABLE) {
 			shootActiveArtifact();
 			return true;
@@ -222,9 +223,13 @@ public class Automations {
 	}
 
 	public void shootActiveArtifact() {
-		storage.release();
-
-		storageState = StorageState.RELEASING;
+		shooter.enable(true);
+		if (!storage.getTransferInit()) {
+			storage.transferInit();
+		} else {
+			storage.transferStart();
+		}
+		storageState = StorageState.TRANSFERRING;
 	}
 
 	public boolean colourSensorResponding() {
