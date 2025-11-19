@@ -47,7 +47,6 @@ public final class TestingOpModeManager {
 			ServoTwoTesting.class,
 			ShooterTesting.class,
 			StorageTesting.class,
-			TransferSequenceTesting.class,
 			TurretTesting.class
 		);
 
