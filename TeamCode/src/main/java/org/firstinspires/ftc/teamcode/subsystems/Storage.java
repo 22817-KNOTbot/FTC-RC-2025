@@ -12,6 +12,7 @@ import com.bylazar.configurables.annotations.Configurable;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
+import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -373,5 +374,14 @@ public class Storage {
 	public boolean colourSensorResponding() {
 		// Try to find better way to detect disconnect
 		return !(colourSensor == null || (getRed() == 0 && getGreen() == 0 && getBlue() == 0));
+	}
+
+	public void showTelemetry(TelemetryManager telemetry) {
+		telemetry.addData("Storage", artifactStored);
+		telemetry.addData("Artifact Loaded", isArtifactLoaded());
+		telemetry.addData("Artifact Colour", getArtifactColour());
+		// telemetry.addData("Spindexer Power", storageMotor.getPower());
+		telemetry.addData("Spindexer Position", storageMotor.getCurrentPosition());
+		telemetry.addData("Spindexer Target", storageMotor.getTargetPosition());
 	}
 }

@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.gamepad.PanelsGamepad;
 
@@ -17,15 +16,19 @@ import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.util.BlueAlliance;
+import org.firstinspires.ftc.teamcode.util.Drawing;
 import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.GamepadManager;
+import org.firstinspires.ftc.teamcode.util.TelemetryManager;
+
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.FtcDashboard;
 
 import java.util.List;
 
-import com.acmerobotics.dashboard.config.Config;
-
 @Configurable
 @Config
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp")
 public class TeleOp extends LinearOpMode {
 	public static boolean DEBUG = false;
 
@@ -45,7 +48,11 @@ public class TeleOp extends LinearOpMode {
 		gamepad1.copy(gamepadManager.getGamepad1());
 		gamepad2.copy(gamepadManager.getGamepad2());
 
-		telemetry = new JoinedTelemetry(PanelsTelemetry.INSTANCE.getFtcTelemetry(), telemetry);
+		TelemetryManager telemetryManager = new TelemetryManager();
+		telemetryManager.setFtcTelemetry(telemetry);
+		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
+		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
+
 		if (gamepad1.right_bumper)
 			DEBUG = true;
 
@@ -76,13 +83,19 @@ public class TeleOp extends LinearOpMode {
 			gamepadManager.updateGamepads();
 			gamepad1.copy(gamepadManager.getGamepad1());
 			gamepad2.copy(gamepadManager.getGamepad2());
+
 			if (gamepad1.left_trigger > 0.9) {
-				automationHandler.setAlliance(new RedAlliance());
-			} else if (gamepad1.right_trigger > 0.9) {
 				automationHandler.setAlliance(new BlueAlliance());
+			} else if (gamepad1.right_trigger > 0.9) {
+				automationHandler.setAlliance(new RedAlliance());
 			}
-			telemetry.addData("Alliance", automationHandler.getAlliance().getColourString());
+			telemetryManager.addData("Alliance", automationHandler.getAlliance().getColourString());
+			if (DEBUG) {
+				telemetryManager.addData("Blackboard", blackboard);
+			}
+			telemetryManager.update();
 		}
+
 
 		mecanumDrive.initialize();
 		mecanumDrive.setHeadingOffset(automationHandler.getAlliance().getHeadingOffset());
@@ -162,36 +175,41 @@ public class TeleOp extends LinearOpMode {
 				automationHandler.updateTurret();
 			}
 
-			telemetry.addData("Alliance", automationHandler.getAlliance().getColourString());
-			telemetry.addData("Pattern", automationHandler.getPattern());
-			telemetry.addData("Time", getRuntime());
-			telemetry.addData("Storage State", automationHandler.getStorageState());
+			telemetryManager.addData("Alliance", automationHandler.getAlliance().getColourString());
+			telemetryManager.addData("Pattern", automationHandler.getPattern());
+			telemetryManager.addData("Time", getRuntime());
+			telemetryManager.addData("Rapid Fire", automationHandler.getRapidFire());
+			telemetryManager.addData("Storage State", automationHandler.getStorageState());
 			if (!automationHandler.colourSensorResponding()) {
-				telemetry.addLine("********************");
-				telemetry.addLine("WARNING: COLOUR SENSOR");
-				telemetry.addLine("IS NOT RESPONDING");
-				telemetry.addLine("********************");
+				telemetryManager.addLine("********************");
+				telemetryManager.addLine("WARNING: COLOUR SENSOR");
+				telemetryManager.addLine("IS NOT RESPONDING");
+				telemetryManager.addLine("********************");
 			}
+			telemetryManager.addLine(String.format("Loop time: %.2fms - %.0fhz", loopTime.time(), 1000 / loopTime.time()));
+			loopTime.reset();
+
 			if (DEBUG) {
-				telemetry.addLine(String.format("Loop time: %.2fms - %.0fhz", loopTime.time(), 1000 / loopTime.time()));
-				loopTime.reset();
-
 				Pose currentPose = mecanumDrive.getPose();
-				Pose holdPose = mecanumDrive.getHoldPose();
+				// Pose holdPose = mecanumDrive.getHoldPose();
 
-				telemetry.addData("Heading", Math.toDegrees(currentPose.getHeading()));
+				telemetryManager.addData("Heading", Math.toDegrees(currentPose.getHeading()));
 
-				telemetry.addData("Position X", currentPose.getX());
-				telemetry.addData("Position Y", currentPose.getY());
+				telemetryManager.addData("Position X", currentPose.getX());
+				telemetryManager.addData("Position Y", currentPose.getY());
 
-				telemetry.addData("Hold Position X", holdPose.getX());
-				telemetry.addData("Hold Position Y", holdPose.getY());
+				// telemetryManager.addData("Hold Position X", holdPose.getX());
+				// telemetryManager.addData("Hold Position Y", holdPose.getY());
 
-				telemetry.addData("Auto driving", mecanumDrive.isAutoDrive());
-				telemetry.addData("Auto drive target", mecanumDrive.getAutoDriveTarget());
-				automationHandler.showTelemetry(telemetry);
+				telemetryManager.addData("Auto driving", mecanumDrive.isAutoDrive());
+				// telemetryManager.addData("Auto drive target", mecanumDrive.getAutoDriveTarget());
+				automationHandler.showTelemetry(telemetryManager);
+
+				Drawing.drawRobot(currentPose, telemetryManager.getDashboardCanvas());
+				Drawing.sendPacket();
+
 			}
-			telemetry.update();
+			telemetryManager.update();
 		}
 
 		automationHandler.end();

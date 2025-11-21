@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.vision.Vision;
 import org.firstinspires.ftc.teamcode.subsystems.vision.AutoAlign.AlignmentDirection;
 import org.firstinspires.ftc.teamcode.util.Alliance;
+import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 import com.pedropathing.math.Vector;
 import com.pedropathing.geometry.Pose;
@@ -86,9 +87,16 @@ public class Automations {
 		this.gamepad2 = gamepad2;
 	}
 
-	public void showTelemetry(Telemetry telemetry) {
-		telemetry.addData("Intake enabled", intakeEnabled);
-		vision.showTelemetry(telemetry);
+	public void showTelemetry(TelemetryManager telemetry) {
+		telemetry.addData("In shooting zone", inShootingArea());
+		telemetry.addData("Storage Intake State", storage.getIntakeState());
+		telemetry.addData("Storage Transfer State", storage.getTransferState());
+		telemetry.addData("Shooter Velocity", shooter.getVelocity());
+		telemetry.addData("Shooter Desired Velocity", shooter.desiredVelocity);
+		telemetry.addData("Shooter Target Velocity", shooter.targetVelocity);
+		telemetry.addData("Distance", pose.distanceFrom(alliance.getGoalPose()));
+		storage.showTelemetry(telemetry);
+		// vision.showTelemetry(telemetry);
 	}
 
 	public void abort() {

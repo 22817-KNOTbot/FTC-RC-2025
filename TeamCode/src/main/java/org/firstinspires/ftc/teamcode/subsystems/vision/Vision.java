@@ -13,6 +13,7 @@ import com.bylazar.camerastream.PanelsCameraStream;
 import com.bylazar.configurables.annotations.Configurable;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
+import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 import java.util.List;
 
@@ -101,7 +102,7 @@ public class Vision {
 		PanelsCameraStream.INSTANCE.stopStream();
 	}
 
-	public void showTelemetry(Telemetry telemetry) {
+	public void showTelemetry(TelemetryManager telemetry) {
 		List<AprilTagDetection> currentDetections = aprilTagProcessor.getDetections();
 		telemetry.addData("# AprilTags Detected", currentDetections.size());
 
