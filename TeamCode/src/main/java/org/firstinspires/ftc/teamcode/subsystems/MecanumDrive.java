@@ -4,8 +4,6 @@ import com.pedropathing.math.Vector;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-import org.firstinspires.ftc.teamcode.teleop.TeleOp;
-
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import com.pedropathing.follower.Follower;
@@ -19,9 +17,9 @@ public class MecanumDrive {
 	private double headingOffset;
 	private Pose holdPose = new Pose();
 	private boolean holdingPose;
+	private Pose resetPose = new Pose();
 	private boolean autoDrive;
 	private Pose autoDriveTarget;
-	private TeleOp teleop;
 
 	public MecanumDrive(HardwareMap hardwareMap) {
 		follower = Constants.createFollower(hardwareMap);
@@ -81,7 +79,7 @@ public class MecanumDrive {
 		autoDriveTarget = target;
 	}
 
-	public void setPoseFromAuto(Pose pose){
+	public void setPose(Pose pose){
 		follower.setPose(pose);
 	}
 
@@ -92,8 +90,12 @@ public class MecanumDrive {
 		return follower.getVelocity();
 	}
 
+	public void setResetPose(Pose pose) {
+		resetPose = pose;
+	}
+
 	public void resetPose() {
-		follower.setPose(new Pose(0, 0, -headingOffset));
+		follower.setPose(resetPose);
 	}
 
 	public Pose getHoldPose() {
