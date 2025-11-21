@@ -7,4 +7,5 @@ public interface Alliance {
 	public Pose getGoalPose();
 	public double getHeadingOffset();
 	public Pose getBasePose();
+	public Pose getResetPose();
 }
