@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
@@ -11,7 +10,6 @@ import com.bylazar.gamepad.PanelsGamepad;
 
 import com.pedropathing.geometry.Pose;
 
-import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
 import org.firstinspires.ftc.teamcode.util.Alliance;
@@ -30,7 +28,7 @@ import java.util.List;
 @Config
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp")
 public class TeleOp extends LinearOpMode {
-	public static boolean DEBUG = false;
+	public static boolean DEBUG = true;
 
 	private GamepadManager gamepadManager;
 	private ElapsedTime loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -65,10 +63,6 @@ public class TeleOp extends LinearOpMode {
 			alliance = (Alliance) blackboard.getOrDefault("alliance", new RedAlliance());
 		}
 
-		Pose pose = (Pose) blackboard.getOrDefault("pose", new Pose());
-
-		mecanumDrive.setPoseFromAuto(pose);
-
 		// Bulk read
 		List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
 		for (LynxModule hub : allHubs) {
@@ -95,7 +89,9 @@ public class TeleOp extends LinearOpMode {
 			}
 			telemetryManager.update();
 		}
-
+		
+		Pose pose = (Pose) blackboard.getOrDefault("pose", automationHandler.getAlliance().getResetPose());
+		mecanumDrive.setPose(pose);
 
 		mecanumDrive.initialize();
 		mecanumDrive.setHeadingOffset(automationHandler.getAlliance().getHeadingOffset());
@@ -129,10 +125,22 @@ public class TeleOp extends LinearOpMode {
 			} else if (automationHandler.getIntakeEjecting()) {
 				automationHandler.intakeEjectStop();
 			}
-			if (gamepad1.yWasPressed()) {
-				automationHandler.prepareOrShootArtifact(Artifact.Colour.PURPLE);
-			} else if (gamepad1.bWasPressed()) {
-				automationHandler.prepareOrShootArtifact(Artifact.Colour.GREEN);
+
+			if (gamepad1.xWasPressed()) {
+				boolean newRapidFireState = !automationHandler.getRapidFire();
+				automationHandler.setRapidFire(newRapidFireState);
+				automationHandler.vibrateControllersBlips(newRapidFireState ? 2 : 1);
+			}
+			if (!automationHandler.getRapidFire()) {
+				if (gamepad1.yWasPressed()) {
+					automationHandler.prepareOrShootArtifact(Artifact.Colour.PURPLE);
+				} else if (gamepad1.bWasPressed()) {
+					automationHandler.prepareOrShootArtifact(Artifact.Colour.GREEN);
+				}
+			} else {
+				if (gamepad1.yWasPressed() || gamepad1.bWasPressed()) {
+					automationHandler.prepareOrShootAnyArtifact();
+				}
 			}
 
 			automationHandler.updatePose(mecanumDrive.getPose());

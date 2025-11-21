@@ -4,7 +4,9 @@ import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.PIDCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
@@ -30,14 +32,14 @@ public class Storage {
 	public static double intakeGateTurnPosition = 0.33;
 	public static double transferRampOutPosition = 0.533;
 	public static double transferRampInPosition = 0.47;
-	public static int numOfArtifacts = 0;
-
+	
+	private static int numOfArtifacts = 0;
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
 	private IntakeState intakeState = IntakeState.IDLE;
 	private TransferState transferState = TransferState.IDLE;
 	private boolean transferInit = false;
 
-	private DcMotor storageMotor;
+	private DcMotorEx storageMotor;
 	private ColorRangeSensor colourSensor;
 	private Servo intakeGate;
 	private Servo transferRamp;
@@ -68,19 +70,28 @@ public class Storage {
 	public Storage(HardwareMap hardwareMap, boolean resetEncoder) {
 		colourSensor = hardwareMap.get(ColorRangeSensor.class, "colourSensor");
 
-		storageMotor = hardwareMap.get(DcMotor.class, "storageMotor");
+		storageMotor = hardwareMap.get(DcMotorEx.class, "storageMotor");
 		storageMotor.setTargetPosition(0);
-		storageMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		storageMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-		intakeGate = hardwareMap.get(Servo.class, "intakeGate");
-		intakeGate.setPosition(0);
-
-		transferRamp = hardwareMap.get(Servo.class, "transferRamp");
 
 		if (resetEncoder) {
 			storageMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+			artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
 		}
+
+		storageMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		storageMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);		
+		storageMotor.setPIDCoefficients(DcMotor.RunMode.RUN_TO_POSITION,
+				new PIDCoefficients(6, 0, 0));
+
+		intakeGate = hardwareMap.get(Servo.class, "gateServo");
+
+		transferRamp = hardwareMap.get(Servo.class, "transferRampServo");
+
+		timer = new ElapsedTime();
+	}
+
+	public void start() {
+		transferRamp.setPosition(transferRampInPosition);
 	}
 
 	public void abort() {
@@ -120,13 +131,19 @@ public class Storage {
 
 	public boolean intake() {
 		turnToArtifact(null, true);
+		gateDown();
 		Colour colour = getArtifactColour();
-		if (isArtifactLoaded() && !storageFull() && colour != null) {
+		if (isArtifactLoaded() && colour != null) {
+			if (storageFull()) {
+				intakeGate.setPosition(intakeGateUpPosition);
+				intakeState = IntakeState.RESET;
+			} else {
+				intakeGate.setPosition(intakeGateTurnPosition);
+				numOfArtifacts += 1;
+				timer.reset();
+				intakeState = IntakeState.GATE_UP;
+			}
 			artifactStored.set(0, colour);
-			numOfArtifacts += 1;
-			intakeGate.setPosition(intakeGateTurnPosition);
-			timer.reset();
-			intakeState = IntakeState.GATE_UP;
 			return true;
 		}
 		return false;
@@ -137,18 +154,12 @@ public class Storage {
 			case GATE_UP:
 				if (timer.time() >= 0.5) {
 					storageTurnCCW();
-					timer.reset();
 					intakeState = IntakeState.TURNING;
 				}
 				break;
 
 			case TURNING:
-				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 20) {
-					if (!storageFull()) {
-						gateUp();
-						intakeState = IntakeState.RESET;
-						break;
-					}
+				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 10) {
 					gateDown();
 					timer.reset();
 					intakeState = IntakeState.GATE_DOWN;
@@ -177,14 +188,13 @@ public class Storage {
 
 	public void storageMotorEnable(boolean enabled){
 		if (enabled){
-			storageMotor.setPower(1);
+			storageMotor.setPower(0.4);
 		} else {
 			storageMotor.setPower(0);
 		}
 	}
 
 	public void storageTurnCW() {
-		storageMotor.setPower(1);
 		storageMotor.setTargetPosition(storageMotor.getTargetPosition() + positionInterval);
 		Colour intakeArtifact = getActiveArtifact();
 		artifactStored.set(0, getBackRightArtifact());
@@ -193,7 +203,6 @@ public class Storage {
 	}
 
 	public void storageTurnCCW() {
-		storageMotor.setPower(1);
 		storageMotor.setTargetPosition(storageMotor.getTargetPosition() - positionInterval);
 		Colour intakeArtifact = getActiveArtifact();
 		artifactStored.set(0, getBackLeftArtifact());
@@ -202,7 +211,6 @@ public class Storage {
 	}
 
 	public void storageHalfTurnCW(boolean update) {
-		storageMotor.setPower(1);
 		storageMotor.setTargetPosition(storageMotor.getTargetPosition() + (int) (positionInterval/2));
 		if (update) {
 			Colour intakeArtifact = getActiveArtifact();
@@ -213,7 +221,6 @@ public class Storage {
 	}
 
 	public void storageHalfTurnCCW(boolean update) {
-		storageMotor.setPower(1);
 		storageMotor.setTargetPosition(storageMotor.getTargetPosition() - (int) (positionInterval/2));
 		if (update) {
 			Colour intakeArtifact = getActiveArtifact();
@@ -277,6 +284,24 @@ public class Storage {
 		}
 	}
 
+	public TurnDirection turnToAnyArtifact() {
+		if (numOfArtifacts > 0) {
+			if (getActiveArtifact() != null) {
+				return TurnDirection.AVAILABLE;
+			} else if (getBackRightArtifact() != null) {
+				storageTurnCW();
+				return TurnDirection.CW;
+			} else if (getBackRightArtifact() != null) {
+				storageTurnCCW();
+				return TurnDirection.CCW;
+			} else {
+				return TurnDirection.NONE;
+			}
+		} else {
+			return TurnDirection.NONE;
+		}
+	}
+
 	public boolean transferInit() {
 		if (getActiveArtifact() != null) {
 			gateUp();
@@ -310,13 +335,13 @@ public class Storage {
 			case RAMP_OUT:
 				if (timer.time() >= 0.5) {
 					storageTurnCW();
-					timer.reset();
+					// timer.reset();
 					transferState = TransferState.TURNING;
 				}
 				break;
 		
 			case TURNING:
-				if (timer.time() >= 0.5) {
+				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 10) {
 					timer.reset();
 					transferState = TransferState.RESET;
 				}				
@@ -334,6 +359,10 @@ public class Storage {
 		transferInit = false;
 	}
 
+	public boolean isMotorBusy() {
+		return storageMotor.isBusy();
+	}
+
 	/*
 	 * Colour/range sensor
 	 */
@@ -349,7 +378,6 @@ public class Storage {
 		int blue = getBlue();
 		Colour colour = null;
 		if (colourSensorResponding()) {
-			// TODO: Update checks after testing
 			if (red < green && green < blue && blue > red) {
 				colour = Colour.PURPLE;
 			} else if (red < green && green > blue && blue > red && green < 3500) {
