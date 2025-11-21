@@ -5,10 +5,11 @@ import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
 import com.pedropathing.ftc.localization.Encoder;
-import com.pedropathing.ftc.localization.constants.ThreeWheelConstants;
+import com.pedropathing.ftc.localization.constants.ThreeWheelIMUConstants;
 import com.pedropathing.paths.PathConstraints;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 public class Constants {
@@ -29,10 +30,10 @@ public class Constants {
 			.rightRearMotorDirection(DcMotor.Direction.FORWARD)
 			.useBrakeModeInTeleOp(true);
 
-	public static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
-			.forwardTicksToInches(0.0020153192)
-			.strafeTicksToInches(0.0019831647)
-			.turnTicksToInches(0.0020013505)
+	public static ThreeWheelIMUConstants localizerConstants = new ThreeWheelIMUConstants()
+			.forwardTicksToInches(0.0019859077)
+			.strafeTicksToInches(0.0019831188)
+			.turnTicksToInches(0.0019991271)
 			.leftPodY(7.286)
 			.rightPodY(-7.144)
 			.strafePodX(-7.042)
@@ -41,13 +42,17 @@ public class Constants {
 			.strafeEncoder_HardwareMapName("backLeftMotor")
 			.leftEncoderDirection(Encoder.REVERSE)
 			.rightEncoderDirection(Encoder.REVERSE)
-			.strafeEncoderDirection(Encoder.FORWARD);
+			.strafeEncoderDirection(Encoder.FORWARD)
+			.IMU_HardwareMapName("imu")
+			.IMU_Orientation(new RevHubOrientationOnRobot(
+					RevHubOrientationOnRobot.LogoFacingDirection.LEFT, 
+					RevHubOrientationOnRobot.UsbFacingDirection.UP));
 
 	public static Follower createFollower(HardwareMap hardwareMap) {
 		return new FollowerBuilder(followerConstants, hardwareMap)
 				.pathConstraints(pathConstraints)
 				.mecanumDrivetrain(driveConstants)
-				.threeWheelLocalizer(localizerConstants)
+				.threeWheelIMULocalizer(localizerConstants)
 				.build();
 	}
 }
