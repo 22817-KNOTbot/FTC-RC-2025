@@ -79,6 +79,13 @@ public class Storage {
 	 * Storage
 	 */
 
+	public static void resetArtifacts () {
+		numOfArtifacts = 0;
+		artifactStored.set(0, null);
+		artifactStored.set(1, null);
+		artifactStored.set(2, null);
+	}
+
 	public boolean intake() {
 		turnToArtifact(null);
 		Colour colour = getArtifactColour();

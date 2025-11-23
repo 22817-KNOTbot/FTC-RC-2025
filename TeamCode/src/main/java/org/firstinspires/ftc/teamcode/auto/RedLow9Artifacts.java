@@ -8,6 +8,8 @@ import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.util.RedAlliance;
 
+import org.firstinspires.ftc.teamcode.subsystems.Storage;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -31,6 +33,7 @@ public class RedLow9Artifacts extends LinearOpMode {
 	private Alliance alliance = new RedAlliance();
 	private Automations automationHandler;
 	private Follower follower;
+	private Storage storage;
 	private Pose startPose = new Pose(96.000, 8.000);
 	private Artifact.Colour[] patternColours;
 
@@ -44,6 +47,7 @@ public class RedLow9Artifacts extends LinearOpMode {
 		follower.setStartingPose(startPose);
 		automationHandler = new Automations(hardwareMap, alliance, DEBUG);
 		buildPaths();
+		storage.resetArtifacts();
 
 		waitForStart();
 

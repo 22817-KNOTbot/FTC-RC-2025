@@ -11,6 +11,8 @@ import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.subsystems.Storage;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.geometry.BezierCurve;
@@ -29,6 +31,7 @@ public class RedLow0Arifacts extends LinearOpMode {
 
 	private Alliance alliance = new RedAlliance();
 	private Follower follower;
+	private Storage storage;
 	private Pose startPose = follower.getPose();
 	private Artifact.Colour[] patternColours;
 
@@ -40,6 +43,7 @@ public class RedLow0Arifacts extends LinearOpMode {
 		follower = Constants.createFollower(hardwareMap);
 		follower.setStartingPose(startPose);
 		buildPaths();
+		storage.resetArtifacts();
 
 		waitForStart();
 
