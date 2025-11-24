@@ -31,7 +31,7 @@ public class BlueUp0Artifacts extends LinearOpMode {
 
 	private Alliance alliance = new BlueAlliance();
 	private Follower follower;
-	private Storage storage;
+	private Storage storage = new Storage(hardwareMap, true);
 	private Pose startPose = follower.getPose();
 	private Artifact.Colour[] patternColours;
 

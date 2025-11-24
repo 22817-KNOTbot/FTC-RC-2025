@@ -24,6 +24,7 @@ import com.pedropathing.paths.PathChain;
 public class BlueLow9Artifacts extends LinearOpMode {
 	public static boolean doMovement = true;
 	public static boolean doActions = true;
+	public static boolean resetEncoder = true;
 	public static boolean DEBUG = false;
 
 	private boolean shooting = false;
@@ -33,7 +34,7 @@ public class BlueLow9Artifacts extends LinearOpMode {
 	private Alliance alliance = new BlueAlliance();
 	private Automations automationHandler;
 	private Follower follower;
-	private Storage storage;
+	private Storage storage = new Storage(hardwareMap, true);
 	private Pose startPose = new Pose(48.000, 8.000);
 	private Artifact.Colour[] patternColours;
 
@@ -45,7 +46,7 @@ public class BlueLow9Artifacts extends LinearOpMode {
 		blackboard.put("alliance", alliance);
 		follower = Constants.createFollower(hardwareMap);
 		follower.setStartingPose(startPose);
-		automationHandler = new Automations(hardwareMap, alliance, DEBUG);
+		automationHandler = new Automations(hardwareMap, alliance, resetEncoder, DEBUG);
 		buildPaths();
 		storage.resetArtifacts();
 

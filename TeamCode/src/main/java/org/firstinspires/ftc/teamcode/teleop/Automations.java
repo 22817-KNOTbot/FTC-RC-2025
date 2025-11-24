@@ -40,6 +40,7 @@ public class Automations {
 	private Artifact.Pattern pattern;
 	private boolean intakeEnabled;
 	private boolean shooterEnabled;
+	private boolean resetEncoder;
 
 	public enum StorageState {
 		WAITING,
@@ -47,13 +48,14 @@ public class Automations {
 		RELEASING
 	}
 
-	public Automations(HardwareMap hardwareMap, Alliance alliance) {
-		this(hardwareMap, alliance, false);
+	public Automations(HardwareMap hardwareMap, Alliance alliance, boolean resetEncoder) {
+		this(hardwareMap, alliance, resetEncoder, false);
 	}
 
-	public Automations(HardwareMap hardwareMap, Alliance alliance, boolean DEBUG) {
+	public Automations(HardwareMap hardwareMap, Alliance alliance, boolean resetEncoder, boolean DEBUG) {
 		this.hardwareMap = hardwareMap;
 		this.alliance = alliance;
+		this.resetEncoder = resetEncoder;
 		this.DEBUG = DEBUG;
 		this.storageState = StorageState.WAITING;
 		this.timer = new ElapsedTime();

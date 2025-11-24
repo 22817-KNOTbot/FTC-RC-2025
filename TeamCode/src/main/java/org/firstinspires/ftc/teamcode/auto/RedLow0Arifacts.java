@@ -31,7 +31,7 @@ public class RedLow0Arifacts extends LinearOpMode {
 
 	private Alliance alliance = new RedAlliance();
 	private Follower follower;
-	private Storage storage;
+	private Storage storage = new Storage(hardwareMap, true);
 	private Pose startPose = follower.getPose();
 	private Artifact.Colour[] patternColours;
 
