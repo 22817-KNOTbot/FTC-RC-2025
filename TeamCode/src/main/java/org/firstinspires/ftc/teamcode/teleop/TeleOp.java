@@ -12,6 +12,7 @@ import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
+import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.util.BlueAlliance;
 import org.firstinspires.ftc.teamcode.util.Drawing;
@@ -38,6 +39,7 @@ public class TeleOp extends LinearOpMode {
 	@Override
 	public void runOpMode() {
 		boolean manualTurretMode = false;
+		boolean manualShooterMode = false;
 
 		gamepadManager = new GamepadManager(gamepad1, gamepad2,
 				PanelsGamepad.INSTANCE.getFirstManager()::asCombinedFTCGamepad,
@@ -110,7 +112,11 @@ public class TeleOp extends LinearOpMode {
 			gamepad1.copy(gamepadManager.getGamepad1());
 			gamepad2.copy(gamepadManager.getGamepad2());
 
-			mecanumDrive.move(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+			if (gamepad1.left_trigger > 0.9) {
+				mecanumDrive.move(-gamepad1.left_stick_y / 4, gamepad1.left_stick_x / 4, gamepad1.right_stick_x / 4);
+			} else {
+				mecanumDrive.move(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+			}
 
 			if (getRuntime() >= 100 || DEBUG || gamepad2.right_trigger > 0.9) {
 				mecanumDrive.setAutoDrive(gamepad1.right_bumper);
@@ -132,9 +138,9 @@ public class TeleOp extends LinearOpMode {
 				automationHandler.vibrateControllersBlips(newRapidFireState ? 2 : 1);
 			}
 			if (!automationHandler.getRapidFire()) {
-				if (gamepad1.yWasPressed()) {
+				if (gamepad1.bWasPressed()) {
 					automationHandler.prepareOrShootArtifact(Artifact.Colour.PURPLE);
-				} else if (gamepad1.bWasPressed()) {
+				} else if (gamepad1.yWasPressed()) {
 					automationHandler.prepareOrShootArtifact(Artifact.Colour.GREEN);
 				}
 			} else {
@@ -160,11 +166,8 @@ public class TeleOp extends LinearOpMode {
 			if (gamepad2.aWasPressed()) {
 				automationHandler.intakeToggle();
 			}
-			if (gamepad2.bWasPressed()) {
-				automationHandler.setShooterEnabled(!automationHandler.getShooterEnabled());
-			}
-			if (gamepad2.yWasPressed()) {
-				automationHandler.shootActiveArtifact();
+			if (gamepad2.xWasPressed()) {
+				automationHandler.shootActiveArtifact(true);
 			}
 			if (gamepad2.rightBumperWasPressed()) {
 				automationHandler.storageTurnCW();
@@ -174,6 +177,10 @@ public class TeleOp extends LinearOpMode {
 			if (gamepad2.dpadUpWasPressed()) {
 				DEBUG = !DEBUG;
 			}
+			if (gamepad2.leftStickButtonWasPressed()) {
+				automationHandler.clearStorageMemory();
+			}
+
 			if (gamepad2.dpadDownWasPressed()) {
 				manualTurretMode = !manualTurretMode;
 			}
@@ -182,6 +189,17 @@ public class TeleOp extends LinearOpMode {
 				automationHandler.pitchTurret(gamepad2.right_stick_y);
 			} else {
 				automationHandler.updateTurret();
+			}
+			if (gamepad2.yWasPressed()) {
+				manualShooterMode = !manualShooterMode;
+			}
+			if (manualShooterMode) {
+				if (gamepad2.bWasPressed()) {
+					automationHandler.setShooterVelocity(Shooter.defaultVelocity);
+					automationHandler.setShooterEnabled(!automationHandler.getShooterEnabled());
+				}
+			} else {
+				automationHandler.updateShooter();
 			}
 
 			telemetryManager.addData("Alliance", automationHandler.getAlliance().getColourString());
@@ -194,6 +212,12 @@ public class TeleOp extends LinearOpMode {
 				telemetryManager.addLine("WARNING: COLOUR SENSOR");
 				telemetryManager.addLine("IS NOT RESPONDING");
 				telemetryManager.addLine("********************");
+			}
+			if (manualTurretMode) {
+				telemetryManager.addLine("##### MANUAL TURRET MODE #####");
+			}
+			if (manualShooterMode) {
+				telemetryManager.addLine("##### MANUAL SHOOTER MODE #####");
 			}
 			telemetryManager.addLine(String.format("Loop time: %.2fms - %.0fhz", loopTime.time(), 1000 / loopTime.time()));
 			loopTime.reset();

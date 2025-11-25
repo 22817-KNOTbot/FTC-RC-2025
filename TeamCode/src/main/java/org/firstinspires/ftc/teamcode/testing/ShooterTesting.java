@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 // @TeleOp(name="Shooter testing", group="Debug")
 public class ShooterTesting extends LinearOpMode {
 	public static boolean enabled = false;
+	public static double desiredVelocity = Shooter.defaultVelocity;
 	public static Float power = null;
 
 	private Shooter shooter;
@@ -31,12 +32,16 @@ public class ShooterTesting extends LinearOpMode {
 
 		while (opModeIsActive()) {
 			if (power == null) {
+				shooter.desiredVelocity = desiredVelocity;
+				shooter.targetVelocity = desiredVelocity + Shooter.velocityTargetOffset;
 				shooter.enable(enabled);
 			} else {
 				shooter.setPower(power);
 			}
 
 			telemetry.addData("Enabled", enabled);
+			telemetry.addData("Velocity", shooter.getVelocity());
+			telemetry.update();
 		}
 	}
 }

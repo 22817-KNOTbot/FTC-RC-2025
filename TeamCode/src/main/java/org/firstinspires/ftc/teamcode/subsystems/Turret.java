@@ -20,7 +20,7 @@ public class Turret {
 	public static double max_rotation = 0.7;
 	public static double min_pitch = 0.05;
 	public static double max_pitch = 0.6;
-	public static double rotation_increment = 0.0005;
+	public static double rotation_increment = 0.015;
 	public static double rotation_per_deg = 0.205/90;
 	public static double pitch_increment = 0.01;
 

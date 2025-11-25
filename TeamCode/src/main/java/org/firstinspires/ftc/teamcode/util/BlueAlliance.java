@@ -7,7 +7,7 @@ import com.pedropathing.geometry.Pose;
 @Configurable
 @Config
 public class BlueAlliance implements Alliance {
-	public static double goalPoseX = 12;
+	public static double goalPoseX = 14;
 	public static double goalPoseY = 132;
 	public static double goalPoseHeading = 0;
 
@@ -17,6 +17,10 @@ public class BlueAlliance implements Alliance {
 
 	public Pose getGoalPose() {
 		return new Pose(goalPoseX, goalPoseY, goalPoseHeading);
+	}
+
+	public Pose getGoalShooterPose() {
+		return new Pose(0, 144, 0);
 	}
 
 	public double getHeadingOffset() {
