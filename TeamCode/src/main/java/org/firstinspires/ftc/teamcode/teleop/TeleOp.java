@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.field.Style;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.gamepad.PanelsGamepad;
 
@@ -30,6 +31,7 @@ import java.util.List;
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp")
 public class TeleOp extends LinearOpMode {
 	public static boolean DEBUG = true;
+	public static boolean pedroLocalizer = true; // Roadrunner if false
 
 	private GamepadManager gamepadManager;
 	private ElapsedTime loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -239,6 +241,7 @@ public class TeleOp extends LinearOpMode {
 				automationHandler.showTelemetry(telemetryManager);
 
 				Drawing.drawRobot(currentPose, telemetryManager.getDashboardCanvas());
+				Drawing.drawRobot(mecanumDrive.getRrPose(), new Style("", "#b33232", 0.75), telemetryManager.getDashboardCanvas());
 				Drawing.sendPacket();
 
 			}

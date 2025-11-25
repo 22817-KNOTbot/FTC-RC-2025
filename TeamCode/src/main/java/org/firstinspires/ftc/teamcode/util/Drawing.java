@@ -92,7 +92,6 @@ public class Drawing {
 			dashboardCanvas.setStrokeWidth(1);
 			dashboardCanvas.strokeCircle(pose.getY() - 72, 72 - pose.getX(), ROBOT_RADIUS);
 
-			dashboardCanvas.strokeLine(72 - x1, y1 - 72, 72 - x2, y2 - 72);
 			dashboardCanvas.strokeLine(y1 - 72, 72 - x1, y2 - 72, 72 - x2);
 		}
 	}

@@ -3,17 +3,22 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.pedropathing.math.Vector;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.roadrunner.Localizer;
+import org.firstinspires.ftc.teamcode.roadrunner.ThreeDeadWheelLocalizer;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
+import com.acmerobotics.roadrunner.Pose2d;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.ftc.FTCCoordinates;
 import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 
 public class MecanumDrive {
 	private Follower follower;
+	private Localizer rrLocalizer;
 	private double headingOffset;
 	private Pose holdPose = new Pose();
 	private boolean holdingPose;
@@ -23,6 +28,7 @@ public class MecanumDrive {
 
 	public MecanumDrive(HardwareMap hardwareMap) {
 		follower = Constants.createFollower(hardwareMap);
+		rrLocalizer = new ThreeDeadWheelLocalizer(hardwareMap, Constants.localizerConstants.forwardTicksToInches, new Pose2d(0, 0, 0));
 	}
 
 	public void initialize() {
@@ -34,7 +40,8 @@ public class MecanumDrive {
 	}
 
 	public void move(float forward, float lateral, float rotation) {
-		follower.update();
+		updateLocalizers();
+
 		if (autoDrive)
 			return;
 
@@ -45,6 +52,12 @@ public class MecanumDrive {
 				-rotation / denominator,
 				false,
 				headingOffset);
+	}
+
+	public void updateLocalizers() {
+		follower.update();
+
+		rrLocalizer.update();
 	}
 
 	public void lockingMecanum(boolean enabled) {
@@ -86,6 +99,12 @@ public class MecanumDrive {
 	public Pose getPose() {
 		return follower.getPose();
 	}
+
+	public Pose getRrPose() {
+		Pose2d rrPose = rrLocalizer.getPose();
+		return new Pose(rrPose.position.x, rrPose.position.y, rrPose.heading.log(), FTCCoordinates.INSTANCE).getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+	}
+
 	public Vector getVelocity() {
 		return follower.getVelocity();
 	}
