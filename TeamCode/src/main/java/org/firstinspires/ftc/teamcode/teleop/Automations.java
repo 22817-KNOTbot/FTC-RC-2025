@@ -113,8 +113,8 @@ public class Automations {
 	// Should be called every loop. Handles various things
 	// that need to be called repeatedly
 	public void automationLoop() {
-		vision.updateMotifPattern();
-		pattern = vision.getLastMotifPattern();
+		updateMotifPattern();
+
 		if (storageState == StorageState.WAITING && intakeEnabled) {
 			if (storage.intake()) {
 				storageState = StorageState.INTAKING;
@@ -225,6 +225,11 @@ public class Automations {
 		this.velocity = velocity;
 	}
 
+	public void updateMotifPattern() {
+		vision.updateMotifPattern();
+		pattern = vision.getLastMotifPattern();
+	}
+
 	public void intakeEnable(boolean enable) {
 		intake.enable(enable);
 		intakeEnabled = enable;
@@ -235,6 +240,15 @@ public class Automations {
 	public void intakeToggle() {
 		intakeEnable(!intakeEnabled);
 		if (intakeEnabled) {
+			storage.gateDown();
+		} else {
+			storage.gateUp();
+		}
+	}
+
+	public void intakeEnableActions(boolean enable) {
+		intakeEnable(enable);
+		if (enable) {
 			storage.gateDown();
 		} else {
 			storage.gateUp();
@@ -273,6 +287,20 @@ public class Automations {
 			storageState = StorageState.TURNING;
 		}
 		return false;
+	}
+
+	public Storage.TurnDirection prepareOrShootArtifactSequence(Artifact.Colour[] sequence) {
+		Storage.TurnDirection turnDirection = storage.turnToArtifactSequence(sequence);
+		if (turnDirection == Storage.TurnDirection.AVAILABLE) {
+			shootActiveArtifact();
+		} else if (turnDirection == Storage.TurnDirection.NONE) {
+			vibrateControllers();
+		} else {
+			storage.gateUp();
+			stateTimer.reset();
+			storageState = StorageState.TURNING;
+		}
+		return turnDirection;
 	}
 
 	public boolean prepareOrShootAnyArtifact() {

@@ -312,6 +312,35 @@ public class Storage {
 		}
 	}
 
+	// Will return NONE if invalid input or sequence not possible
+	// Only works for sequences of 3
+	public TurnDirection turnToArtifactSequence(Colour[] desiredSequence) {
+		if (desiredSequence.length < 3 || !storageFull()) {
+			return TurnDirection.NONE;
+		}
+
+		for (int i = 0; i < 3; i++) {
+			if (
+				artifactStored.get(i) == desiredSequence[0]
+				&& artifactStored.get((i + 2) % 3) == desiredSequence[1]
+				&& artifactStored.get((i + 1) % 3) == desiredSequence[2]
+			) {
+				switch (i) {
+					case 0:
+						return TurnDirection.AVAILABLE;
+					case 1:
+						storageTurnCCW();
+						return TurnDirection.CCW;
+					case 2:
+						storageTurnCW();
+						return TurnDirection.CW;
+				}
+			}
+		}
+
+		return TurnDirection.NONE;
+	}
+
 	public boolean transferInit(boolean force) {
 		if (getActiveArtifact() != null || force) {
 			gateUp();
