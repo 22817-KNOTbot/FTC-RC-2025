@@ -1,13 +1,13 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
+
+import java.util.List;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
+import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Storage;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
@@ -49,7 +49,6 @@ public class Automations {
 	private boolean transferAll;
 	private boolean visionOverridingTurret;
 	private boolean visionOverridedTurret;
-	private boolean headingOffsetProvided;
 
 	public enum StorageState {
 		WAITING,
@@ -89,10 +88,6 @@ public class Automations {
 
 	public void showTelemetry(TelemetryManager telemetry) {
 		telemetry.addData("In shooting zone", inShootingArea());
-		telemetry.addData("Storage Intake State", storage.getIntakeState());
-		telemetry.addData("Storage Transfer State", storage.getTransferState());
-		telemetry.addData("Shooter Velocity", shooter.getVelocity());
-		telemetry.addData("Shooter Desired Velocity", shooter.desiredVelocity);
 		telemetry.addData("Shooter Target Velocity", shooter.targetVelocity);
 		telemetry.addData("Distance", pose.distanceFrom(alliance.getGoalPose()));
 		telemetry.addData("Intake timed ejecting", intakeTimedEjecting);
@@ -156,7 +151,7 @@ public class Automations {
 					}
 				} else {
 					storage.transferFinish();
-					visionOverridingTurret = false;
+					setVisionOverrideEnabled(false);
 					intake.enable(false);
 					storageState = StorageState.WAITING;
 				}
@@ -199,8 +194,7 @@ public class Automations {
 
 			AlignmentDirection direction = vision.getAlignmentDirection();
 			if (!direction.directionKnown) {
-				visionOverridingTurret = false;
-				updateTurret();
+				setVisionOverrideEnabled(false);
 				return;
 			}
 			double bearing = direction.bearing;
@@ -310,10 +304,7 @@ public class Automations {
 
 	public void shootActiveArtifact(boolean force) {
 		shooter.enable(true);
-		visionOverridingTurret = true;
-		visionOverridedTurret = false;
-		headingOffsetProvided = false;
-		updateTurret();
+		setVisionOverrideEnabled(true);
 		if (!storage.getTransferInit()) {
 			storage.transferInit(force);
 		} else {
@@ -342,6 +333,11 @@ public class Automations {
 		storage.clearStorageMemory();
 	}
 
+	public void setVisionOverrideEnabled(boolean enable) {
+		visionOverridingTurret = enable;
+		visionOverridedTurret = false;
+	}
+
 	/*
 	 * Getter methods
 	 */
@@ -354,12 +350,32 @@ public class Automations {
 		return pattern;
 	}
 
+	public List<Colour> getArtifactsStored() {
+		return storage.getArtifactsStored();
+	}
+
 	public StorageState getStorageState() {
 		return storageState;
 	}
 
+	public Storage.IntakeState getIntakeState() {
+		return storage.getIntakeState();
+	}
+
+	public Storage.TransferState getTransferState() {
+		return storage.getTransferState();
+	}
+
 	public boolean getShooterEnabled() {
 		return shooterEnabled;
+	}
+
+	public double getShooterVelocity() {
+		return shooter.getVelocity();
+	}
+
+	public double getShooterDesiredVelocity() {
+		return shooter.desiredVelocity;
 	}
 
 	public Artifact.Pattern getArtifactPattern() {
@@ -376,17 +392,6 @@ public class Automations {
 
 	public void setIgnoreVelocity(boolean ignoreVelocity) {
 		this.ignoreVelocity = ignoreVelocity;
-	}
-
-	public double getHeadingOffset() {
-		AlignmentDirection direction = vision.getAlignmentDirection();
-		// if (direction.directionKnown) {
-		if (direction.directionKnown && visionOverridingTurret && !headingOffsetProvided) {
-			headingOffsetProvided = true;
-			return direction.bearing;
-		} else {
-			return 0;
-		}
 	}
 
 	/*

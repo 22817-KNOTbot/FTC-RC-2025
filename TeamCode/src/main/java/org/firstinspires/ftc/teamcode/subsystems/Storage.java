@@ -13,11 +13,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.bylazar.configurables.annotations.Configurable;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
-import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.acmerobotics.dashboard.config.Config;
 
@@ -399,6 +399,10 @@ public class Storage {
 		artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
 	}
 
+	public List<Colour> getArtifactsStored() {
+		return new ArrayList<>(artifactStored);
+	}
+
 	/*
 	 * Colour/range sensor
 	 */
@@ -441,7 +445,7 @@ public class Storage {
 	}
 
 	public void showTelemetry(TelemetryManager telemetry) {
-		telemetry.addData("Storage", artifactStored);
+		// telemetry.addData("Storage", artifactStored);
 		telemetry.addData("Artifact Loaded", isArtifactLoaded());
 		telemetry.addData("Artifact Colour", getArtifactColour());
 		// telemetry.addData("Spindexer Power", storageMotor.getPower());

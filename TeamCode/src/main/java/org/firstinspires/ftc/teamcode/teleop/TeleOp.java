@@ -187,11 +187,16 @@ public class TeleOp extends LinearOpMode {
 			if (gamepad2.dpadDownWasPressed()) {
 				manualTurretMode = !manualTurretMode;
 			}
-			if (manualTurretMode) {
-				automationHandler.rotateTurret(gamepad2.left_stick_x);
-				automationHandler.pitchTurret(gamepad2.right_stick_y);
-			} else {
-				automationHandler.updateTurret();
+			if (gamepad2.dpadLeftWasPressed()) {
+				automationHandler.setVisionOverrideEnabled(true);
+			} else if (!gamepad2.dpad_left) {
+				automationHandler.setVisionOverrideEnabled(false);
+				if (manualTurretMode) {
+					automationHandler.rotateTurret(gamepad2.left_stick_x);
+					automationHandler.pitchTurret(gamepad2.right_stick_y);
+				} else {
+					automationHandler.updateTurret();
+				}
 			}
 			if (gamepad2.yWasPressed()) {
 				manualShooterMode = !manualShooterMode;
@@ -209,12 +214,17 @@ public class TeleOp extends LinearOpMode {
 			} else {
 				automationHandler.setIgnoreVelocity(false);
 			}
-			telemetryManager.addLine("SENT 1");
 			telemetryManager.addData("Alliance", automationHandler.getAlliance().getColourString());
 			telemetryManager.addData("Pattern", automationHandler.getPattern());
 			telemetryManager.addData("Time", getRuntime());
 			telemetryManager.addData("Rapid Fire", automationHandler.getRapidFire());
+			telemetry.addData("Storage", automationHandler.getArtifactsStored());
 			telemetryManager.addData("Storage State", automationHandler.getStorageState());
+			telemetry.addData("Storage Intake State", automationHandler.getIntakeState());
+			telemetry.addData("Storage Transfer State", automationHandler.getTransferState());
+			telemetry.addData("Shooter Velocity", automationHandler.getShooterVelocity());
+			telemetry.addData("Shooter Desired Velocity", automationHandler.getShooterDesiredVelocity());
+
 			if (!automationHandler.colourSensorResponding()) {
 				telemetryManager.addLine("********************");
 				telemetryManager.addLine("WARNING: COLOUR SENSOR");
@@ -234,12 +244,10 @@ public class TeleOp extends LinearOpMode {
 				Pose currentPose = mecanumDrive.getPose();
 				// Pose holdPose = mecanumDrive.getHoldPose();
 
-				telemetryManager.addData("Heading", Math.toDegrees(currentPose.getHeading()));
-
 				telemetryManager.addData("Position X", currentPose.getX());
 				telemetryManager.addData("Position Y", currentPose.getY());
+				telemetryManager.addData("Heading", Math.toDegrees(currentPose.getHeading()));
 
-				telemetryManager.addData("RR Pose", mecanumDrive.getRrPose());
 				// telemetryManager.addData("Hold Position X", holdPose.getX());
 				// telemetryManager.addData("Hold Position Y", holdPose.getY());
 
