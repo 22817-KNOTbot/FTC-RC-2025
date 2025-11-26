@@ -151,13 +151,14 @@ public class TeleOp extends LinearOpMode {
 				}
 			}
 
-			automationHandler.updatePose(mecanumDrive.getPose());
+			automationHandler.updatePose(mecanumDrive.getRrPose());
 			automationHandler.updateVelocity(mecanumDrive.getVelocity());
 			automationHandler.automationLoop();
 
 			if (gamepad1.back || gamepad2.back) {
 				automationHandler.abort();
-			} else if (gamepad1.start || gamepad2.start) {
+			}
+			if (gamepad1.startWasPressed() || gamepad2.startWasPressed()) {
 				mecanumDrive.resetPose();
 			}
 
@@ -203,7 +204,12 @@ public class TeleOp extends LinearOpMode {
 			} else {
 				automationHandler.updateShooter();
 			}
-
+			if (gamepad2.left_trigger > 0.9) {
+				automationHandler.setIgnoreVelocity(true);
+			} else {
+				automationHandler.setIgnoreVelocity(false);
+			}
+			telemetryManager.addLine("SENT 1");
 			telemetryManager.addData("Alliance", automationHandler.getAlliance().getColourString());
 			telemetryManager.addData("Pattern", automationHandler.getPattern());
 			telemetryManager.addData("Time", getRuntime());
@@ -233,6 +239,7 @@ public class TeleOp extends LinearOpMode {
 				telemetryManager.addData("Position X", currentPose.getX());
 				telemetryManager.addData("Position Y", currentPose.getY());
 
+				telemetryManager.addData("RR Pose", mecanumDrive.getRrPose());
 				// telemetryManager.addData("Hold Position X", holdPose.getX());
 				// telemetryManager.addData("Hold Position Y", holdPose.getY());
 

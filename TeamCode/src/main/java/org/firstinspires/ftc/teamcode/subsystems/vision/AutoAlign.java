@@ -30,17 +30,20 @@ public class AutoAlign {
 	public class AlignmentDirection {
 		public boolean directionKnown;
 		public Float x;
+		public Float bearing;
 		public Float y;
 
-		public AlignmentDirection(boolean directionKnown, Float x, Float y) {
+		public AlignmentDirection(boolean directionKnown, Float x, Float bearing, Float y) {
 			this.directionKnown = directionKnown;
 			this.x = x;
+			this.bearing = bearing;
 			this.y = y;
 		}
 
 		@Override
 		public String toString() {
-			return "AlignmentDirection [directionKnown=" + directionKnown + ", x=" + x + ", y=" + y + "]";
+			return "AlignmentDirection [directionKnown=" + directionKnown + ", x=" + x + ", bearing=" + bearing + ", y="
+					+ y + "]";
 		}
 	}
 
@@ -70,7 +73,7 @@ public class AutoAlign {
 		}
 
 		if (targetedAprilTag == null) {
-			return new AlignmentDirection(false, null, null);
+			return new AlignmentDirection(false, null, null, null);
 		}
 
 		float distX = (float) targetedAprilTag.center.x - targetX;
@@ -82,7 +85,9 @@ public class AutoAlign {
 		float speedX = Math.max(-1, Math.min(distX / rangeX, 1));
 		float speedY = Math.max(-1, Math.min(distY / rangeY, 1));
 
-		return new AlignmentDirection(true, speedX, speedY);
+		float bearing = (float) targetedAprilTag.ftcPose.bearing;
+
+		return new AlignmentDirection(true, speedX, bearing, speedY);
 	}
 
 	public void setAprilTagId(Integer aprilTagId) {

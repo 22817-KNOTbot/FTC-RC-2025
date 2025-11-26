@@ -45,7 +45,11 @@ public class Automations {
 	private boolean intakeEjecting;
 	private boolean intakeTimedEjecting;
 	private boolean shooterEnabled;
+	private boolean ignoreVelocity;
 	private boolean transferAll;
+	private boolean visionOverridingTurret;
+	private boolean visionOverridedTurret;
+	private boolean headingOffsetProvided;
 
 	public enum StorageState {
 		WAITING,
@@ -92,6 +96,7 @@ public class Automations {
 		telemetry.addData("Shooter Target Velocity", shooter.targetVelocity);
 		telemetry.addData("Distance", pose.distanceFrom(alliance.getGoalPose()));
 		telemetry.addData("Intake timed ejecting", intakeTimedEjecting);
+		telemetry.addData("Vision Alignment Direction", vision.getAlignmentDirection());
 		storage.showTelemetry(telemetry);
 		// vision.showTelemetry(telemetry);
 	}
@@ -136,7 +141,7 @@ public class Automations {
 			stateTimer.reset();
 		} else if (storageState == StorageState.TRANSFERRING) {
 			// Pause transfer updates while waiting to reach velocity
-			if (storage.getTransferState() != Storage.TransferState.RAMP_OUT || isShooterAtVelocity()) {
+			if (storage.getTransferState() != Storage.TransferState.RAMP_OUT || isShooterAtVelocity() || ignoreVelocity) {
 				storage.transferUpdate();
 			}
 
@@ -151,6 +156,7 @@ public class Automations {
 					}
 				} else {
 					storage.transferFinish();
+					visionOverridingTurret = false;
 					intake.enable(false);
 					storageState = StorageState.WAITING;
 				}
@@ -170,23 +176,39 @@ public class Automations {
 
 	// Should be called to update the turret
 	public void updateTurret() {
-		Pose goalPose = alliance.getGoalPose();
-		Vector turretOffset = pose.getHeadingAsUnitVector().times(4);
-		Pose turretPose = pose.plus(new Pose(turretOffset.getXComponent(), turretOffset.getYComponent()));
-		Pose poseDifference = goalPose.minus(turretPose);
+		if (!visionOverridingTurret) {
+			Pose goalPose = alliance.getGoalPose();
+			Vector turretOffset = pose.getHeadingAsUnitVector().times(4);
+			Pose turretPose = pose.plus(new Pose(turretOffset.getXComponent(), turretOffset.getYComponent()));
+			Pose poseDifference = goalPose.minus(turretPose);
+	
+			// Converting to normal coordinate system where
+			// 0 = up, increases clockwise; In radians
+			double robotAngle = (0.5 * Math.PI) - pose.getHeading();
+			robotAngle = robotAngle % (2 * Math.PI);
+			double targetAngle = Math.atan2(poseDifference.getX(), poseDifference.getY());
+	
+			double angleDifference = targetAngle - robotAngle;
+			double normalizedAngle = angleDifference - (Math.ceil((angleDifference + Math.PI) / (2 * Math.PI)) - 1)
+					* 2 * Math.PI;
+	
+			double targetRotation = Turret.BASE_ROTATION + Math.toDegrees(normalizedAngle) * Turret.rotation_per_deg;
+			turret.setRotation(targetRotation);
+		} else {
+			if (visionOverridedTurret) return;
 
-		// Converting to normal coordinate system where
-		// 0 = up, increases clockwise; In radians
-		double robotAngle = (0.5 * Math.PI) - pose.getHeading();
-		robotAngle = robotAngle % (2 * Math.PI);
-		double targetAngle = Math.atan2(poseDifference.getX(), poseDifference.getY());
+			AlignmentDirection direction = vision.getAlignmentDirection();
+			if (!direction.directionKnown) {
+				visionOverridingTurret = false;
+				updateTurret();
+				return;
+			}
+			double bearing = direction.bearing;
 
-		double angleDifference = targetAngle - robotAngle;
-		double normalizedAngle = angleDifference - (Math.ceil((angleDifference + Math.PI) / (2 * Math.PI)) - 1)
-				* 2 * Math.PI;
-
-		double targetRotation = Turret.BASE_ROTATION + Math.toDegrees(normalizedAngle) * Turret.rotation_per_deg;
-		turret.setRotation(targetRotation);
+			double targetRotation = Turret.getRotation() - (bearing * Turret.rotation_per_deg);
+			turret.setRotation(targetRotation);
+			visionOverridedTurret = true;
+		}
 	}
 
 	// Should be called to update the shooter velocity
@@ -288,6 +310,10 @@ public class Automations {
 
 	public void shootActiveArtifact(boolean force) {
 		shooter.enable(true);
+		visionOverridingTurret = true;
+		visionOverridedTurret = false;
+		headingOffsetProvided = false;
+		updateTurret();
 		if (!storage.getTransferInit()) {
 			storage.transferInit(force);
 		} else {
@@ -346,6 +372,21 @@ public class Automations {
 
 	public boolean getRapidFire() {
 		return transferAll;
+	}
+
+	public void setIgnoreVelocity(boolean ignoreVelocity) {
+		this.ignoreVelocity = ignoreVelocity;
+	}
+
+	public double getHeadingOffset() {
+		AlignmentDirection direction = vision.getAlignmentDirection();
+		// if (direction.directionKnown) {
+		if (direction.directionKnown && visionOverridingTurret && !headingOffsetProvided) {
+			headingOffsetProvided = true;
+			return direction.bearing;
+		} else {
+			return 0;
+		}
 	}
 
 	/*

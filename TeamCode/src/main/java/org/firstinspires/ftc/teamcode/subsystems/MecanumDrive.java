@@ -28,7 +28,7 @@ public class MecanumDrive {
 
 	public MecanumDrive(HardwareMap hardwareMap) {
 		follower = Constants.createFollower(hardwareMap);
-		rrLocalizer = new ThreeDeadWheelLocalizer(hardwareMap, Constants.localizerConstants.forwardTicksToInches, new Pose2d(0, 0, 0));
+		rrLocalizer = new ThreeDeadWheelLocalizer(hardwareMap, Constants.localizerConstants.forwardTicksToInches, new Pose2d(-63, -63, 0));
 	}
 
 	public void initialize() {
@@ -94,15 +94,18 @@ public class MecanumDrive {
 
 	public void setPose(Pose pose){
 		follower.setPose(pose);
+		rrLocalizer.setPose(new Pose2d(pose.getX(), pose.getY(), pose.getHeading()));
+		// follower.update();
 	}
 
 	public Pose getPose() {
-		return follower.getPose();
+		// return follower.getPose();
+		return getRrPose();
 	}
 
 	public Pose getRrPose() {
 		Pose2d rrPose = rrLocalizer.getPose();
-		return new Pose(rrPose.position.x, rrPose.position.y, rrPose.heading.log(), FTCCoordinates.INSTANCE).getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+		return new Pose(rrPose.position.x, rrPose.position.y, rrPose.heading.log());
 	}
 
 	public Vector getVelocity() {
@@ -115,6 +118,8 @@ public class MecanumDrive {
 
 	public void resetPose() {
 		follower.setPose(resetPose);
+		rrLocalizer.setPose(new Pose2d(resetPose.getX(), resetPose.getY(), resetPose.getHeading()));
+		// follower.update();
 	}
 
 	public Pose getHoldPose() {
