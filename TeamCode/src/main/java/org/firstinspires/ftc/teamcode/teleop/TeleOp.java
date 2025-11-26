@@ -218,12 +218,12 @@ public class TeleOp extends LinearOpMode {
 			telemetryManager.addData("Pattern", automationHandler.getPattern());
 			telemetryManager.addData("Time", getRuntime());
 			telemetryManager.addData("Rapid Fire", automationHandler.getRapidFire());
-			telemetry.addData("Storage", automationHandler.getArtifactsStored());
+			telemetryManager.addData("Storage", automationHandler.getArtifactsStored());
 			telemetryManager.addData("Storage State", automationHandler.getStorageState());
-			telemetry.addData("Storage Intake State", automationHandler.getIntakeState());
-			telemetry.addData("Storage Transfer State", automationHandler.getTransferState());
-			telemetry.addData("Shooter Velocity", automationHandler.getShooterVelocity());
-			telemetry.addData("Shooter Desired Velocity", automationHandler.getShooterDesiredVelocity());
+			telemetryManager.addData("Storage Intake State", automationHandler.getIntakeState());
+			telemetryManager.addData("Storage Transfer State", automationHandler.getTransferState());
+			telemetryManager.addData("Shooter Velocity", automationHandler.getShooterVelocity());
+			telemetryManager.addData("Shooter Desired Velocity", automationHandler.getShooterDesiredVelocity());
 
 			if (!automationHandler.colourSensorResponding()) {
 				telemetryManager.addLine("********************");
