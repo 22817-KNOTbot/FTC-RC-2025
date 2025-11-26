@@ -115,6 +115,7 @@ public class Automations {
 	public void automationLoop() {
 		vision.updateMotifPattern();
 		pattern = vision.getLastMotifPattern();
+		shooter.updateVelocityPid();
 		if (storageState == StorageState.WAITING && intakeEnabled) {
 			if (storage.intake()) {
 				storageState = StorageState.INTAKING;
@@ -207,7 +208,7 @@ public class Automations {
 
 	// Should be called to update the shooter velocity
 	public void updateShooter() {
-		shooter.updateVelocity(pose.distanceFrom(alliance.getGoalShooterPose()));
+		shooter.updateVelocityTarget(pose.distanceFrom(alliance.getGoalShooterPose()));
 		if (inShootingArea()) {
 			setShooterEnabled(true);
 		} else {
