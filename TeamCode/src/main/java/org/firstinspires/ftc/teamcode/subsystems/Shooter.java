@@ -31,6 +31,7 @@ public class Shooter {
 	public double targetVelocity = desiredVelocity + velocityTargetOffset;
 
 	private Pid pidController;
+	private boolean enabled;
 	private double power;
 
 	private DcMotorEx shooterMotorLeft;
@@ -115,6 +116,7 @@ public class Shooter {
 			shooterMotorLeft.setPower(0);
 			shooterMotorRight.setPower(0);
 		}
+		this.enabled = enabled;
 	}
 
 	public void setPower(double pow) {
@@ -147,6 +149,7 @@ public class Shooter {
 	}
 
 	public void updateVelocityPid() {
+		if (!enabled) return;
 		if (PID_update) {
 			pidController.setKp(PID_P);
 			pidController.setKi(PID_I);
