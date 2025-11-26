@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
+import org.firstinspires.ftc.teamcode.roadrunner.RoadRunnerToPedroLocalizer;
+import org.firstinspires.ftc.teamcode.roadrunner.ThreeDeadWheelLocalizer;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
@@ -61,22 +65,23 @@ public class Constants {
 		return new FollowerBuilder(followerConstants, hardwareMap)
 				.pathConstraints(pathConstraints)
 				.mecanumDrivetrain(driveConstants)
-				.threeWheelLocalizer(
-						new ThreeWheelConstants()
-								.forwardTicksToInches(forwardTicksToInches)
-								.strafeTicksToInches(strafeTicksToInches)
-								.turnTicksToInches(turnTicksToInches)
-								.leftPodY(leftPodY)
-								.rightPodY(rightPodY)
-								.strafePodX(strafePodX)
-								// .strafePodX(-7.01423031496)
-								.leftEncoder_HardwareMapName("frontLeftMotor")
-								.rightEncoder_HardwareMapName("shooterMotorRight")
-								.strafeEncoder_HardwareMapName("backLeftMotor")
-								.leftEncoderDirection(Encoder.REVERSE)
-								.rightEncoderDirection(Encoder.REVERSE)
-								.strafeEncoderDirection(Encoder.FORWARD)
-				)
+				// .threeWheelLocalizer(
+				// 		new ThreeWheelConstants()
+				// 				.forwardTicksToInches(forwardTicksToInches)
+				// 				.strafeTicksToInches(strafeTicksToInches)
+				// 				.turnTicksToInches(turnTicksToInches)
+				// 				.leftPodY(leftPodY)
+				// 				.rightPodY(rightPodY)
+				// 				.strafePodX(strafePodX)
+				// 				// .strafePodX(-7.01423031496)
+				// 				.leftEncoder_HardwareMapName("frontLeftMotor")
+				// 				.rightEncoder_HardwareMapName("shooterMotorRight")
+				// 				.strafeEncoder_HardwareMapName("backLeftMotor")
+				// 				.leftEncoderDirection(Encoder.REVERSE)
+				// 				.rightEncoderDirection(Encoder.REVERSE)
+				// 				.strafeEncoderDirection(Encoder.FORWARD)
+				// )
+				.setLocalizer(new RoadRunnerToPedroLocalizer(hardwareMap, MecanumDrive.PARAMS, ThreeDeadWheelLocalizer.PARAMS))
 				.build();
 	}
 }

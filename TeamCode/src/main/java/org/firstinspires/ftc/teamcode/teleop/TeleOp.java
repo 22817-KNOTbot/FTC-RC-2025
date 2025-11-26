@@ -95,7 +95,7 @@ public class TeleOp extends LinearOpMode {
 		}
 		
 		Pose pose = (Pose) blackboard.getOrDefault("pose", automationHandler.getAlliance().getResetPose());
-		mecanumDrive.setPose(pose);
+		mecanumDrive.setStartingPose(pose);
 
 		mecanumDrive.initialize();
 		mecanumDrive.setHeadingOffset(automationHandler.getAlliance().getHeadingOffset());
@@ -151,7 +151,7 @@ public class TeleOp extends LinearOpMode {
 				}
 			}
 
-			automationHandler.updatePose(mecanumDrive.getRrPose());
+			automationHandler.updatePose(mecanumDrive.getPose());
 			automationHandler.updateVelocity(mecanumDrive.getVelocity());
 			automationHandler.automationLoop();
 
@@ -256,7 +256,6 @@ public class TeleOp extends LinearOpMode {
 				automationHandler.showTelemetry(telemetryManager);
 
 				Drawing.drawRobot(currentPose, telemetryManager.getDashboardCanvas());
-				Drawing.drawRobot(mecanumDrive.getRrPose(), new Style("", "#b33232", 0.75), telemetryManager.getDashboardCanvas());
 				Drawing.sendPacket();
 
 			}
