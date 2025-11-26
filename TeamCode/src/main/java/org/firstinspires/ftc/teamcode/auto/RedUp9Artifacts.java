@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.auto;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.PanelsTelemetry;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.subsystems.Storage;
@@ -11,6 +13,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.util.RedAlliance;
+import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -46,6 +49,11 @@ public class RedUp9Artifacts extends LinearOpMode {
 
 	@Override
 	public void runOpMode() {
+		TelemetryManager telemetryManager = new TelemetryManager();
+		telemetryManager.setFtcTelemetry(telemetry);
+		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
+		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
+		
 		blackboard.put("alliance", alliance);
 		follower = Constants.createFollower(hardwareMap);
 		follower.setStartingPose(startPose);
@@ -57,7 +65,6 @@ public class RedUp9Artifacts extends LinearOpMode {
 		for (LynxModule hub : allHubs) {
 			hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 		}
-
 
 		while (opModeInInit()) {
 			for (LynxModule hub : allHubs) {
@@ -100,6 +107,12 @@ public class RedUp9Artifacts extends LinearOpMode {
 			if (doMovement) {
 				follower.update();
 				pathUpdate();
+			}
+
+			if (DEBUG) {
+				for (String line : follower.debug()) {
+					telemetryManager.addLine(line);
+				}
 			}
 		}
 		blackboard.put("pose", follower.getPose());
