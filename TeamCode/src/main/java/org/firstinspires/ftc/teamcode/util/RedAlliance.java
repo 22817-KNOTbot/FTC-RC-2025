@@ -34,4 +34,8 @@ public class RedAlliance implements Alliance {
 	public Pose getResetPose() {
 		return new Pose(9, 9, 0);
 	}
+
+	public int getObeliskSidePriority() {
+		return -1;
+	}
 }

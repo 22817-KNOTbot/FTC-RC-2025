@@ -9,4 +9,5 @@ public interface Alliance {
 	public double getHeadingOffset();
 	public Pose getBasePose();
 	public Pose getResetPose();
+	public int getObeliskSidePriority();
 }

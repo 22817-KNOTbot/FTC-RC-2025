@@ -16,6 +16,7 @@ public class MotifDecode {
 	private AprilTagProcessor aprilTagProcessor;
 
 	private Pattern pattern = null;
+	private Integer prioritySide = null;
 
 	public MotifDecode(AprilTagProcessor aprilTagProcessor) {
 		this(aprilTagProcessor, false);
@@ -30,6 +31,7 @@ public class MotifDecode {
 	// Use getLastPattern() to get stored pattern
 	public Pattern updatePattern() {
 		Pattern pattern = null;
+		Double obtainedPatternPosition = null;
 
 		List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
 		for (AprilTagDetection detection : detections) {
@@ -44,8 +46,14 @@ public class MotifDecode {
 					pattern = Pattern.PPG;
 					break;
 			}
-			if (pattern != null)
-				break;
+			if (pattern != null) {
+				if (prioritySide == null) {
+					break;
+				}
+				if (obtainedPatternPosition == null || Math.signum(detection.center.x - obtainedPatternPosition) == Math.signum(prioritySide)) {
+					obtainedPatternPosition = detection.center.x;
+				}
+			}
 		}
 
 		if (pattern != null) {
@@ -56,5 +64,11 @@ public class MotifDecode {
 
 	public Pattern getLastPattern() {
 		return pattern;
+	}
+
+	// If multiple tags visible, this determines priority
+	// Negative = left, positive = right
+	public void setPrioritySide(Integer side) {
+		this.prioritySide = side;
 	}
 }
