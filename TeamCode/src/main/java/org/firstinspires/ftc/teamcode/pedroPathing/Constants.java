@@ -75,22 +75,30 @@ public class Constants {
 		return new FollowerBuilder(followerConstants, hardwareMap)
 				.pathConstraints(pathConstraints)
 				.mecanumDrivetrain(driveConstants)
-				// .threeWheelLocalizer(
-				// 		new ThreeWheelConstants()
-				// 				.forwardTicksToInches(forwardTicksToInches)
-				// 				.strafeTicksToInches(strafeTicksToInches)
-				// 				.turnTicksToInches(turnTicksToInches)
-				// 				.leftPodY(leftPodY)
-				// 				.rightPodY(rightPodY)
-				// 				.strafePodX(strafePodX)
-				// 				// .strafePodX(-7.01423031496)
-				// 				.leftEncoder_HardwareMapName("frontLeftMotor")
-				// 				.rightEncoder_HardwareMapName("shooterMotorRight")
-				// 				.strafeEncoder_HardwareMapName("backLeftMotor")
-				// 				.leftEncoderDirection(Encoder.REVERSE)
-				// 				.rightEncoderDirection(Encoder.REVERSE)
-				// 				.strafeEncoderDirection(Encoder.FORWARD)
-				// )
+				.threeWheelLocalizer(
+						new ThreeWheelConstants()
+								.forwardTicksToInches(forwardTicksToInches)
+								.strafeTicksToInches(strafeTicksToInches)
+								.turnTicksToInches(turnTicksToInches)
+								.leftPodY(leftPodY)
+								.rightPodY(rightPodY)
+								.strafePodX(strafePodX)
+								// .strafePodX(-7.01423031496)
+								.leftEncoder_HardwareMapName("frontLeftMotor")
+								.rightEncoder_HardwareMapName("shooterMotorRight")
+								.strafeEncoder_HardwareMapName("backLeftMotor")
+								.leftEncoderDirection(Encoder.REVERSE)
+								.rightEncoderDirection(Encoder.REVERSE)
+								.strafeEncoderDirection(Encoder.FORWARD)
+				)
+				// .setLocalizer(new RoadRunnerToPedroLocalizer(hardwareMap, MecanumDrive.PARAMS, ThreeDeadWheelLocalizer.PARAMS))
+				.build();
+	}
+
+	public static Follower createFollowerRoadRunner(HardwareMap hardwareMap) {
+		return new FollowerBuilder(followerConstants, hardwareMap)
+				.pathConstraints(pathConstraints)
+				.mecanumDrivetrain(driveConstants)
 				.setLocalizer(new RoadRunnerToPedroLocalizer(hardwareMap, MecanumDrive.PARAMS, ThreeDeadWheelLocalizer.PARAMS))
 				.build();
 	}
