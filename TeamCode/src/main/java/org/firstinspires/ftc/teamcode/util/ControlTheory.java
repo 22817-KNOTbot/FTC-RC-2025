@@ -12,6 +12,13 @@ public class ControlTheory {
 		private double integralSum = 0;
 		private Double lastError = null;
 
+		private double reference;
+		private double current;
+		private double error;
+		private double difference;
+		private double derivative;
+		private double output;
+
 		public Pid(double Kp, double Ki, double Kd) {
 			this.Kp = Kp;
 			this.Ki = Ki;
@@ -20,36 +27,31 @@ public class ControlTheory {
 		}
 
 		public double calculate(double reference, double current) {
-			return calculate(reference, current, null);
-		}
-
-		public double calculate(double reference, double current, TelemetryManager telemetryManager) {
-			double error = reference - current;
-			double difference;
+			error = reference - current;
 			if (lastError != null) {
 				difference = error - lastError;
 			} else {
 				difference = 0;
 			}
-			double derivative = difference / timer.seconds();
+			derivative = difference / timer.seconds();
 			integralSum = integralSum + (error * timer.seconds());
 
-			double output = (Kp * error) +
+			output = (Kp * error) +
 					(Ki * integralSum) +
 					(Kd * derivative);
 
 			lastError = error;
 			timer.reset();
 
-			if (telemetryManager != null) {
-				telemetryManager.addData("Error", error);
-				telemetryManager.addData("ref", reference);
-				telemetryManager.addData("cur", current);
-				telemetryManager.addData("lastError", lastError);
-				telemetryManager.addData("calculated difference", difference);
-			}
-
 			return output;
+		}
+
+		public void showTelemetry(TelemetryManager telemetry) {
+				telemetry.addData("Error", error);
+				telemetry.addData("ref", reference);
+				telemetry.addData("cur", current);
+				telemetry.addData("lastError", lastError);
+				telemetry.addData("calculated difference", difference);
 		}
 
 		public void resetIntegral() {

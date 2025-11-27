@@ -27,6 +27,7 @@ public class Automations {
 	private StorageState storageState;
 	private ElapsedTime stateTimer;
 	private ElapsedTime ejectTimer;
+	private TelemetryManager telemetryManager;
 
 	private Intake intake;
 	private Storage storage;
@@ -88,11 +89,12 @@ public class Automations {
 
 	public void showTelemetry(TelemetryManager telemetry) {
 		telemetry.addData("In shooting zone", inShootingArea());
-		telemetry.addData("Shooter Target Velocity", shooter.targetVelocity);
+		telemetry.addData("Shooter Desired Velocity", shooter.desiredVelocity);
 		telemetry.addData("Distance", pose.distanceFrom(alliance.getGoalPose()));
 		telemetry.addData("Intake timed ejecting", intakeTimedEjecting);
 		telemetry.addData("Vision Alignment Direction", vision.getAlignmentDirection());
 		storage.showTelemetry(telemetry);
+		telemetryManager = telemetry;
 		// vision.showTelemetry(telemetry);
 	}
 
@@ -414,11 +416,10 @@ public class Automations {
 
 	public void setShooterVelocity(double velocity) {
 		shooter.desiredVelocity = velocity;
-		shooter.targetVelocity = velocity + Shooter.velocityTargetOffset;
 	}
 
 	public boolean isShooterAtVelocity() {
-		return shooter.getVelocity() >= shooter.desiredVelocity || shooter.getVelocity() < shooter.targetVelocity;
+		return Math.abs(shooter.getVelocity() - shooter.desiredVelocity) < Shooter.velocityTolerance;
 	}
 
 	public void vibrateControllers() {

@@ -12,23 +12,23 @@ import java.util.TreeSet;
 
 import com.acmerobotics.dashboard.config.Config;
 
+import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.util.ControlTheory.Pid;
 
 @Configurable
 @Config
 public class Shooter {
 	public static double velocityConstant = 50;
-	public static double velocityTargetOffset = 50;
+	public static double velocityTolerance = 50;
 	public static double shootingAreaTolerance = 12.7279220614;
 	public static double defaultVelocity = 2200;
 	public static VelocityEntries velocityEntries;
-	public static double PID_P = 0;
+	public static double PID_P = 0.00004;
 	public static double PID_I = 0;
-	public static double PID_D = 0;
+	public static double PID_D = 0.00001;
 	public static boolean PID_update = false;
 
 	public double desiredVelocity = 2200;
-	public double targetVelocity = desiredVelocity + velocityTargetOffset;
 
 	private Pid pidController;
 	private boolean enabled;
@@ -145,7 +145,6 @@ public class Shooter {
 		} else {
 			desiredVelocity = defaultVelocity;
 		}
-		targetVelocity = desiredVelocity + velocityTargetOffset;
 	}
 
 	public void updateVelocityPid() {
@@ -159,6 +158,10 @@ public class Shooter {
 		double pidOutput = pidController.calculate(desiredVelocity, getVelocity());
 		setPower(power + pidOutput);
 	}
+
+	public void showPidTelemetry(TelemetryManager telemetry) {
+		pidController.showTelemetry(telemetry);
+	} 
 
 	public boolean atDesiredVelocity() {
 		return getVelocity() >= desiredVelocity;

@@ -5,6 +5,8 @@ import org.firstinspires.ftc.teamcode.roadrunner.RoadRunnerToPedroLocalizer;
 import org.firstinspires.ftc.teamcode.roadrunner.ThreeDeadWheelLocalizer;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.pedropathing.control.FilteredPIDFCoefficients;
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
@@ -27,7 +29,13 @@ public class Constants {
 	public static double strafePodX = -6.5;
 
 	public final static FollowerConstants followerConstants = new FollowerConstants()
-			.mass(14.5);
+			.mass(14.06136347)
+			.forwardZeroPowerAcceleration(-46.1027782346387)
+			.lateralZeroPowerAcceleration(-72.06232099123484)
+			.translationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0.0, 0.0))
+			.headingPIDFCoefficients(new PIDFCoefficients(1, 0.7, 0.05, 0.01))
+			.drivePIDFCoefficients(new FilteredPIDFCoefficients(0.025,0.0,0.0013,0.6,0.01))
+			.centripetalScaling(0.0005);
 
 	public final static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
@@ -41,7 +49,9 @@ public class Constants {
 			.leftRearMotorDirection(DcMotor.Direction.REVERSE)
 			.rightFrontMotorDirection(DcMotor.Direction.FORWARD)
 			.rightRearMotorDirection(DcMotor.Direction.FORWARD)
-			.useBrakeModeInTeleOp(true);
+			.useBrakeModeInTeleOp(true)
+			.xVelocity(74.30778390400556)
+			.yVelocity(59.68430371683744);
 
 	public final static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
 			.forwardTicksToInches(0.001987263346781042)

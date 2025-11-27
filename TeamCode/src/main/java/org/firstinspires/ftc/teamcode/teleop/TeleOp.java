@@ -42,6 +42,7 @@ public class TeleOp extends LinearOpMode {
 	public void runOpMode() {
 		boolean manualTurretMode = false;
 		boolean manualShooterMode = false;
+		boolean manualVisionOverrideTurret = false;
 
 		gamepadManager = new GamepadManager(gamepad1, gamepad2,
 				PanelsGamepad.INSTANCE.getFirstManager()::asCombinedFTCGamepad,
@@ -189,14 +190,18 @@ public class TeleOp extends LinearOpMode {
 			}
 			if (gamepad2.dpadLeftWasPressed()) {
 				automationHandler.setVisionOverrideEnabled(true);
+				manualVisionOverrideTurret = true;
 			} else if (!gamepad2.dpad_left) {
-				automationHandler.setVisionOverrideEnabled(false);
-				if (manualTurretMode) {
-					automationHandler.rotateTurret(gamepad2.left_stick_x);
-					automationHandler.pitchTurret(gamepad2.right_stick_y);
-				} else {
-					automationHandler.updateTurret();
+				if (manualVisionOverrideTurret) {
+					automationHandler.setVisionOverrideEnabled(false);
+					manualVisionOverrideTurret = false;
 				}
+			}
+			if (manualTurretMode && !manualVisionOverrideTurret) {
+				automationHandler.rotateTurret(gamepad2.left_stick_x);
+				automationHandler.pitchTurret(gamepad2.right_stick_y);
+			} else {
+				automationHandler.updateTurret();
 			}
 			if (gamepad2.yWasPressed()) {
 				manualShooterMode = !manualShooterMode;

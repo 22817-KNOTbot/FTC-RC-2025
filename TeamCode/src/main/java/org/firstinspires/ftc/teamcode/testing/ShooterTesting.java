@@ -34,7 +34,6 @@ public class ShooterTesting extends LinearOpMode {
 			shooter.updateVelocityPid();
 			if (power == null) {
 				shooter.desiredVelocity = desiredVelocity;
-				shooter.targetVelocity = desiredVelocity + Shooter.velocityTargetOffset;
 				shooter.enable(enabled);
 			} else {
 				shooter.setPower(power);
