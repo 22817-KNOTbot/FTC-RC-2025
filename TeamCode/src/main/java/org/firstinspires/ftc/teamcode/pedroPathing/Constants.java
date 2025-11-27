@@ -1,6 +1,12 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
+import org.firstinspires.ftc.teamcode.roadrunner.RoadRunnerToPedroLocalizer;
+import org.firstinspires.ftc.teamcode.roadrunner.ThreeDeadWheelLocalizer;
+
 import com.acmerobotics.dashboard.config.Config;
+import com.pedropathing.control.FilteredPIDFCoefficients;
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
@@ -23,7 +29,13 @@ public class Constants {
 	public static double strafePodX = -6.5;
 
 	public final static FollowerConstants followerConstants = new FollowerConstants()
-			.mass(14.5);
+			.mass(14.06136347)
+			.forwardZeroPowerAcceleration(-46.1027782346387)
+			.lateralZeroPowerAcceleration(-72.06232099123484)
+			.translationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0.0, 0.0))
+			.headingPIDFCoefficients(new PIDFCoefficients(1, 0.7, 0.05, 0.01))
+			.drivePIDFCoefficients(new FilteredPIDFCoefficients(0.025,0.0,0.0013,0.6,0.01))
+			.centripetalScaling(0.0005);
 
 	public final static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
@@ -37,7 +49,9 @@ public class Constants {
 			.leftRearMotorDirection(DcMotor.Direction.REVERSE)
 			.rightFrontMotorDirection(DcMotor.Direction.FORWARD)
 			.rightRearMotorDirection(DcMotor.Direction.FORWARD)
-			.useBrakeModeInTeleOp(true);
+			.useBrakeModeInTeleOp(true)
+			.xVelocity(74.30778390400556)
+			.yVelocity(59.68430371683744);
 
 	public final static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
 			.forwardTicksToInches(0.001987263346781042)
@@ -61,22 +75,23 @@ public class Constants {
 		return new FollowerBuilder(followerConstants, hardwareMap)
 				.pathConstraints(pathConstraints)
 				.mecanumDrivetrain(driveConstants)
-				.threeWheelLocalizer(
-						new ThreeWheelConstants()
-								.forwardTicksToInches(forwardTicksToInches)
-								.strafeTicksToInches(strafeTicksToInches)
-								.turnTicksToInches(turnTicksToInches)
-								.leftPodY(leftPodY)
-								.rightPodY(rightPodY)
-								.strafePodX(strafePodX)
-								// .strafePodX(-7.01423031496)
-								.leftEncoder_HardwareMapName("frontLeftMotor")
-								.rightEncoder_HardwareMapName("shooterMotorRight")
-								.strafeEncoder_HardwareMapName("backLeftMotor")
-								.leftEncoderDirection(Encoder.REVERSE)
-								.rightEncoderDirection(Encoder.REVERSE)
-								.strafeEncoderDirection(Encoder.FORWARD)
-				)
+				// .threeWheelLocalizer(
+				// 		new ThreeWheelConstants()
+				// 				.forwardTicksToInches(forwardTicksToInches)
+				// 				.strafeTicksToInches(strafeTicksToInches)
+				// 				.turnTicksToInches(turnTicksToInches)
+				// 				.leftPodY(leftPodY)
+				// 				.rightPodY(rightPodY)
+				// 				.strafePodX(strafePodX)
+				// 				// .strafePodX(-7.01423031496)
+				// 				.leftEncoder_HardwareMapName("frontLeftMotor")
+				// 				.rightEncoder_HardwareMapName("shooterMotorRight")
+				// 				.strafeEncoder_HardwareMapName("backLeftMotor")
+				// 				.leftEncoderDirection(Encoder.REVERSE)
+				// 				.rightEncoderDirection(Encoder.REVERSE)
+				// 				.strafeEncoderDirection(Encoder.FORWARD)
+				// )
+				.setLocalizer(new RoadRunnerToPedroLocalizer(hardwareMap, MecanumDrive.PARAMS, ThreeDeadWheelLocalizer.PARAMS))
 				.build();
 	}
 }

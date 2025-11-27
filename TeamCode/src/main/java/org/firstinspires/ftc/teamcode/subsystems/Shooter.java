@@ -5,37 +5,34 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.firstinspires.ftc.teamcode.subsystems.Shooter.VelocityEntries.VelocityEntry;
-import org.firstinspires.ftc.teamcode.util.Alliance;
-
 import com.acmerobotics.dashboard.config.Config;
+
+import org.firstinspires.ftc.teamcode.util.TelemetryManager;
+import org.firstinspires.ftc.teamcode.util.ControlTheory.Pid;
 
 @Configurable
 @Config
 public class Shooter {
-	// power = power of shooterMotor
-	public static float power = 1;
-	// See Desmos graph for regression. Constants for cubic regression
-	// public static double velocityEquationCoefficient_3 = 0.00169552;
-	// public static double velocityEquationCoefficient_2 = -0.36759;
-	// public static double velocityEquationCoefficient_1 = 29.06798;
-	// public static double velocityEquationConstant = 838.74397;
 	public static double velocityConstant = 50;
-	public static double velocityTargetOffset = 50;
+	public static double velocityTolerance = 50;
 	public static double shootingAreaTolerance = 12.7279220614;
 	public static double defaultVelocity = 2200;
 	public static VelocityEntries velocityEntries;
+	public static double PID_P = 0.00004;
+	public static double PID_I = 0;
+	public static double PID_D = 0.00001;
+	public static boolean PID_update = false;
 
 	public double desiredVelocity = 2200;
-	public double targetVelocity = desiredVelocity + velocityTargetOffset;
+
+	private Pid pidController;
+	private boolean enabled;
+	private double power;
 
 	private DcMotorEx shooterMotorLeft;
 	private DcMotorEx shooterMotorRight;
@@ -94,6 +91,8 @@ public class Shooter {
 		shooterMotorLeft.setDirection(DcMotorEx.Direction.REVERSE);
 		shooterMotorRight = hardwareMap.get(DcMotorEx.class, "shooterMotorRight");
 
+		pidController = new Pid(PID_P, PID_I, PID_D);
+
 		addVelocityEntries();
 	}
 
@@ -112,20 +111,21 @@ public class Shooter {
 
 	public void enable(boolean enabled) {
 		if (enabled) {
-			shooterMotorLeft.setVelocity(targetVelocity);
-			shooterMotorRight.setPower(shooterMotorLeft.getPower());
+			setPower(power);
 		} else {
 			shooterMotorLeft.setPower(0);
 			shooterMotorRight.setPower(0);
 		}
+		this.enabled = enabled;
 	}
 
-	public void setPower(float pow) {
+	public void setPower(double pow) {
 		shooterMotorLeft.setPower(pow);
 		shooterMotorRight.setPower(pow);
+		power = pow;
 	}
 
-	public void updateVelocity(double distance) {
+	public void updateVelocityTarget(double distance) {
 		// Using linear interpolation
 		if (velocityEntries != null) {
 			VelocityEntries.VelocityEntry[] nearestEntries = velocityEntries.getNearestEntries(distance);
@@ -145,12 +145,23 @@ public class Shooter {
 		} else {
 			desiredVelocity = defaultVelocity;
 		}
-		targetVelocity = desiredVelocity + velocityTargetOffset;
-
-		if (shooterMotorLeft.getPower() > 0) {
-			enable(true);
-		}
 	}
+
+	public void updateVelocityPid() {
+		if (!enabled) return;
+		if (PID_update) {
+			pidController.setKp(PID_P);
+			pidController.setKi(PID_I);
+			pidController.setKd(PID_D);
+		}
+
+		double pidOutput = pidController.calculate(desiredVelocity, getVelocity());
+		setPower(power + pidOutput);
+	}
+
+	public void showPidTelemetry(TelemetryManager telemetry) {
+		pidController.showTelemetry(telemetry);
+	} 
 
 	public boolean atDesiredVelocity() {
 		return getVelocity() >= desiredVelocity;

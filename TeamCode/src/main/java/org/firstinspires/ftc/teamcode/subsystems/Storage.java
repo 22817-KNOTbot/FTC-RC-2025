@@ -30,8 +30,8 @@ public class Storage {
 	public static double intakeGateUpPosition = 0.318;
 	public static double intakeGateDownPosition = 0.355;
 	public static double intakeGateTurnPosition = 0.33;
-	public static double transferRampOutPosition = 0.533;
-	public static double transferRampInPosition = 0.47;
+	public static double transferRampOutPosition = 0.525;
+	public static double transferRampInPosition = 0.465;
 	
 	private static int numOfArtifacts = 0;
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
@@ -385,7 +385,7 @@ public class Storage {
 	public void transferUpdate() {
 		switch (transferState) {
 			case RAMP_OUT:
-				if (timer.time() >= 0.5) {
+				if (timer.time() >= 0.8) {
 					storageMotor.setTargetPosition(currentTargetSlotPosition + ((int) positionInterval / 2));
 					timer.reset();
 					transferState = TransferState.TURNING_HALF;

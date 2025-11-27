@@ -3,22 +3,16 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.pedropathing.math.Vector;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.roadrunner.Localizer;
-import org.firstinspires.ftc.teamcode.roadrunner.ThreeDeadWheelLocalizer;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.acmerobotics.roadrunner.Pose2d;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.ftc.FTCCoordinates;
 import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 
 public class MecanumDrive {
 	private Follower follower;
-	private Localizer rrLocalizer;
 	private double headingOffset;
 	private Pose holdPose = new Pose();
 	private boolean holdingPose;
@@ -28,7 +22,6 @@ public class MecanumDrive {
 
 	public MecanumDrive(HardwareMap hardwareMap) {
 		follower = Constants.createFollower(hardwareMap);
-		rrLocalizer = new ThreeDeadWheelLocalizer(hardwareMap, Constants.localizerConstants.forwardTicksToInches, new Pose2d(-63, -63, 0));
 	}
 
 	public void initialize() {
@@ -56,8 +49,6 @@ public class MecanumDrive {
 
 	public void updateLocalizers() {
 		follower.update();
-
-		rrLocalizer.update();
 	}
 
 	public void lockingMecanum(boolean enabled) {
@@ -92,20 +83,17 @@ public class MecanumDrive {
 		autoDriveTarget = target;
 	}
 
+	public void setStartingPose(Pose pose) {
+		follower.setStartingPose(pose);
+	}
+
 	public void setPose(Pose pose){
 		follower.setPose(pose);
-		rrLocalizer.setPose(new Pose2d(pose.getX(), pose.getY(), pose.getHeading()));
 		// follower.update();
 	}
 
 	public Pose getPose() {
-		// return follower.getPose();
-		return getRrPose();
-	}
-
-	public Pose getRrPose() {
-		Pose2d rrPose = rrLocalizer.getPose();
-		return new Pose(rrPose.position.x, rrPose.position.y, rrPose.heading.log());
+		return follower.getPose();
 	}
 
 	public Vector getVelocity() {
@@ -118,7 +106,6 @@ public class MecanumDrive {
 
 	public void resetPose() {
 		follower.setPose(resetPose);
-		rrLocalizer.setPose(new Pose2d(resetPose.getX(), resetPose.getY(), resetPose.getHeading()));
 		// follower.update();
 	}
 
