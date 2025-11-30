@@ -47,7 +47,8 @@ public final class TestingOpModeManager {
 			ServoTwoTesting.class,
 			ShooterTesting.class,
 			StorageTesting.class,
-			TurretTesting.class
+			TurretTesting.class,
+			UtilityCameraFrameCapture.class
 		);
 
 		for (Class<? extends OpMode> opMode : opModes) {
