@@ -474,7 +474,7 @@ public class Storage {
 	 */
 
 	public boolean isArtifactLoaded() {
-		return colourSensor.getDistance(DistanceUnit.MM) < distance_threshold_mm;
+		return colourSensor.getDistance(DistanceUnit.MM) < distance_threshold_mm && colourSensorResponding();
 	}
 
 	// Returns null if unknown
