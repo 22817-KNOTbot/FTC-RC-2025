@@ -264,7 +264,7 @@ public class RedUp9Artifacts extends LinearOpMode {
 				}
 				break;
 			case 1:
-				if (!follower.isBusy()) {
+				if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 1) {
 					if (!actionDone) {
 						if (!actionInit) {
 							readyToShoot();
@@ -286,7 +286,7 @@ public class RedUp9Artifacts extends LinearOpMode {
 				}
 				break;
 			case 3:
-				if (!follower.isBusy()) {
+				if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 1) {
 					if (!actionDone) {
 						if (!actionInit) {
 							startShooting();
@@ -313,7 +313,7 @@ public class RedUp9Artifacts extends LinearOpMode {
 				}
 				break;
 			case 6:
-				if (!follower.isBusy()) {
+				if (!follower.isBusy() && follower.getVelocity().getMagnitude() < 1) {
 					if (!actionDone) {
 						if (!actionInit) {
 							startShooting();
