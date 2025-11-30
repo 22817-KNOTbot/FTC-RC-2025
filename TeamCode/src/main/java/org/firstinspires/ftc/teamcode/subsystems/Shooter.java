@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import java.util.Comparator;
@@ -120,6 +121,7 @@ public class Shooter {
 	}
 
 	public void setPower(double pow) {
+		pow = Range.clip(pow, -1, 1);
 		shooterMotorLeft.setPower(pow);
 		shooterMotorRight.setPower(pow);
 		power = pow;
