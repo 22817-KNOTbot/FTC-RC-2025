@@ -48,8 +48,8 @@ public class TeleOp extends LinearOpMode {
 				PanelsGamepad.INSTANCE.getFirstManager()::asCombinedFTCGamepad,
 				PanelsGamepad.INSTANCE.getSecondManager()::asCombinedFTCGamepad);
 		gamepadManager.updateGamepads();
-		gamepad1.copy(gamepadManager.getGamepad1());
-		gamepad2.copy(gamepadManager.getGamepad2());
+		gamepad1 = gamepadManager.getGamepad1();
+		gamepad2 = gamepadManager.getGamepad2();
 
 		TelemetryManager telemetryManager = new TelemetryManager();
 		telemetryManager.setFtcTelemetry(telemetry);
@@ -80,8 +80,8 @@ public class TeleOp extends LinearOpMode {
 
 		while (opModeInInit()) {
 			gamepadManager.updateGamepads();
-			gamepad1.copy(gamepadManager.getGamepad1());
-			gamepad2.copy(gamepadManager.getGamepad2());
+			gamepad1 = gamepadManager.getGamepad1();
+			gamepad2 = gamepadManager.getGamepad2();
 
 			if (gamepad1.left_trigger > 0.9) {
 				automationHandler.setAlliance(new BlueAlliance());

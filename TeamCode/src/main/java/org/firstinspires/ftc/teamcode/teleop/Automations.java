@@ -385,6 +385,10 @@ public class Automations {
 		return storage.getArtifactsStored();
 	}
 
+	public void setArtifactsStored(Colour[] colours) {
+		Storage.setArtifactsStored(colours);
+	}
+
 	public StorageState getStorageState() {
 		return storageState;
 	}
@@ -395,6 +399,10 @@ public class Automations {
 
 	public Storage.TransferState getTransferState() {
 		return storage.getTransferState();
+	}
+
+	public void setTransferMode(Storage.TransferMode transferMode) {
+		storage.setTransferMode(transferMode);
 	}
 
 	public boolean getShooterEnabled() {

@@ -6,6 +6,8 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
+import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
+import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
 import org.firstinspires.ftc.teamcode.subsystems.Storage;
 
 import java.util.List;
@@ -32,10 +34,12 @@ import com.pedropathing.paths.PathChain;
 @Autonomous(name = "Upper Red 9 Artifacts", group = "Autonomous")
 public class RedUp9Artifacts extends LinearOpMode {
 	public static boolean doMovement = true;
-	public static boolean doActions = false;
-	public static boolean DEBUG = false;
+	public static boolean doActions = true;
+	public static boolean DEBUG = true;
+	public static double intakeMaxPower = 0.25;
 	public static double shooterVelocityTimeout = 5;
 
+	private boolean intaking = false;
 	private boolean shooting = false;
 	private int pathState = 0;
 
@@ -43,9 +47,13 @@ public class RedUp9Artifacts extends LinearOpMode {
 	private Automations automationHandler;
 	private Follower follower;
 	private Pose startPose = new Pose(123.000, 124.000, Math.toRadians(125));
-	private Artifact.Colour[] patternColours;
+	private Artifact.Colour[] patternColours = null;
 	private ElapsedTime shootingTimer = new ElapsedTime();
+	private ElapsedTime stateTimer = new ElapsedTime();
 	private boolean shootingTimerReset = false;
+
+	private boolean actionInit = false;
+	private boolean actionDone = false;
 
 	private PathChain preloadLaunch, firstIntake, firstLaunch,
 			secondApproach, secondIntake, secondLaunch, exitShootingZone;
@@ -62,6 +70,7 @@ public class RedUp9Artifacts extends LinearOpMode {
 		follower.setStartingPose(startPose);
 		follower.setPose(startPose);
 		automationHandler = new Automations(hardwareMap, alliance, DEBUG);
+		automationHandler.setArtifactsStored(new Colour[] {Colour.GREEN, Colour.PURPLE, Colour.PURPLE});
 		buildPaths();
 
 		// Bulk read
@@ -76,7 +85,12 @@ public class RedUp9Artifacts extends LinearOpMode {
 			}
 
 			automationHandler.updateMotifPattern();
+			telemetryManager.addData("Motif", automationHandler.getArtifactPattern());
+			telemetryManager.update();
 		}
+
+		automationHandler.start();
+		stateTimer.reset();
 
 		while (opModeIsActive()) {
 			// IMPORTANT: Cache must be cleared every loop to prevent stale data
@@ -90,16 +104,21 @@ public class RedUp9Artifacts extends LinearOpMode {
 				automationHandler.updateTurret();
 				automationHandler.updateShooter();
 
-				if (shooting && shootingTimerReset && shootingTimer.time() >= shooterVelocityTimeout) {
-					automationHandler.setIgnoreVelocity(true);
-				}
+				// if (shooting && shootingTimerReset && shootingTimer.time() >= shooterVelocityTimeout) {
+				// 	automationHandler.setIgnoreVelocity(true);
+				// }
 				automationHandler.automationLoop();
-				automationHandler.setIgnoreVelocity(false);
-				if (shooting) {
+				// automationHandler.setIgnoreVelocity(false);
+				if (intaking) {
+					if (automationHandler.getStorageState() == Automations.StorageState.WAITING) {
+						intaking = false;
+						actionDone = true;
+					}
+				} else if (shooting) {
 					if (automationHandler.getStorageState() == Automations.StorageState.WAITING) {
 						shooting = false;
 						shootingTimerReset = false;
-						follower.resumePathFollowing();
+						actionDone = true;
 					} else if (automationHandler.getTransferState() == Storage.TransferState.RAMP_OUT) {
 						if (!shootingTimerReset) {
 							shootingTimer.reset();
@@ -113,11 +132,25 @@ public class RedUp9Artifacts extends LinearOpMode {
 				pathUpdate();
 			}
 
+			telemetryManager.addData("Path state", pathState);
 			telemetryManager.addData("Pose", follower.getPose());
+			telemetryManager.addData("Follower busy", follower.isBusy());
+			telemetryManager.addData("Action done", actionDone);
+			telemetryManager.addData("Shooting", shooting);
+			telemetryManager.addData("Storage", automationHandler.getArtifactsStored());
+			telemetryManager.addData("Storage State", automationHandler.getStorageState());
+			telemetryManager.addData("Storage Intake State", automationHandler.getIntakeState());
+			telemetryManager.addData("Storage Transfer State", automationHandler.getTransferState());
+			telemetryManager.addData("Shooter Velocity", automationHandler.getShooterVelocity());
+			telemetryManager.addData("Shooter Desired Velocity", automationHandler.getShooterDesiredVelocity());
 
 			if (DEBUG) {
 				Drawing.drawRobot(follower.getPose(), telemetryManager.getDashboardCanvas());
 				Drawing.sendPacket();
+
+				telemetryManager.addData("T value", follower.getCurrentTValue());
+				telemetryManager.addData("Path completion", follower.getPathCompletion());
+				automationHandler.showTelemetry(telemetryManager);
 
 				String[] debugLines = null;
 				try {
@@ -142,15 +175,17 @@ public class RedUp9Artifacts extends LinearOpMode {
 				.addPath(
 						new BezierLine(new Pose(123.000, 124.000), new Pose(84.000, 84.000)))
 				.setLinearHeadingInterpolation(Math.toRadians(125), Math.toRadians(0))
-				// .addParametricCallback(1, this::readyToShoot)
-				// .addParametricCallback(1, this::startShooting)
+				// .addParametricCallback(0.9, this::readyToShoot)
+				// .addParametricCallback(0.9, this::startShooting)
 				.build();
 
 		firstIntake = follower.pathBuilder()
 				.addPath(new BezierLine(new Pose(84.000, 84.000), new Pose(124.000, 83.000)))
 				.setTangentHeadingInterpolation()
-				// .addParametricCallback(0, this::intakeEnable)
+				.addParametricCallback(0, this::intakeEnable)
 				// .addParametricCallback(1, this::intakeDisable)
+				// .addPoseCallback(new Pose(100, 80), this::startIntakeSpeed, 0.4)
+				.addParametricCallback(0.03, this::startIntakeSpeed)
 				.build();
 
 		firstLaunch = follower.pathBuilder()
@@ -161,6 +196,7 @@ public class RedUp9Artifacts extends LinearOpMode {
 								new Pose(84.000, 84.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
+				.addParametricCallback(0.5, this::intakeDisable)
 				// .addParametricCallback(1, this::startShooting)
 				.build();
 
@@ -168,9 +204,9 @@ public class RedUp9Artifacts extends LinearOpMode {
 				.addPath(
 						new BezierCurve(
 								new Pose(84.000, 84.000),
-								new Pose(105.000, 84.000),
-								new Pose(90.000, 60.000),
-								new Pose(102.000, 60.000)))
+								new Pose(85.000, 60.000),
+								// new Pose(90.000, 60.000),
+								new Pose(96.000, 56.000)))
 				// .setTangentHeadingInterpolation()
 				.setConstantHeadingInterpolation(0)
 				.build();
@@ -178,23 +214,25 @@ public class RedUp9Artifacts extends LinearOpMode {
 		secondIntake = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(102.000, 60.000),
-								new Pose(120.000, 60.000),
-								new Pose(128.300, 55.000)))
+								new Pose(96.000, 56.000),
+								new Pose(120.000, 55.600),
+								new Pose(127.000, 55.000)))
 				.setConstantHeadingInterpolation(Math.toRadians(0))
-				// .addParametricCallback(0, this::intakeEnable)
-				// .addParametricCallback(1, this::intakeDisable)
+				.addParametricCallback(0, this::intakeEnable)
+				.addParametricCallback(0, this::startIntakeSpeed)
+				// .addParametricCallback(0.9, this::intakeDisable)
 				.build();
 
 		secondLaunch = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(128.300, 55.000),
+								new Pose(127.000, 55.000),
 								new Pose(120.000, 55.000),
 								new Pose(84.000, 84.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
-				// .addParametricCallback(1, this::startShooting)
+				.addParametricCallback(0.5, this::intakeDisable)
+				// .addParametricCallback(0.9, this::startShooting)
 				.build();
 
 		exitShootingZone = follower
@@ -202,14 +240,18 @@ public class RedUp9Artifacts extends LinearOpMode {
 				.addPath(
 						new BezierCurve(
 								new Pose(84.000, 84.000),
-								new Pose(94.000, 76.000),
-								new Pose(90.000, 34.000),
-								new Pose(102.000, 34.000)))
+								new Pose(85.000, 76.000),
+								new Pose(85.000, 34.000),
+								new Pose(95.000, 34.000)))
 				.setTangentHeadingInterpolation()
+				.setConstantHeadingInterpolation(0)
 				.build();
 	}
 
 	public void setPathState(int state) {
+		stateTimer.reset();
+		actionDone = !doActions;
+		actionInit = !doActions;
 		pathState = state;
 	}
 
@@ -223,38 +265,64 @@ public class RedUp9Artifacts extends LinearOpMode {
 				break;
 			case 1:
 				if (!follower.isBusy()) {
-					follower.followPath(firstIntake, true);
-					setPathState(2);
+					if (!actionDone) {
+						if (!actionInit) {
+							readyToShoot();
+							startShooting();
+							actionInit = true;
+						}
+					} else {
+						// follower.setMaxPower(intakeMaxPower);
+						follower.followPath(firstIntake, true);
+						setPathState(2);
+					}
 				}
 				break;
 			case 2:
-				if (!follower.isBusy() || follower.isRobotStuck()) {
+				if (actionDone && (!follower.isBusy() || (stateTimer.time() > 1.5 && follower.getVelocity().getMagnitude() < 0.2))) {
+					follower.setMaxPower(1);
 					follower.followPath(firstLaunch, true);
 					setPathState(3);
 				}
 				break;
 			case 3:
 				if (!follower.isBusy()) {
-					follower.followPath(secondApproach, true);
-					setPathState(4);
+					if (!actionDone) {
+						if (!actionInit) {
+							startShooting();
+							actionInit = true;
+						}
+					} else {
+						follower.followPath(secondApproach, false);
+						setPathState(4);
+					}
 				}
 				break;
 			case 4:
-				if (follower.atParametricEnd() || follower.isRobotStuck()) {
+				if (follower.atParametricEnd()) {
+					// follower.setMaxPower(intakeMaxPower);
 					follower.followPath(secondIntake, true);
-					setPathState(4);
+					setPathState(5);
 				}
 				break;
 			case 5:
-				if (!follower.isBusy()) {
+				if (!follower.isBusy() || (stateTimer.time() > 1.5 && follower.getVelocity().getMagnitude() < 0.2)) {
+					follower.setMaxPower(1);
 					follower.followPath(secondLaunch, true);
 					setPathState(6);
 				}
 				break;
 			case 6:
 				if (!follower.isBusy()) {
-					follower.followPath(exitShootingZone, true);
-					setPathState(-1);
+					if (!actionDone) {
+						if (!actionInit) {
+							startShooting();
+							actionInit = true;
+						}
+					} else {
+						follower.followPath(exitShootingZone, true);
+						setPathState(-1);
+					}
 				}
 				break;
 			// case 7:
@@ -268,30 +336,42 @@ public class RedUp9Artifacts extends LinearOpMode {
 
 	public void readyToShoot() {
 		if (doActions) {
-			patternColours = automationHandler.getArtifactPattern().getPattern();
+			automationHandler.setIgnoreVelocity(true);
+			automationHandler.setTransferMode(Storage.TransferMode.FULL_SPIN);
+			Pattern pattern = automationHandler.getArtifactPattern();
+			if (pattern != null) {
+				patternColours = pattern.getPattern();
+			}
 			automationHandler.setRapidFire(true);
 		}
 	}
 
 	public void startShooting() {
 		if (doActions) {
-			follower.pausePathFollowing();
-			if (automationHandler.prepareOrShootArtifactSequence(patternColours) == Storage.TurnDirection.NONE) {
-				automationHandler.prepareOrShootAnyArtifact();
-			};
+			// follower.pausePathFollowing();
+			// if (patternColours == null || automationHandler.prepareOrShootArtifactSequence(patternColours) == Storage.TurnDirection.NONE) {
+				// automationHandler.prepareOrShootAnyArtifact();
+			// };
+			automationHandler.shootActiveArtifact(true);
 			shooting = true;
 		}
 	}
 
 	public void intakeEnable() {
 		if (doActions) {
+			intaking = true;
 			automationHandler.intakeEnableActions(true);
 		}
 	}
 
 	public void intakeDisable() {
 		if (doActions) {
+			intaking = false;
 			automationHandler.intakeEnableActions(false);
 		}
+	}
+
+	public void startIntakeSpeed() {
+		follower.setMaxPower(intakeMaxPower);
 	}
 }

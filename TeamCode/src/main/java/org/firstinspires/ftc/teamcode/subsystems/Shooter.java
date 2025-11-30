@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.util.ControlTheory.Pid;
 @Configurable
 @Config
 public class Shooter {
-	public static double velocityConstant = 50;
+	public static double velocityConstant = 80;
 	public static double velocityTolerance = 50;
 	public static double shootingAreaTolerance = 12.7279220614;
 	public static double defaultVelocity = 2200;
