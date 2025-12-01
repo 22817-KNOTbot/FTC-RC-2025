@@ -39,7 +39,7 @@ public class RedUp0Artifacts extends LinearOpMode {
 		follower = Constants.createFollower(hardwareMap);
 		follower.setStartingPose(startPose);
 		buildPaths();
-		new Automations(hardwareMap, alliance, true, DEBUG).resetArtifacts();
+		new Automations(hardwareMap, alliance, true, DEBUG);
 
 		waitForStart();
 

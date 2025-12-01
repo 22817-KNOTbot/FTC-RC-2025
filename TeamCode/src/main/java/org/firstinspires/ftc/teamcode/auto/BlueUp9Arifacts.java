@@ -44,7 +44,6 @@ public class BlueUp9Arifacts extends LinearOpMode {
 		follower.setStartingPose(startPose);
 		automationHandler = new Automations(hardwareMap, alliance, resetEncoder, DEBUG);
 		buildPaths();
-		automationHandler.resetArtifacts();
 
 		waitForStart();
 

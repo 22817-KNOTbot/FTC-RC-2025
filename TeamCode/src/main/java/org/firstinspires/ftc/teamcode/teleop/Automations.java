@@ -239,9 +239,4 @@ public class Automations {
 		if (gamepad2 != null)
 			gamepad2.rumble(1, 1, durationMs);
 	}
-
-	public void resetArtifacts() {
-		storage.resetArtifacts();
-	}
-
 }

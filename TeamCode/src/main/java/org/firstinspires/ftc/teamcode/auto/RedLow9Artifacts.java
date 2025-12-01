@@ -44,7 +44,6 @@ public class RedLow9Artifacts extends LinearOpMode {
 		follower.setStartingPose(startPose);
 		automationHandler = new Automations(hardwareMap, alliance, resetEncoder, DEBUG);
 		buildPaths();
-		automationHandler.resetArtifacts();
 
 		waitForStart();
 

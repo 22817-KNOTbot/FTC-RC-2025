@@ -44,7 +44,6 @@ public class BlueLow9Artifacts extends LinearOpMode {
 		follower.setStartingPose(startPose);
 		automationHandler = new Automations(hardwareMap, alliance, resetEncoder, DEBUG);
 		buildPaths();
-		automationHandler.resetArtifacts();
 
 		waitForStart();
 
