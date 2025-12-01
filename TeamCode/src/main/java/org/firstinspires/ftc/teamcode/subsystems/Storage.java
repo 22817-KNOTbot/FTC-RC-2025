@@ -52,6 +52,7 @@ public class Storage {
 		if (resetEncoder) {
 			storageMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 			transferMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+			resetArtifacts();
 		}
 	}
 

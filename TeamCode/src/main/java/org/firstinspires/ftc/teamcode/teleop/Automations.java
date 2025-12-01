@@ -55,12 +55,11 @@ public class Automations {
 	public Automations(HardwareMap hardwareMap, Alliance alliance, boolean resetEncoder, boolean DEBUG) {
 		this.hardwareMap = hardwareMap;
 		this.alliance = alliance;
-		this.resetEncoder = resetEncoder;
 		this.DEBUG = DEBUG;
 		this.storageState = StorageState.WAITING;
 		this.timer = new ElapsedTime();
 		intake = new Intake(hardwareMap);
-		storage = new Storage(hardwareMap, true);
+		storage = new Storage(hardwareMap, resetEncoder);
 		turret = new Turret(hardwareMap);
 		shooter = new Shooter(hardwareMap);
 
