@@ -8,8 +8,6 @@ import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.util.BlueAlliance;
 
-import org.firstinspires.ftc.teamcode.subsystems.Storage;
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -27,10 +25,8 @@ public class BlueLow0Artifacts extends LinearOpMode {
 	private boolean shooting = false;
 	private int pathState = 0;
 	private int shotsFired = 0;
-
 	private Alliance alliance = new BlueAlliance();
 	private Follower follower;
-	private Storage storage = new Storage(hardwareMap, true);
 	private Pose startPose = follower.getPose();
 	private Artifact.Colour[] patternColours;
 
@@ -42,7 +38,7 @@ public class BlueLow0Artifacts extends LinearOpMode {
 		follower = Constants.createFollower(hardwareMap);
 		follower.setStartingPose(startPose);
 		buildPaths();
-		storage.resetArtifacts();
+		new Automations(hardwareMap, alliance, true, DEBUG).resetArtifacts();
 
 		waitForStart();
 

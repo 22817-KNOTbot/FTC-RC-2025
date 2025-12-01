@@ -79,7 +79,7 @@ public class Storage {
 	 * Storage
 	 */
 
-	public static void resetArtifacts () {
+	public static void resetArtifacts() {
 		numOfArtifacts = 0;
 		artifactStored.set(0, null);
 		artifactStored.set(1, null);

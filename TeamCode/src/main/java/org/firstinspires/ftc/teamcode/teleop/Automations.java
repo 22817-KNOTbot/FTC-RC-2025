@@ -60,7 +60,7 @@ public class Automations {
 		this.storageState = StorageState.WAITING;
 		this.timer = new ElapsedTime();
 		intake = new Intake(hardwareMap);
-		storage = new Storage(hardwareMap, false);
+		storage = new Storage(hardwareMap, true);
 		turret = new Turret(hardwareMap);
 		shooter = new Shooter(hardwareMap);
 
@@ -238,6 +238,10 @@ public class Automations {
 			gamepad1.rumble(1, 1, durationMs);
 		if (gamepad2 != null)
 			gamepad2.rumble(1, 1, durationMs);
+	}
+
+	public void resetArtifacts() {
+		storage.resetArtifacts();
 	}
 
 }
