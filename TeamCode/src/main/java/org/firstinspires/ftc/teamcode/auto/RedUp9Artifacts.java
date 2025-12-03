@@ -261,7 +261,6 @@ public class RedUp9Artifacts extends LinearOpMode {
 								new Pose(85.000, 76.000),
 								new Pose(85.000, 34.000),
 								new Pose(95.000, 34.000)))
-				.setTangentHeadingInterpolation()
 				.setConstantHeadingInterpolation(0)
 				// .setBrakingStrength(1)
 				.build();

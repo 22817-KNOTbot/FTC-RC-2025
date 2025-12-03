@@ -174,7 +174,7 @@ public class BlueUp9Artifacts extends LinearOpMode {
 		preloadLaunch = follower.pathBuilder()
 				.addPath(
 						new BezierLine(new Pose(123.000, 124.000).mirror(), new Pose(84.000, 84.000).mirror()))
-				.setLinearHeadingInterpolation(Math.toRadians(125), Math.toRadians(0))
+				.setLinearHeadingInterpolation(Math.toRadians(180 - 125), Math.toRadians(180 - 0))
 				// .addParametricCallback(0.9, this::readyToShoot)
 				// .addParametricCallback(0.9, this::startShooting)
 				.setBrakingStrength(0.2)
@@ -219,7 +219,7 @@ public class BlueUp9Artifacts extends LinearOpMode {
 								// new Pose(90.000, 60.000).mirror(),
 								new Pose(96.000, 56.300).mirror()))
 				// .setTangentHeadingInterpolation()
-				.setConstantHeadingInterpolation(0)
+				.setConstantHeadingInterpolation(180 - 0)
 				// .setBrakingStrength(1)
 				.build();
 
@@ -229,7 +229,7 @@ public class BlueUp9Artifacts extends LinearOpMode {
 								new Pose(96.000, 56.300).mirror(),
 								new Pose(120.000, 55.900).mirror(),
 								new Pose(128.500, 55.300).mirror()))
-				.setConstantHeadingInterpolation(Math.toRadians(0))
+				.setConstantHeadingInterpolation(Math.toRadians(180 - 0))
 				.addParametricCallback(0, this::intakeEnable)
 				.addParametricCallback(0, this::startIntakeSpeed)
 				// .addParametricCallback(0.9, this::intakeDisable)
@@ -261,8 +261,7 @@ public class BlueUp9Artifacts extends LinearOpMode {
 								new Pose(85.000, 76.000).mirror(),
 								new Pose(85.000, 34.000).mirror(),
 								new Pose(95.000, 34.000).mirror()))
-				.setTangentHeadingInterpolation()
-				.setConstantHeadingInterpolation(0)
+				.setConstantHeadingInterpolation(180 - 0)
 				// .setBrakingStrength(1)
 				.build();
 	}
