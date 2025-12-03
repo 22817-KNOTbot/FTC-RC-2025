@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.util.Drawing;
-import org.firstinspires.ftc.teamcode.util.RedAlliance;
+import org.firstinspires.ftc.teamcode.util.BlueAlliance;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -31,8 +31,8 @@ import com.pedropathing.paths.PathChain;
 
 @Config
 @Configurable
-@Autonomous(name = "Upper Red 9 Artifacts", group = "Autonomous")
-public class RedUp9Artifacts extends LinearOpMode {
+@Autonomous(name = "Upper Blue 9 Artifacts", group = "Autonomous")
+public class BlueUp9Artifacts extends LinearOpMode {
 	public static boolean doMovement = true;
 	public static boolean doActions = true;
 	public static boolean DEBUG = true;
@@ -43,10 +43,10 @@ public class RedUp9Artifacts extends LinearOpMode {
 	private boolean shooting = false;
 	private int pathState = 0;
 
-	private Alliance alliance = new RedAlliance();
+	private Alliance alliance = new BlueAlliance();
 	private Automations automationHandler;
 	private Follower follower;
-	private Pose startPose = new Pose(123.000, 124.000, Math.toRadians(125));
+	private Pose startPose = new Pose(144 - 123.000, 124.000, Math.toRadians(180 - 125));
 	private Artifact.Colour[] patternColours = null;
 	private ElapsedTime shootingTimer = new ElapsedTime();
 	private ElapsedTime stateTimer = new ElapsedTime();
@@ -173,8 +173,8 @@ public class RedUp9Artifacts extends LinearOpMode {
 	public void buildPaths() {
 		preloadLaunch = follower.pathBuilder()
 				.addPath(
-						new BezierLine(new Pose(123.000, 124.000), new Pose(84.000, 84.000)))
-				.setLinearHeadingInterpolation(Math.toRadians(125), Math.toRadians(0))
+						new BezierLine(new Pose(144 - 123.000, 124.000), new Pose(144 - 84.000, 84.000)))
+				.setLinearHeadingInterpolation(Math.toRadians(180 - 125), Math.toRadians(180 - 0))
 				// .addParametricCallback(0.9, this::readyToShoot)
 				// .addParametricCallback(0.9, this::startShooting)
 				.setBrakingStrength(0.2)
@@ -185,11 +185,11 @@ public class RedUp9Artifacts extends LinearOpMode {
 				.build();
 
 		firstIntake = follower.pathBuilder()
-				.addPath(new BezierLine(new Pose(84.000, 84.000), new Pose(124.000, 83.000)))
+				.addPath(new BezierLine(new Pose(144 - 84.000, 84.000), new Pose(144 - 124.000, 83.000)))
 				.setTangentHeadingInterpolation()
 				.addParametricCallback(0, this::intakeEnable)
 				// .addParametricCallback(1, this::intakeDisable)
-				// .addPoseCallback(new Pose(100, 80), this::startIntakeSpeed, 0.4)
+				// .addPoseCallback(new Pose(144 - 100, 80), this::startIntakeSpeed, 0.4)
 				// .setBrakingStrength(1)
 				.addParametricCallback(0.03, this::startIntakeSpeed)
 				.build();
@@ -197,9 +197,9 @@ public class RedUp9Artifacts extends LinearOpMode {
 		firstLaunch = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(124.000, 83.000),
-								new Pose(100.000, 84.000),
-								new Pose(84.000, 84.000)))
+								new Pose(144 - 124.000, 83.000),
+								new Pose(144 - 100.000, 84.000),
+								new Pose(144 - 84.000, 84.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
 				.addParametricCallback(0.9, this::intakeDisable)
@@ -214,10 +214,10 @@ public class RedUp9Artifacts extends LinearOpMode {
 		secondApproach = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(84.000, 84.000),
-								new Pose(85.000, 60.000),
-								// new Pose(90.000, 60.000),
-								new Pose(96.000, 56.300)))
+								new Pose(144 - 84.000, 84.000),
+								new Pose(144 - 85.000, 60.000),
+								// new Pose(144 - 90.000, 60.000),
+								new Pose(144 - 96.000, 56.000)))
 				// .setTangentHeadingInterpolation()
 				.setConstantHeadingInterpolation(0)
 				// .setBrakingStrength(1)
@@ -226,10 +226,10 @@ public class RedUp9Artifacts extends LinearOpMode {
 		secondIntake = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(96.000, 56.300),
-								new Pose(120.000, 55.900),
-								new Pose(128.500, 55.300)))
-				.setConstantHeadingInterpolation(Math.toRadians(0))
+								new Pose(144 - 96.000, 56.000),
+								new Pose(144 - 120.000, 55.600),
+								new Pose(144 - 127.500, 55.000)))
+				.setConstantHeadingInterpolation(Math.toRadians(180 - 0))
 				.addParametricCallback(0, this::intakeEnable)
 				.addParametricCallback(0, this::startIntakeSpeed)
 				// .addParametricCallback(0.9, this::intakeDisable)
@@ -239,9 +239,9 @@ public class RedUp9Artifacts extends LinearOpMode {
 		secondLaunch = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(128.500, 55.300),
-								new Pose(120.000, 55.000),
-								new Pose(84.000, 84.000)))
+								new Pose(144 - 127.500, 55.000),
+								new Pose(144 - 120.000, 55.000),
+								new Pose(144 - 84.000, 84.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
 				.addParametricCallback(0.9, this::intakeDisable)
@@ -257,10 +257,10 @@ public class RedUp9Artifacts extends LinearOpMode {
 				.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(84.000, 84.000),
-								new Pose(85.000, 76.000),
-								new Pose(85.000, 34.000),
-								new Pose(95.000, 34.000)))
+								new Pose(144 - 84.000, 84.000),
+								new Pose(144 - 85.000, 76.000),
+								new Pose(144 - 85.000, 34.000),
+								new Pose(144 - 95.000, 34.000)))
 				.setTangentHeadingInterpolation()
 				.setConstantHeadingInterpolation(0)
 				// .setBrakingStrength(1)

@@ -19,14 +19,14 @@ import org.firstinspires.ftc.teamcode.util.ControlTheory.Pid;
 @Configurable
 @Config
 public class Shooter {
-	public static double velocityConstant = 80;
+	public static double velocityConstant = -30;
 	public static double velocityTolerance = 50;
 	public static double shootingAreaTolerance = 12.7279220614;
 	public static double defaultVelocity = 2200;
 	public static VelocityEntries velocityEntries;
-	public static double PID_P = 0.00004;
+	public static double PID_P = 0.00006;
 	public static double PID_I = 0;
-	public static double PID_D = 0.00001;
+	public static double PID_D = 0.000035;
 	public static boolean PID_update = false;
 
 	public double desiredVelocity = 2200;
@@ -128,6 +128,10 @@ public class Shooter {
 	}
 
 	public void updateVelocityTarget(double distance) {
+		desiredVelocity = getVelocityTarget(distance);
+	}
+
+	public double getVelocityTarget(double distance) {
 		// Using linear interpolation
 		if (velocityEntries != null) {
 			VelocityEntries.VelocityEntry[] nearestEntries = velocityEntries.getNearestEntries(distance);
@@ -140,12 +144,12 @@ public class Shooter {
 			double velocityDifference = higherEntry.velocity - lowerEntry.velocity;
 
 			if (distanceDifference != 0) {
-				desiredVelocity = (distanceFraction * (velocityDifference)) + lowerEntry.velocity + velocityConstant;
+				return (distanceFraction * velocityDifference) + lowerEntry.velocity + velocityConstant;
 			} else {
-				desiredVelocity = lowerEntry.velocity + velocityConstant;
+				return lowerEntry.velocity + velocityConstant;
 			}
 		} else {
-			desiredVelocity = defaultVelocity;
+			return defaultVelocity;
 		}
 	}
 

@@ -24,9 +24,9 @@ import com.acmerobotics.dashboard.config.Config;
 @Configurable
 @Config
 public class Storage {
-	public static double distance_threshold_mm = 75;
+	public static double distance_threshold_mm = 30;
 	public static int positionInterval = 128;
-	public static double transferMotorPower = 0.5;
+	public static double transferMotorPower = 0.7;
 	public static double intakeGateUpPosition = 0.318;
 	public static double intakeGateDownPosition = 0.355;
 	public static double intakeGateTurnPosition = 0.33;
@@ -176,7 +176,7 @@ public class Storage {
 	public void intakeUpdate() {
 		switch (intakeState) {
 			case GATE_UP:
-				if (timer.time() >= 0.2) {
+				if (timer.time() >= 0.4) {
 					storageTurnCCW();
 					intakeState = IntakeState.TURNING;
 					// if (timer.time() >= 0.6) {
@@ -436,7 +436,7 @@ public class Storage {
 				}
 				break;
 			case TURNING:
-				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 8) {
+				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 3) {
 					timer.reset();
 					transferState = TransferState.RESET;
 				}				

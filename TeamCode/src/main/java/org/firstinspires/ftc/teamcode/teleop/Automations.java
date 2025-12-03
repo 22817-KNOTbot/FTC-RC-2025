@@ -417,6 +417,10 @@ public class Automations {
 		return shooter.desiredVelocity;
 	}
 
+	public double getShooterVelocityTargetAtDistance(double distance) {
+		return shooter.getVelocityTarget(distance);
+	}
+
 	public Artifact.Pattern getArtifactPattern() {
 		return pattern;
 	}
