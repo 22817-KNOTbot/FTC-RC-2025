@@ -42,6 +42,8 @@ public class RedLow9Artifacts extends LinearOpMode {
 	private boolean intaking = false;
 	private boolean shooting = false;
 	private int pathState = 0;
+	private int shots = 0;
+	private boolean manuallyMovedTurret = false;
 
 	private Alliance alliance = new RedAlliance();
 	private Automations automationHandler;
@@ -101,7 +103,7 @@ public class RedLow9Artifacts extends LinearOpMode {
 			if (doActions) {
 				automationHandler.updatePose(follower.getPose());
 				automationHandler.updateVelocity(follower.getVelocity());
-				automationHandler.updateTurret();
+				// automationHandler.updateTurret();
 				automationHandler.updateShooter();
 
 				if (shooting && shootingTimerReset && shootingTimer.time() >= shooterVelocityTimeout) {
@@ -119,7 +121,24 @@ public class RedLow9Artifacts extends LinearOpMode {
 						shooting = false;
 						shootingTimerReset = false;
 						actionDone = true;
+						manuallyMovedTurret = false;
+						shots++;
 					} else if (automationHandler.getTransferState() == Storage.TransferState.RAMP_OUT) {
+						if (!manuallyMovedTurret) {
+							switch (shots) {
+								case 0:
+									automationHandler.setTurretRotationDegrees(-Math.toDegrees(Math.atan2(135, 48)));
+									break;
+								case 1:
+								case 2:
+									automationHandler.setTurretRotationDegrees(Math.toDegrees(Math.atan2(133, 48)));
+									break;
+								default:
+									break;
+
+							}
+							manuallyMovedTurret = true;
+						}
 						if (!shootingTimerReset) {
 							shootingTimer.reset();
 							shootingTimerReset = true;
@@ -150,7 +169,9 @@ public class RedLow9Artifacts extends LinearOpMode {
 
 				telemetryManager.addData("T value", follower.getCurrentTValue());
 				telemetryManager.addData("Path completion", follower.getPathCompletion());
-				automationHandler.showTelemetry(telemetryManager);
+				if (doActions) {
+					automationHandler.showTelemetry(telemetryManager);
+				}
 
 				String[] debugLines = null;
 				try {
@@ -175,26 +196,28 @@ public class RedLow9Artifacts extends LinearOpMode {
 				.addPath(
 						new BezierLine(new Pose(96.000, 9.000), new Pose(96.000, 36.000)))
 				.setConstantHeadingInterpolation(Math.toRadians(0))
+				.setTValueConstraint(0.73)
+				.setBrakingStrength(0.4)
 				// .addParametricCallback(0, this::readyToShoot)
 				// .addParametricCallback(0, this::startShooting)
 				.build();
 
 		firstIntake = follower.pathBuilder()
 				.addPath(
-						new BezierLine(new Pose(96.000, 36.000), new Pose(128.500, 36.000)))
+						new BezierLine(new Pose(96.000, 36.000), new Pose(140.500, 36.000)))
 				.setConstantHeadingInterpolation(Math.toRadians(0))
 				// .addParametricCallback(0, this::intakeToggle)
 				// .addParametricCallback(1, this::intakeToggle)
 				.addParametricCallback(0, this::intakeEnable)
-				.addParametricCallback(0, this::startIntakeSpeed)
+				.addParametricCallback(0.05, this::startIntakeSpeed)
 				.build();
 
 		firstLaunch = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(128.500, 36.000),
+								new Pose(140.500, 36.000),
 								new Pose(96.000, 36.000),
-								new Pose(96.000, 9.000)))
+								new Pose(96.000, 11.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
 				// .addParametricCallback(1, this::startShooting)
@@ -203,16 +226,18 @@ public class RedLow9Artifacts extends LinearOpMode {
 
 		secondApproach = follower.pathBuilder()
 				.addPath(
-						new BezierLine(new Pose(96.000, 9.000), new Pose(96.000, 56.300)))
+						new BezierLine(new Pose(96.000, 11.000), new Pose(96.000, 58.300)))
 				.setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(0))
+				.setTValueConstraint(0.7)
+				.setBrakingStrength(0.4)
 				.build();
 
 		secondIntake = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(96.000, 56.300),
-								new Pose(120.000, 55.900),
-								new Pose(128.500, 55.300)))
+								new Pose(96.000, 58.300),
+								new Pose(120.000, 56.900),
+								new Pose(140.500, 56.300)))
 				.setConstantHeadingInterpolation(Math.toRadians(0))
 				.addParametricCallback(0, this::intakeEnable)
 				.addParametricCallback(0, this::startIntakeSpeed)
@@ -221,9 +246,9 @@ public class RedLow9Artifacts extends LinearOpMode {
 		secondLaunch = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(128.500, 55.300),
-								new Pose(96.000, 55.900),
-								new Pose(96.000, 9.000)))
+								new Pose(140.500, 56.300),
+								new Pose(96.000, 56.900),
+								new Pose(96.000, 11.000)))
 				.setTangentHeadingInterpolation()
 				.setReversed()
 				// .addParametricCallback(1, this::startShooting)
@@ -232,7 +257,7 @@ public class RedLow9Artifacts extends LinearOpMode {
 
 		exitShootingZone = follower.pathBuilder()
 				.addPath(
-						new BezierLine(new Pose(96.000, 9.000), new Pose(96.000, 36.000)))
+						new BezierLine(new Pose(96.000, 11.000), new Pose(96.000, 36.000)))
 				.setTangentHeadingInterpolation()
 				.build();
 	}
@@ -324,12 +349,18 @@ public class RedLow9Artifacts extends LinearOpMode {
 				patternColours = pattern.getPattern();
 			}
 			automationHandler.setRapidFire(true);
+			automationHandler.setUseVision(false);
 		}
 	}
 
 	public void startShooting() {
 		if (doActions) {
 			// follower.pausePathFollowing();
+			// if (firstShot) {
+			// 	automationHandler.setUseVision(false);
+			// } else {
+			// 	automationHandler.setUseVision(true);
+			// }
 			if (patternColours == null || automationHandler.prepareOrShootArtifactSequence(patternColours) == Storage.TurnDirection.NONE) {
 				automationHandler.shootActiveArtifact(true);
 				// automationHandler.prepareOrShootAnyArtifact();

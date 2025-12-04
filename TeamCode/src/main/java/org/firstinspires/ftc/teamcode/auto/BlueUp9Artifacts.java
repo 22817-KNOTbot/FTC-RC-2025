@@ -150,7 +150,9 @@ public class BlueUp9Artifacts extends LinearOpMode {
 
 				telemetryManager.addData("T value", follower.getCurrentTValue());
 				telemetryManager.addData("Path completion", follower.getPathCompletion());
-				automationHandler.showTelemetry(telemetryManager);
+				if (doActions) {
+					automationHandler.showTelemetry(telemetryManager);
+				}
 
 				String[] debugLines = null;
 				try {
@@ -219,7 +221,7 @@ public class BlueUp9Artifacts extends LinearOpMode {
 								// new Pose(90.000, 60.000).mirror(),
 								new Pose(96.000, 56.300).mirror()))
 				// .setTangentHeadingInterpolation()
-				.setConstantHeadingInterpolation(180 - 0)
+				.setConstantHeadingInterpolation(Math.toRadians(180 - 0))
 				// .setBrakingStrength(1)
 				.build();
 
@@ -261,7 +263,7 @@ public class BlueUp9Artifacts extends LinearOpMode {
 								new Pose(85.000, 76.000).mirror(),
 								new Pose(85.000, 34.000).mirror(),
 								new Pose(95.000, 34.000).mirror()))
-				.setConstantHeadingInterpolation(180 - 0)
+				.setConstantHeadingInterpolation(Math.toRadians(180 - 0))
 				// .setBrakingStrength(1)
 				.build();
 	}

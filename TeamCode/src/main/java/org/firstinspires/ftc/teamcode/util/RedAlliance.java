@@ -23,6 +23,10 @@ public class RedAlliance implements Alliance {
 		return new Pose(144, 144, 0);
 	}
 
+	public Integer getGoalAprilTagId() {
+		return 24;
+	}
+
 	public double getHeadingOffset() {
 		return 0;
 	}

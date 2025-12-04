@@ -150,7 +150,9 @@ public class RedUp9Artifacts extends LinearOpMode {
 
 				telemetryManager.addData("T value", follower.getCurrentTValue());
 				telemetryManager.addData("Path completion", follower.getPathCompletion());
-				automationHandler.showTelemetry(telemetryManager);
+				if (doActions) {
+					automationHandler.showTelemetry(telemetryManager);
+				}
 
 				String[] debugLines = null;
 				try {

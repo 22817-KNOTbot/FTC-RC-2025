@@ -23,6 +23,10 @@ public class BlueAlliance implements Alliance {
 		return new Pose(0, 144, 0);
 	}
 
+	public Integer getGoalAprilTagId() {
+		return 23;
+	}
+
 	public double getHeadingOffset() {
 		return Math.PI;
 	}
