@@ -50,7 +50,7 @@ public class Automations {
 	private boolean transferAll;
 	private boolean visionOverridingTurret;
 	private boolean visionOverridedTurret;
-	private boolean useVision;
+	private boolean useVision = true;
 
 	public enum StorageState {
 		WAITING,
@@ -103,6 +103,7 @@ public class Automations {
 		telemetry.addData("Shooter Desired Velocity", shooter.desiredVelocity);
 		telemetry.addData("Distance", pose.distanceFrom(alliance.getGoalPose()));
 		telemetry.addData("Intake timed ejecting", intakeTimedEjecting);
+		telemetry.addData("Using vision", useVision);
 		telemetry.addData("Vision Alignment Direction", vision.getAlignmentDirection());
 		storage.showTelemetry(telemetry);
 		telemetryManager = telemetry;
@@ -114,6 +115,7 @@ public class Automations {
 		intakeTimedEjecting = false;
 		intake.enable(false);
 		storage.abort();
+		setVisionOverrideEnabled(false);
 	}
 
 	// Code that should be run on start but not during init
@@ -219,7 +221,7 @@ public class Automations {
 			}
 			double bearing = direction.bearing;
 
-			double targetRotation = Turret.getRotation() - (bearing * Turret.rotation_per_deg);
+			double targetRotation = Turret.getRotation() - (bearing * Turret.rotation_per_deg) + Turret.vision_offset;
 			turret.setRotation(targetRotation);
 			visionOverridedTurret = true;
 		}

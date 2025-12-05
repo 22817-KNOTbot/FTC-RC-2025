@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.knotbot.practiceapp.RobotEvent;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
@@ -94,6 +95,8 @@ public class RedLow9Artifacts extends LinearOpMode {
 		automationHandler.start();
 		stateTimer.reset();
 
+		RobotEvent.startAuto();
+
 		while (opModeIsActive()) {
 			// IMPORTANT: Cache must be cleared every loop to prevent stale data
 			for (LynxModule hub : allHubs) {
@@ -131,7 +134,9 @@ public class RedLow9Artifacts extends LinearOpMode {
 									break;
 								case 1:
 								case 2:
-									automationHandler.setTurretRotationDegrees(Math.toDegrees(Math.atan2(133, 48)));
+									automationHandler.setTurretRotationDegrees(Math.toDegrees(Math.atan2(48, 133)) - 5);
+									// break;
+									// automationHandler.setTurretRotationDegrees(Math.toDegrees(Math.atan2(48, 133)));
 									break;
 								default:
 									break;
@@ -228,7 +233,7 @@ public class RedLow9Artifacts extends LinearOpMode {
 				.addPath(
 						new BezierLine(new Pose(96.000, 11.000), new Pose(96.000, 58.300)))
 				.setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(0))
-				.setTValueConstraint(0.7)
+				.setTValueConstraint(0.8)
 				.setBrakingStrength(0.4)
 				.build();
 
@@ -240,7 +245,7 @@ public class RedLow9Artifacts extends LinearOpMode {
 								new Pose(140.500, 56.300)))
 				.setConstantHeadingInterpolation(Math.toRadians(0))
 				.addParametricCallback(0, this::intakeEnable)
-				.addParametricCallback(0, this::startIntakeSpeed)
+				.addParametricCallback(0.05, this::startIntakeSpeed)
 				.build();
 
 		secondLaunch = follower.pathBuilder()
@@ -343,7 +348,7 @@ public class RedLow9Artifacts extends LinearOpMode {
 	public void readyToShoot() {
 		if (doActions) {
 			// automationHandler.setIgnoreVelocity(true);
-			automationHandler.setTransferMode(Storage.TransferMode.FULL_SPIN);
+			// automationHandler.setTransferMode(Storage.TransferMode.FULL_SPIN);
 			Pattern pattern = automationHandler.getArtifactPattern();
 			if (pattern != null) {
 				patternColours = pattern.getPattern();

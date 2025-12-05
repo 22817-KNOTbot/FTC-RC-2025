@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.knotbot.practiceapp.RobotEvent;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
@@ -91,6 +92,9 @@ public class RedUp9Artifacts extends LinearOpMode {
 
 		automationHandler.start();
 		stateTimer.reset();
+
+		RobotEvent.startAuto();
+		RobotEvent.setAutoEnd(false);
 
 		while (opModeIsActive()) {
 			// IMPORTANT: Cache must be cleared every loop to prevent stale data

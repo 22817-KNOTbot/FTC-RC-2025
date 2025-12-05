@@ -18,11 +18,12 @@ public class Turret {
 
 	public static double min_rotation = 0.1;
 	public static double max_rotation = 0.7;
-	public static double min_pitch = 0.5;
-	public static double max_pitch = 0.78;
+	public static double min_pitch = 0.485;
+	public static double max_pitch = 0.765;
 	public static double rotation_increment = 0.015;
 	public static double rotation_per_deg = 0.205/90;
 	public static double pitch_increment = 0.01;
+	public static double vision_offset = 0.0;
 
 	private Servo turretYawServo1;
 	private Servo turretYawServo2;

@@ -108,6 +108,9 @@ public class Shooter {
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 48).distanceFrom(goalShooterPose), 1850));
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 96).distanceFrom(goalShooterPose), 1650));
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 120).distanceFrom(goalShooterPose), 1600));
+		
+		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(96, 96).distanceFrom(goalShooterPose), 1600));
+		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(96, 9).distanceFrom(goalShooterPose), 1980));
 	}
 
 	public void enable(boolean enabled) {

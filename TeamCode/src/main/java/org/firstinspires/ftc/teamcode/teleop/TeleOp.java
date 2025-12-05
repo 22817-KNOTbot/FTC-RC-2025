@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.field.Style;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.knotbot.practiceapp.RobotEvent;
 import com.bylazar.gamepad.PanelsGamepad;
 
 import com.pedropathing.geometry.Pose;
@@ -104,6 +105,8 @@ public class TeleOp extends LinearOpMode {
 		mecanumDrive.setResetPose(automationHandler.getAlliance().getResetPose());
 		automationHandler.start();
 		loopTime.reset();
+
+		RobotEvent.startTeleop();
 
 		while (opModeIsActive()) {
 			// IMPORTANT: Cache must be cleared every loop to prevent stale data
@@ -268,5 +271,7 @@ public class TeleOp extends LinearOpMode {
 		}
 
 		automationHandler.end();
+
+		RobotEvent.runEnd();
 	}
 }
