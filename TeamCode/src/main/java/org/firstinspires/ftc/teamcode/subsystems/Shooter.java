@@ -14,7 +14,7 @@ import java.util.TreeSet;
 import com.acmerobotics.dashboard.config.Config;
 
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
-import org.firstinspires.ftc.teamcode.util.ControlTheory.Pid;
+import org.firstinspires.ftc.teamcode.util.ControlTheory.Pidf;
 
 @Configurable
 @Config
@@ -24,14 +24,15 @@ public class Shooter {
 	public static double shootingAreaTolerance = 12.7279220614;
 	public static double defaultVelocity = 2200;
 	public static VelocityEntries velocityEntries;
-	public static double PID_P = 0.00006;
-	public static double PID_I = 0;
-	public static double PID_D = 0.000035;
-	public static boolean PID_update = false;
+	public static double PIDF_P = 0.00006;
+	public static double PIDF_I = 0;
+	public static double PIDF_D = 0.000035;
+	public static double PIDF_F = 0;
+	public static boolean PIDF_update = false;
 
 	public double desiredVelocity = 2200;
 
-	private Pid pidController;
+	private Pidf pidfController;
 	private boolean enabled;
 	private double power;
 
@@ -92,7 +93,7 @@ public class Shooter {
 		shooterMotorLeft.setDirection(DcMotorEx.Direction.REVERSE);
 		shooterMotorRight = hardwareMap.get(DcMotorEx.class, "shooterMotorRight");
 
-		pidController = new Pid(PID_P, PID_I, PID_D);
+		pidfController = new Pidf(PIDF_P, PIDF_I, PIDF_D, PIDF_F);
 
 		addVelocityEntries();
 	}
@@ -158,18 +159,19 @@ public class Shooter {
 
 	public void updateVelocityPid() {
 		if (!enabled) return;
-		if (PID_update) {
-			pidController.setKp(PID_P);
-			pidController.setKi(PID_I);
-			pidController.setKd(PID_D);
+		if (PIDF_update) {
+			pidfController.setKp(PIDF_P);
+			pidfController.setKi(PIDF_I);
+			pidfController.setKd(PIDF_D);
+			pidfController.setKv(PIDF_F);
 		}
 
-		double pidOutput = pidController.calculate(desiredVelocity, getVelocity());
+		double pidOutput = pidfController.calculate(desiredVelocity, getVelocity());
 		setPower(power + pidOutput);
 	}
 
 	public void showPidTelemetry(TelemetryManager telemetry) {
-		pidController.showTelemetry(telemetry);
+		pidfController.showTelemetry(telemetry);
 	} 
 
 	public boolean atDesiredVelocity() {
