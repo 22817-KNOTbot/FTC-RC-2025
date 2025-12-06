@@ -39,6 +39,9 @@ public class TelemetryManager {
 	}
 
 	public void addData(String caption, Object value) {
+		if (value == null) {
+			value = "null";
+		}
 		if (ftcTelemetry != null) {
 			ftcTelemetry.addData(caption, value);
 		}

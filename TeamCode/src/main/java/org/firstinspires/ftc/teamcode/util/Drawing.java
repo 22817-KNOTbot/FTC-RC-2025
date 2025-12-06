@@ -11,9 +11,11 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.PoseHistory;
 
+import com.acmerobotics.dashboard.canvas.Canvas;
 
 /*
  * Copied from PedroPathing Quickstart
+ * Some edits made
  */
 
 /**
@@ -68,7 +70,7 @@ public class Drawing {
 	 * @param pose  the Pose to draw the robot at
 	 * @param style the parameters used to draw the robot with
 	 */
-	public static void drawRobot(Pose pose, Style style) {
+	public static void drawRobot(Pose pose, Style style, Canvas dashboardCanvas) {
 		if (pose == null || Double.isNaN(pose.getX()) || Double.isNaN(pose.getY()) || Double.isNaN(pose.getHeading())) {
 			return;
 		}
@@ -85,6 +87,13 @@ public class Drawing {
 		panelsField.setStyle(style);
 		panelsField.moveCursor(x1, y1);
 		panelsField.line(x2, y2);
+
+		if (dashboardCanvas != null) {
+			dashboardCanvas.setStrokeWidth(1);
+			dashboardCanvas.strokeCircle(pose.getY() - 72, 72 - pose.getX(), ROBOT_RADIUS);
+
+			dashboardCanvas.strokeLine(y1 - 72, 72 - x1, y2 - 72, 72 - x2);
+		}
 	}
 
 	/**
@@ -92,8 +101,16 @@ public class Drawing {
 	 *
 	 * @param pose the Pose to draw the robot at
 	 */
+	public static void drawRobot(Pose pose, Style robotLook) {
+		drawRobot(pose, robotLook, null);
+	}
+
+	public static void drawRobot(Pose pose, Canvas dashboardCanvas) {
+		drawRobot(pose, robotLook, dashboardCanvas);
+	}
+
 	public static void drawRobot(Pose pose) {
-		drawRobot(pose, robotLook);
+		drawRobot(pose, robotLook, null);
 	}
 
 	/**

@@ -4,10 +4,7 @@ import com.pedropathing.math.Vector;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-import org.firstinspires.ftc.teamcode.teleop.TeleOp;
-
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -19,12 +16,18 @@ public class MecanumDrive {
 	private double headingOffset;
 	private Pose holdPose = new Pose();
 	private boolean holdingPose;
+	private Pose resetPose = new Pose();
 	private boolean autoDrive;
 	private Pose autoDriveTarget;
-	private TeleOp teleop;
 
 	public MecanumDrive(HardwareMap hardwareMap) {
+		// follower = Constants.createFollowerRoadRunner(hardwareMap);
 		follower = Constants.createFollower(hardwareMap);
+		follower.setStartingPose(new Pose());
+	}
+
+	public MecanumDrive(Follower follower) {
+		this.follower = follower;
 	}
 
 	public void initialize() {
@@ -36,7 +39,8 @@ public class MecanumDrive {
 	}
 
 	public void move(float forward, float lateral, float rotation) {
-		follower.update();
+		updateLocalizers();
+
 		if (autoDrive)
 			return;
 
@@ -47,6 +51,10 @@ public class MecanumDrive {
 				-rotation / denominator,
 				false,
 				headingOffset);
+	}
+
+	public void updateLocalizers() {
+		follower.update();
 	}
 
 	public void lockingMecanum(boolean enabled) {
@@ -81,19 +89,32 @@ public class MecanumDrive {
 		autoDriveTarget = target;
 	}
 
-	public void setPoseFromAuto(Pose pose){
+	public void setStartingPose(Pose pose) {
+		follower.setStartingPose(pose);
+		// setPose(pose);
+		follower.update();
+	}
+
+	public void setPose(Pose pose){
 		follower.setPose(pose);
+		follower.update();
 	}
 
 	public Pose getPose() {
 		return follower.getPose();
 	}
+
 	public Vector getVelocity() {
 		return follower.getVelocity();
 	}
 
+	public void setResetPose(Pose pose) {
+		resetPose = pose;
+	}
+
 	public void resetPose() {
-		follower.setPose(new Pose(0, 0, -headingOffset));
+		follower.setPose(resetPose);
+		// follower.update();
 	}
 
 	public Pose getHoldPose() {

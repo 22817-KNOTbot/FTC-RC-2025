@@ -5,19 +5,24 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.subsystems.vision.Vision;
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
+import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.configurables.annotations.Configurable;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.FtcDashboard;
 
 @Configurable
 @Config
 public class MotifDecodeTesting extends LinearOpMode {
 	@Override
 	public void runOpMode() {
-		telemetry = new JoinedTelemetry(PanelsTelemetry.INSTANCE.getFtcTelemetry(), telemetry);
+		TelemetryManager telemetryManager = new TelemetryManager();
+		telemetryManager.setFtcTelemetry(telemetry);
+		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
+		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 
 		boolean previousDebug = Vision.DEBUG;
 		Vision.DEBUG = true;
@@ -29,17 +34,17 @@ public class MotifDecodeTesting extends LinearOpMode {
 		while (opModeIsActive()) {
 			Pattern newMotifPattern = visionProcessor.updateMotifPattern();
 			Pattern storedMotifPattern = visionProcessor.getLastMotifPattern();
-			telemetry.addLine(newMotifPattern != null ? newMotifPattern.toString() : "null");
-			telemetry.addLine(newMotifPattern != null ? newMotifPattern.getPattern()[0].toString() : "null");
-			telemetry.addLine(newMotifPattern != null ? newMotifPattern.getPattern()[1].toString() : "null");
-			telemetry.addLine(newMotifPattern != null ? newMotifPattern.getPattern()[2].toString() : "null");
-			telemetry.addLine("================================");
-			telemetry.addLine(storedMotifPattern != null ? storedMotifPattern.toString() : "null");
-			telemetry.addLine(storedMotifPattern != null ? storedMotifPattern.getPattern()[0].toString() : "null");
-			telemetry.addLine(storedMotifPattern != null ? storedMotifPattern.getPattern()[1].toString() : "null");
-			telemetry.addLine(storedMotifPattern != null ? storedMotifPattern.getPattern()[2].toString() : "null");
-			visionProcessor.showTelemetry(telemetry);
-			telemetry.update();
+			telemetryManager.addLine(newMotifPattern != null ? newMotifPattern.toString() : "null");
+			telemetryManager.addLine(newMotifPattern != null ? newMotifPattern.getPattern()[0].toString() : "null");
+			telemetryManager.addLine(newMotifPattern != null ? newMotifPattern.getPattern()[1].toString() : "null");
+			telemetryManager.addLine(newMotifPattern != null ? newMotifPattern.getPattern()[2].toString() : "null");
+			telemetryManager.addLine("================================");
+			telemetryManager.addLine(storedMotifPattern != null ? storedMotifPattern.toString() : "null");
+			telemetryManager.addLine(storedMotifPattern != null ? storedMotifPattern.getPattern()[0].toString() : "null");
+			telemetryManager.addLine(storedMotifPattern != null ? storedMotifPattern.getPattern()[1].toString() : "null");
+			telemetryManager.addLine(storedMotifPattern != null ? storedMotifPattern.getPattern()[2].toString() : "null");
+			visionProcessor.showTelemetry(telemetryManager);
+			telemetryManager.update();
 		}
 
 		visionProcessor.close();
