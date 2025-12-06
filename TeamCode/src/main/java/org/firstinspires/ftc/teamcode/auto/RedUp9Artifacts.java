@@ -173,6 +173,7 @@ public class RedUp9Artifacts extends LinearOpMode {
 			telemetryManager.update();
 		}
 		blackboard.put("pose", follower.getPose());
+		blackboard.put("follower", follower);
 		automationHandler.end();
 	}
 

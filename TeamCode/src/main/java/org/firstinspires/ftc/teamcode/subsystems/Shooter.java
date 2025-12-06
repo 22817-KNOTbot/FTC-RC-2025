@@ -24,10 +24,10 @@ public class Shooter {
 	public static double shootingAreaTolerance = 12.7279220614;
 	public static double defaultVelocity = 2200;
 	public static VelocityEntries velocityEntries;
-	public static double PIDF_P = 0.00006;
+	public static double PIDF_P = 0.03;
 	public static double PIDF_I = 0;
-	public static double PIDF_D = 0.000035;
-	public static double PIDF_F = 0;
+	public static double PIDF_D = 0;
+	public static double PIDF_F = 0.0004;
 	public static boolean PIDF_update = false;
 
 	public double desiredVelocity = 2200;
@@ -88,10 +88,12 @@ public class Shooter {
 
 	public Shooter(HardwareMap hardwareMap) {
 		shooterMotorLeft = hardwareMap.get(DcMotorEx.class, "shooterMotorLeft");
-		// shooterMotorLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 		shooterMotorLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 		shooterMotorLeft.setDirection(DcMotorEx.Direction.REVERSE);
 		shooterMotorRight = hardwareMap.get(DcMotorEx.class, "shooterMotorRight");
+
+		shooterMotorLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+		shooterMotorRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
 		pidfController = new Pidf(PIDF_P, PIDF_I, PIDF_D, PIDF_F);
 
@@ -167,10 +169,11 @@ public class Shooter {
 		}
 
 		double pidOutput = pidfController.calculate(desiredVelocity, getVelocity());
-		setPower(power + pidOutput);
+		setPower(Range.clip(pidOutput, 0, 1));
 	}
 
 	public void showPidTelemetry(TelemetryManager telemetry) {
+		telemetry.addData("Shooter power", power);
 		pidfController.showTelemetry(telemetry);
 	} 
 

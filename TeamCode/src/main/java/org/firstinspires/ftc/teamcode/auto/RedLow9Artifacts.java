@@ -49,7 +49,7 @@ public class RedLow9Artifacts extends LinearOpMode {
 	private Alliance alliance = new RedAlliance();
 	private Automations automationHandler;
 	private Follower follower;
-	private Pose startPose = new Pose(96.000, 9.000, Math.toDegrees(0));
+	private Pose startPose = new Pose(96.000, 9.000, Math.toRadians(0));
 	private Artifact.Colour[] patternColours = null;
 	private ElapsedTime shootingTimer = new ElapsedTime();
 	private ElapsedTime stateTimer = new ElapsedTime();

@@ -9,7 +9,7 @@ import com.bylazar.field.Style;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.knotbot.practiceapp.RobotEvent;
 import com.bylazar.gamepad.PanelsGamepad;
-
+import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
@@ -60,13 +60,20 @@ public class TeleOp extends LinearOpMode {
 		if (gamepad1.right_bumper)
 			DEBUG = true;
 
-		Alliance alliance;
+		Alliance alliance = new RedAlliance();
 		if (gamepad1.left_trigger > 0.9) {
 			alliance = new BlueAlliance();
 		} else if (gamepad1.right_trigger > 0.9) {
 			alliance = new RedAlliance();
 		} else {
-			alliance = (Alliance) blackboard.getOrDefault("alliance", new RedAlliance());
+			Object allianceObject = blackboard.getOrDefault("alliance", null);
+			if (allianceObject == null) {
+				alliance = new RedAlliance();
+			} else {
+				try {
+					alliance = (Alliance) allianceObject;
+				} catch (ClassCastException err) {}
+			}
 		}
 
 		// Bulk read
@@ -96,8 +103,17 @@ public class TeleOp extends LinearOpMode {
 			telemetryManager.update();
 		}
 		
-		Pose pose = (Pose) blackboard.getOrDefault("pose", automationHandler.getAlliance().getResetPose());
+		Object poseObject = blackboard.getOrDefault("pose", null);
+		Pose pose = automationHandler.getAlliance().getResetPose();
+		if (poseObject == null) {
+			pose = automationHandler.getAlliance().getResetPose();
+		} else {
+			try {
+				pose = (Pose) poseObject;
+			} catch (ClassCastException err) {}
+		}
 		mecanumDrive.setStartingPose(pose);
+		mecanumDrive.setPose(pose);
 
 		mecanumDrive.initialize();
 		mecanumDrive.setHeadingOffset(automationHandler.getAlliance().getHeadingOffset());
