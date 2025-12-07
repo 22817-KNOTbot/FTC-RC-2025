@@ -133,14 +133,16 @@ public class RedLow9Artifacts extends LinearOpMode {
 									automationHandler.setTurretRotationDegrees(-Math.toDegrees(Math.atan2(135, 48)));
 									break;
 								case 1:
+									automationHandler.setTurretRotationDegrees(Math.toDegrees(Math.atan2(48, 133)) - 2);
+									break;
 								case 2:
-									automationHandler.setTurretRotationDegrees(Math.toDegrees(Math.atan2(48, 133)) - 5);
+									// automationHandler.updateTurret();
 									// break;
+									automationHandler.setTurretRotationDegrees(Math.toDegrees(Math.atan2(48, 133)) + 0);
 									// automationHandler.setTurretRotationDegrees(Math.toDegrees(Math.atan2(48, 133)));
 									break;
 								default:
 									break;
-
 							}
 							manuallyMovedTurret = true;
 						}

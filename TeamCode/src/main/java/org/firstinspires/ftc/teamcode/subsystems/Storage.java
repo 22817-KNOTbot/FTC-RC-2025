@@ -79,7 +79,7 @@ public class Storage {
 		colourSensor = hardwareMap.get(ColorRangeSensor.class, "colourSensor");
 
 		storageMotor = hardwareMap.get(DcMotorEx.class, "storageMotor");
-		storageMotor.setTargetPosition(0);
+		storageMotor.setTargetPosition(currentTargetSlotPosition);
 
 		if (resetEncoder) {
 			storageMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

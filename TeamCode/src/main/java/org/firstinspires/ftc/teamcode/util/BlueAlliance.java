@@ -24,7 +24,7 @@ public class BlueAlliance implements Alliance {
 	}
 
 	public Integer getGoalAprilTagId() {
-		return 23;
+		return 20;
 	}
 
 	public double getHeadingOffset() {

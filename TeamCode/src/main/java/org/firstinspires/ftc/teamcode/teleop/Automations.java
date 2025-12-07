@@ -77,7 +77,7 @@ public class Automations {
 		this.stateTimer = new ElapsedTime();
 		this.ejectTimer = new ElapsedTime();
 		intake = new Intake(hardwareMap);
-		storage = new Storage(hardwareMap, true);
+		storage = new Storage(hardwareMap, DEBUG);
 		turret = new Turret(hardwareMap);
 		shooter = new Shooter(hardwareMap);
 
@@ -209,6 +209,7 @@ public class Automations {
 		} else {
 			if (!useVision) {
 				setVisionOverrideEnabled(false);
+				updateTurret();
 				return;
 			}
 			if (visionOverridedTurret)
@@ -480,6 +481,14 @@ public class Automations {
 
 	public void setUseVision(boolean useVision) {
 		this.useVision = useVision;
+	}
+
+	public boolean getVisionOverridingTurret() {
+		return visionOverridingTurret;
+	}
+
+	public boolean getVisionAlignmentKnown() {
+		return vision.getAlignmentDirection().directionKnown;
 	}
 
 	/*

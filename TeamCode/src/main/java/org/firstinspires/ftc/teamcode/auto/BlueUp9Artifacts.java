@@ -233,7 +233,7 @@ public class BlueUp9Artifacts extends LinearOpMode {
 						new BezierCurve(
 								new Pose(96.000, 56.300).mirror(),
 								new Pose(120.000, 55.900).mirror(),
-								new Pose(128.500, 55.300).mirror()))
+								new Pose(133.500, 55.300).mirror()))
 				.setConstantHeadingInterpolation(Math.toRadians(180 - 0))
 				.addParametricCallback(0, this::intakeEnable)
 				.addParametricCallback(0, this::startIntakeSpeed)
@@ -244,7 +244,7 @@ public class BlueUp9Artifacts extends LinearOpMode {
 		secondLaunch = follower.pathBuilder()
 				.addPath(
 						new BezierCurve(
-								new Pose(128.500, 55.300).mirror(),
+								new Pose(133.500, 55.300).mirror(),
 								new Pose(120.000, 55.000).mirror(),
 								new Pose(84.000, 84.000).mirror()))
 				.setTangentHeadingInterpolation()

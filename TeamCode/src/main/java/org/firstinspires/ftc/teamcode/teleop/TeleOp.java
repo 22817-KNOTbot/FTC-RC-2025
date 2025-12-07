@@ -31,7 +31,7 @@ import java.util.List;
 @Config
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp")
 public class TeleOp extends LinearOpMode {
-	public static boolean DEBUG = true;
+	public static boolean DEBUG = false;
 	public static boolean pedroLocalizer = true; // Roadrunner if false
 
 	private GamepadManager gamepadManager;
@@ -220,7 +220,9 @@ public class TeleOp extends LinearOpMode {
 				automationHandler.rotateTurret(gamepad2.left_stick_x);
 				automationHandler.pitchTurret(gamepad2.right_stick_y);
 			} else {
-				automationHandler.updateTurret();
+				if (!manualTurretMode || automationHandler.getVisionAlignmentKnown()) {
+					automationHandler.updateTurret();
+				}
 			}
 			if (gamepad2.yWasPressed()) {
 				manualShooterMode = !manualShooterMode;

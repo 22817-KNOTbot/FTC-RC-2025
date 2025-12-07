@@ -130,17 +130,19 @@ public class BlueLow9Artifacts extends LinearOpMode {
 						if (!manuallyMovedTurret) {
 							switch (shots) {
 								case 0:
-									automationHandler.setTurretRotationDegrees(Math.toDegrees(Math.atan2(135, 48)));
+									automationHandler.setTurretRotationDegrees(Math.toDegrees(Math.atan2(135, 48)) + 8);
 									break;
 								case 1:
+									automationHandler.setTurretRotationDegrees(-Math.toDegrees(Math.atan2(48, 133)) + 2 + 5);
+									break;
 								case 2:
-									automationHandler.setTurretRotationDegrees(-Math.toDegrees(Math.atan2(48, 133)) - 5);
+									// automationHandler.updateTurret();
 									// break;
+									automationHandler.setTurretRotationDegrees(-Math.toDegrees(Math.atan2(48, 133)) - 0 + 5);
 									// automationHandler.setTurretRotationDegrees(Math.toDegrees(Math.atan2(48, 133)));
 									break;
 								default:
 									break;
-
 							}
 							manuallyMovedTurret = true;
 						}
