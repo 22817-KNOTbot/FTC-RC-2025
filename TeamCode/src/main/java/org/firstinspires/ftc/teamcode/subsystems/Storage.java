@@ -436,7 +436,7 @@ public class Storage {
 				}
 				break;
 			case TURNING:
-				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 3) {
+				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 1) {
 					timer.reset();
 					transferState = TransferState.RESET;
 				}				
