@@ -54,7 +54,9 @@ public class Automations {
 	public enum StorageState {
 		WAITING,
 		INTAKING,
-		TURNING,
+		TURNING_TWOBALL,
+		TWOBALL,
+		TURNING_TRANSFER,
 		TRANSFERRING
 	}
 
@@ -119,22 +121,23 @@ public class Automations {
 		pattern = vision.getLastMotifPattern();
 		shooter.updateVelocityPid();
 		if (storageState == StorageState.WAITING && intakeEnabled) {
-			if (storage.intake()) {
-				storageState = StorageState.INTAKING;
-				if (storage.storageFull()) {
-					vibrateControllers();
-					intake.enableReversed(true);
-					intakeEnabled = false;
-					intakeTimedEjecting = true;
-					ejectTimer.reset();
-				}
-			}
+			storageState = StorageState.INTAKING;
+			storage.storageToggleContinuous(true);
 		} else if (storageState == StorageState.INTAKING) {
-			storage.intakeUpdate();
-			if (storage.getIntakeState() == Storage.IntakeState.RESET) {
-				storageState = StorageState.WAITING;
+			if (storage.updateStorage()) {
+				storageState = StorageState.TURNING_TWOBALL;
 			}
-		} else if (storageState == StorageState.TURNING && !storage.isMotorBusy()) {
+		} else if (storageState == StorageState.TURNING_TWOBALL) {
+			if (storage.getStoragePosition() % 128 < 20) {
+				storage.storageToggleContinuous(false);
+				storageState = StorageState.TWOBALL;
+			}
+		} else if (storageState == StorageState.TWOBALL) {
+			if (storage.isArtifactLoaded()) {
+				storageState = StorageState.WAITING;
+				intakeEnable(false);
+			}
+		} else if (storageState == StorageState.TURNING_TRANSFER && !storage.isMotorBusy()) {
 			shootActiveArtifact();
 			stateTimer.reset();
 		} else if (storageState == StorageState.TRANSFERRING) {
@@ -237,11 +240,7 @@ public class Automations {
 
 	public void intakeToggle() {
 		intakeEnable(!intakeEnabled);
-		if (intakeEnabled) {
-			storage.gateDown();
-		} else {
-			storage.gateUp();
-		}
+		storage.storageToggleContinuous(intakeEnabled);
 	}
 
 	public void intakeEject() {
@@ -258,7 +257,7 @@ public class Automations {
 	public Storage.TurnDirection prepareArtifact(Artifact.Colour colour) {
 		Storage.TurnDirection turnDirection = storage.turnToArtifact(colour);
 		stateTimer.reset();
-		storageState = StorageState.TURNING;
+		storageState = StorageState.TURNING_TRANSFER;
 		return turnDirection;
 	}
 
@@ -273,7 +272,7 @@ public class Automations {
 		} else {
 			storage.gateUp();
 			stateTimer.reset();
-			storageState = StorageState.TURNING;
+			storageState = StorageState.TURNING_TRANSFER;
 		}
 		return false;
 	}
@@ -288,7 +287,7 @@ public class Automations {
 		} else {
 			storage.gateUp();
 			stateTimer.reset();
-			storageState = StorageState.TURNING;
+			storageState = StorageState.TURNING_TRANSFER;
 		}
 		return false;
 	}

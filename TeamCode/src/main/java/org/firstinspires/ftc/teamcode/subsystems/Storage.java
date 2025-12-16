@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DcMotor.RunMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -26,6 +28,8 @@ import com.acmerobotics.dashboard.config.Config;
 public class Storage {
 	public static double distance_threshold_mm = 90;
 	public static int positionInterval = 128;
+	public static double storageMotorPower = 0.3;
+	public static double storageTolerance = 20;
 	public static double transferMotorPower = 0.4;
 	public static double intakeGateUpPosition = 0.318;
 	public static double intakeGateDownPosition = 0.355;
@@ -35,6 +39,7 @@ public class Storage {
 	
 	private static int numOfArtifacts = 0;
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
+	private static Iterator<Colour> artifactStore = artifactStored.iterator();
 	private static int currentTargetSlotPosition = 0;
 	private IntakeState intakeState = IntakeState.IDLE;
 	private TransferState transferState = TransferState.IDLE;
@@ -121,6 +126,20 @@ public class Storage {
 		return artifactStored.get(2);
 	}
 
+	public static int getNumOfArtifacts() {
+		numOfArtifacts = 0;
+		while (artifactStore.hasNext()) {
+			if (artifactStore.next() != null) {
+				numOfArtifacts++;
+			}
+		}
+		return numOfArtifacts;
+	}
+
+	public int getStoragePosition() {
+		return storageMotor.getCurrentPosition();
+	}
+
 	public IntakeState getIntakeState() {
 		return intakeState;
 	}
@@ -202,6 +221,28 @@ public class Storage {
 		}
 	}
 
+	public void storageToggleContinuous(boolean enable) {
+		if (enable) {
+			storageMotor.setMode(RunMode.RUN_USING_ENCODER);
+			storageMotor.setPower(storageMotorPower);
+		} else {
+			storageMotor.setMode((RunMode.RUN_TO_POSITION));
+			storageMotor.setPower(0);
+		}
+	}
+
+	public boolean updateStorage() {
+		if (storageMotor.getCurrentPosition() % 128 < storageTolerance) {
+			clearStorageMemory();
+			artifactStored.set(0, getArtifactColour());
+			//get the colour for the other slots
+			if (getNumOfArtifacts() == 2) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public void storageTurnCW() {
 		storageMotor.setTargetPosition(currentTargetSlotPosition + positionInterval);
 		currentTargetSlotPosition = storageMotor.getTargetPosition();
@@ -218,6 +259,15 @@ public class Storage {
 		artifactStored.set(0, getBackLeftArtifact());
 		artifactStored.set(1, getBackRightArtifact());
 		artifactStored.set(2, intakeArtifact);
+	}
+
+	public void storageDoubleTurnCCW() {
+		storageMotor.setTargetPosition(currentTargetSlotPosition - 2*positionInterval);
+		currentTargetSlotPosition = storageMotor.getTargetPosition();
+		Colour intakeArtifact = getActiveArtifact();
+		artifactStored.set(0, getBackRightArtifact());
+		artifactStored.set(2, getBackLeftArtifact());
+		artifactStored.set(1, intakeArtifact);
 	}
 
 	public void storageHalfTurnCW(boolean update) {
