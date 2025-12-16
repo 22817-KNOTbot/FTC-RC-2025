@@ -9,9 +9,11 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.util.Alliance;
+import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
-import org.firstinspires.ftc.teamcode.auto.AutoConfiguration.AutoAction;
-import org.firstinspires.ftc.teamcode.auto.AutoConfiguration.AutoState;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoState;
 
 import java.util.stream.Stream;
 
@@ -19,8 +21,10 @@ import java.util.stream.Stream;
 @Configurable
 @Autonomous
 public class Auto extends LinearOpMode {
-	public static AutoState startingState = new AutoConfiguration.StartState();
+	public static Alliance alliance = new RedAlliance(); // TODO: make a separate configuration input for this
+	public static AutoState startingState;
 
+	private AutoManager autoManager;
 	private TelemetryManager telemetryManager;
 
 	@Override
@@ -30,9 +34,14 @@ public class Auto extends LinearOpMode {
 		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 
+		autoManager = new AutoManager(alliance);
+		startingState = autoManager.getStartingStates()[0]; // TODO: make a separate configuration input for this
+
+		boolean configuring = true;
+		int selectedIndex = 0;
 		AutoState currentState = startingState;
 
-		while (opModeInInit()) {
+		while (opModeInInit() && configuring) {
 			String[] parentStringList = Stream.of(currentState.getParents())
 					.map(AutoState::getNameString).toArray(String[]::new);
 			String parentString = String.join(" > ", parentStringList);
@@ -42,8 +51,9 @@ public class Auto extends LinearOpMode {
 			telemetry.addLine("====================");
 			telemetry.addLine();
 
-			for (AutoAction action : currentState.getAutoActions()) {
-				telemetry.addLine(action.getNameString());
+			AutoAction[] actionOptions = currentState.getAutoActions();
+			for (int i = 0; i < actionOptions.length; i++) {
+				telemetry.addLine(selectedIndex == i ? "> " : "" + actionOptions[i].getNameString());
 			}
 			telemetryManager.update();
 		}
