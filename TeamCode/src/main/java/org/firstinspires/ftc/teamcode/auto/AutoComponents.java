@@ -17,7 +17,7 @@ public class AutoComponents {
 		this.alliance = alliance;
 	}
 
-		public static abstract class AutoState {
+	public static abstract class AutoState {
 		private AutoState[] parents;
 		public abstract String getNameString();
 		public abstract AutoAction[] getAutoActions();
@@ -29,6 +29,10 @@ public class AutoComponents {
 		public void setParents(AutoState[] parents) {
 			this.parents = parents;
 		}
+	}
+
+	public static abstract class StartAutoState extends AutoState {
+		public abstract Pose getStartPose(Alliance alliance);
 	}
 	
 	public static abstract class AutoAction {
@@ -51,7 +55,7 @@ public class AutoComponents {
 	 * States
 	 */
 
-	public class StartLowState extends AutoState {
+	public class StartLowState extends StartAutoState {
 		public String getNameString() {
 			return "Start";
 		}
@@ -67,9 +71,17 @@ public class AutoComponents {
 				new EndAction()
 			};
 		}
+
+		public Pose getStartPose(Alliance alliance) {
+			Pose startPose = new Pose(96, 9, Math.toRadians(0));
+			if (alliance instanceof BlueAlliance) {
+				startPose = startPose.mirror();
+			}
+			return startPose;
+		}
 	}
 
-	public class StartUpState extends AutoState {
+	public class StartUpState extends StartAutoState {
 		public String getNameString() {
 			return "Start";
 		}
@@ -84,6 +96,14 @@ public class AutoComponents {
 				new LeaveUpAction(),
 				new EndAction()
 			};
+		}
+
+		public Pose getStartPose(Alliance alliance) {
+			Pose startPose = new Pose(123, 124, Math.toRadians(125));
+			if (alliance instanceof BlueAlliance) {
+				startPose = startPose.mirror();
+			}
+			return startPose;
 		}
 	}
 
