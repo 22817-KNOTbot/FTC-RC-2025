@@ -3,39 +3,38 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.firstinspires.ftc.teamcode.subsystems.Shooter.VelocityEntries.VelocityEntry;
-import org.firstinspires.ftc.teamcode.util.Alliance;
-
 import com.acmerobotics.dashboard.config.Config;
+
+import org.firstinspires.ftc.teamcode.util.TelemetryManager;
+import org.firstinspires.ftc.teamcode.util.ControlTheory.Pidf;
 
 @Configurable
 @Config
 public class Shooter {
-	// power = power of shooterMotor
-	public static float power = 1;
-	// See Desmos graph for regression. Constants for cubic regression
-	// public static double velocityEquationCoefficient_3 = 0.00169552;
-	// public static double velocityEquationCoefficient_2 = -0.36759;
-	// public static double velocityEquationCoefficient_1 = 29.06798;
-	// public static double velocityEquationConstant = 838.74397;
-	public static double velocityConstant = 50;
-	public static double velocityTargetOffset = 50;
+	public static double velocityConstant = -150;
+	public static double velocityTolerance = 50;
 	public static double shootingAreaTolerance = 12.7279220614;
 	public static double defaultVelocity = 2200;
 	public static VelocityEntries velocityEntries;
+	public static double PIDF_P = 0.03;
+	public static double PIDF_I = 0;
+	public static double PIDF_D = 0;
+	public static double PIDF_F = 0.0004;
+	public static boolean PIDF_update = false;
 
 	public double desiredVelocity = 2200;
-	public double targetVelocity = desiredVelocity + velocityTargetOffset;
+
+	private Pidf pidfController;
+	private boolean enabled;
+	private double power;
 
 	private DcMotorEx shooterMotorLeft;
 	private DcMotorEx shooterMotorRight;
@@ -89,10 +88,14 @@ public class Shooter {
 
 	public Shooter(HardwareMap hardwareMap) {
 		shooterMotorLeft = hardwareMap.get(DcMotorEx.class, "shooterMotorLeft");
-		// shooterMotorLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 		shooterMotorLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 		shooterMotorLeft.setDirection(DcMotorEx.Direction.REVERSE);
 		shooterMotorRight = hardwareMap.get(DcMotorEx.class, "shooterMotorRight");
+
+		shooterMotorLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+		shooterMotorRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+
+		pidfController = new Pidf(PIDF_P, PIDF_I, PIDF_D, PIDF_F);
 
 		addVelocityEntries();
 	}
@@ -108,24 +111,34 @@ public class Shooter {
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 48).distanceFrom(goalShooterPose), 1850));
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 96).distanceFrom(goalShooterPose), 1650));
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 120).distanceFrom(goalShooterPose), 1600));
+		
+		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(96, 96).distanceFrom(goalShooterPose), 1600));
+		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(96, 9).distanceFrom(goalShooterPose), 1980));
+		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(96, 11).distanceFrom(goalShooterPose), 1900));
 	}
 
 	public void enable(boolean enabled) {
 		if (enabled) {
-			shooterMotorLeft.setVelocity(targetVelocity);
-			shooterMotorRight.setPower(shooterMotorLeft.getPower());
+			setPower(power);
 		} else {
 			shooterMotorLeft.setPower(0);
 			shooterMotorRight.setPower(0);
 		}
+		this.enabled = enabled;
 	}
 
-	public void setPower(float pow) {
+	public void setPower(double pow) {
+		pow = Range.clip(pow, -1, 1);
 		shooterMotorLeft.setPower(pow);
 		shooterMotorRight.setPower(pow);
+		power = pow;
 	}
 
-	public void updateVelocity(double distance) {
+	public void updateVelocityTarget(double distance) {
+		desiredVelocity = getVelocityTarget(distance);
+	}
+
+	public double getVelocityTarget(double distance) {
 		// Using linear interpolation
 		if (velocityEntries != null) {
 			VelocityEntries.VelocityEntry[] nearestEntries = velocityEntries.getNearestEntries(distance);
@@ -138,19 +151,32 @@ public class Shooter {
 			double velocityDifference = higherEntry.velocity - lowerEntry.velocity;
 
 			if (distanceDifference != 0) {
-				desiredVelocity = (distanceFraction * (velocityDifference)) + lowerEntry.velocity + velocityConstant;
+				return (distanceFraction * velocityDifference) + lowerEntry.velocity + velocityConstant;
 			} else {
-				desiredVelocity = lowerEntry.velocity + velocityConstant;
+				return lowerEntry.velocity + velocityConstant;
 			}
 		} else {
-			desiredVelocity = defaultVelocity;
-		}
-		targetVelocity = desiredVelocity + velocityTargetOffset;
-
-		if (shooterMotorLeft.getPower() > 0) {
-			enable(true);
+			return defaultVelocity;
 		}
 	}
+
+	public void updateVelocityPid() {
+		if (!enabled) return;
+		if (PIDF_update) {
+			pidfController.setKp(PIDF_P);
+			pidfController.setKi(PIDF_I);
+			pidfController.setKd(PIDF_D);
+			pidfController.setKv(PIDF_F);
+		}
+
+		double pidOutput = pidfController.calculate(desiredVelocity, getVelocity());
+		setPower(Range.clip(pidOutput, 0, 1));
+	}
+
+	public void showPidTelemetry(TelemetryManager telemetry) {
+		telemetry.addData("Shooter power", power);
+		pidfController.showTelemetry(telemetry);
+	} 
 
 	public boolean atDesiredVelocity() {
 		return getVelocity() >= desiredVelocity;

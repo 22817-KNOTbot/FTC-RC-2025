@@ -32,6 +32,7 @@ public final class TestingOpModeManager {
 			return;
 
 		List<Class<? extends OpMode>> opModes = Arrays.asList(
+			ArtifactDetection.class,
 			AutoAlignTesting.class,
 			BasicDriveTesting.class,
 			ColourTesting.class,
@@ -47,7 +48,8 @@ public final class TestingOpModeManager {
 			ServoTwoTesting.class,
 			ShooterTesting.class,
 			StorageTesting.class,
-			TurretTesting.class
+			TurretTesting.class,
+			UtilityCameraFrameCapture.class
 		);
 
 		for (Class<? extends OpMode> opMode : opModes) {
