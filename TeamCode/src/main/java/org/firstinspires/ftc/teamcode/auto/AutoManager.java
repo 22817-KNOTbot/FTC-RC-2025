@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.auto.AutoComponents.StartAutoState;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.util.Alliance;
+import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -25,7 +26,6 @@ public class AutoManager {
 	private List<AutoAction> autoActions;
 
 	private boolean initialized = false;
-	private AutoState currentAutoState;
 	private boolean startedFollowingPath;
 	private boolean stateFinished;
 	private List<PathChain> pathList;
@@ -62,14 +62,16 @@ public class AutoManager {
 	}
 
 	public void update() {
+		if (currentState < 0)
+			return;
 		updateCommands();
 		updatePathFollowing();
 
 		if (stateFinished) {
 			if (currentState + 1 < autoActions.size()) {
-				setPathState(currentState + 1);
+				setState(currentState + 1);
 			} else {
-				setPathState(-1);
+				setState(-1);
 			}
 		}
 	}
@@ -91,9 +93,37 @@ public class AutoManager {
 		}
 	}
 
-	private void setPathState(int state) {
+	private void setState(int state) {
 		currentState = state;
 		startedFollowingPath = false;
 		stateFinished = false;
+	}
+
+	public List<AutoAction> getAutoActions() {
+		return new ArrayList<>(autoActions);
+	}
+
+	public void showTelemetry(TelemetryManager telemetryManager) {
+		telemetryManager.addData("State", currentState);
+		telemetryManager.addData("Current action", autoActions.get(currentState).getNameString());
+	}
+
+	public void showAutomationsTelemetry(TelemetryManager telemetryManager) {
+		automationHandler.showTelemetry(telemetryManager);
+	}
+
+	public void showFollowerTelemetry(TelemetryManager telemetryManager) {
+		String[] debugLines = null;
+		try {
+			debugLines = follower.debug();
+		} catch (Exception e) {
+			telemetryManager.addLine("Failed to retrieve debug string!");
+		}
+		if (debugLines != null) {
+			for (String line : debugLines) {
+				telemetryManager.addLine(line);
+			}
+		}
+
 	}
 }

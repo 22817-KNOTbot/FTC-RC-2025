@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.util.Alliance;
+import org.firstinspires.ftc.teamcode.util.BlueAlliance;
 import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
@@ -25,8 +26,13 @@ import java.util.stream.Stream;
 @Configurable
 @Autonomous
 public class Auto extends LinearOpMode {
-	public static Alliance alliance = new RedAlliance(); // TODO: make a separate configuration input for this
-	public static StartAutoState startingState;
+	private Alliance alliance;
+	private StartAutoState startingState;
+
+	private final Alliance[] ALLIANCES = new Alliance[] {
+			new RedAlliance(),
+			new BlueAlliance(),
+	};
 
 	private AutoManager autoManager;
 	private TelemetryManager telemetryManager;
@@ -38,11 +44,66 @@ public class Auto extends LinearOpMode {
 		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 
-		autoManager = new AutoManager(alliance);
-		startingState = autoManager.getStartingStates()[0]; // TODO: make a separate configuration input for this
-
 		boolean configuring = true;
 		int selectedIndex = 0;
+		int configuringLevel = 0;
+		while (configuring) {
+			if (isStopRequested())
+				return;
+
+			String[] options;
+			switch (configuringLevel) {
+				case 0:
+					options = Stream.of(ALLIANCES)
+							.map(Alliance::getColourString).toArray(String[]::new);
+					break;
+				case 1:
+					options = Stream.of(autoManager.getStartingStates())
+							.map(AutoState::getNameString).toArray(String[]::new);
+					break;
+				default:
+					// This should never happen. Simply ending the OpMode is safest if it somehow does
+					return;
+			}
+
+			if (gamepad1.dpadDownWasPressed() || gamepad2.dpadDownWasPressed()) {
+				selectedIndex = Math.min(selectedIndex + 1, ALLIANCES.length - 1);
+			} else if (gamepad1.dpadUpWasPressed() || gamepad2.dpadUpWasPressed()) {
+				selectedIndex = Math.max(selectedIndex - 1, 0);
+			} else if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
+				if (configuringLevel == 0) {
+					alliance = ALLIANCES[selectedIndex];
+				} else if (configuringLevel == 1) {
+					startingState = autoManager.getStartingStates()[selectedIndex];
+					configuring = false;
+				} else {
+					// This should never happen. Simply ending the OpMode is safest if it somehow does
+					return; 
+				}
+
+				configuringLevel++;
+				selectedIndex = 0;
+				continue;
+			}
+
+			telemetryManager.addData("Alliance", alliance != null ? alliance.getColourString() : "None");
+			telemetryManager.addData("Starting State", startingState != null ? startingState.getNameString() : "None");
+
+			telemetryManager.addLine();
+			telemetryManager.addLine("====================");
+			telemetryManager.addLine();
+
+			for (int i = 0; i < options.length; i++) {
+				telemetryManager.addLine((selectedIndex == i ? "> " : "") + options[i]);
+			}
+			telemetryManager.update();
+
+		}
+
+		autoManager = new AutoManager(alliance);
+
+		configuring = true;
+		selectedIndex = 0;
 		AutoState currentState = startingState;
 		List<AutoAction> autoActions = new ArrayList<>();
 
@@ -64,6 +125,7 @@ public class Auto extends LinearOpMode {
 					break;
 				}
 				actionOptions = currentState.getAutoActions();
+				selectedIndex = 0;
 			}
 
 			String[] breadcrumbsList = autoActions.stream()
@@ -95,6 +157,11 @@ public class Auto extends LinearOpMode {
 
 		while (opModeIsActive()) {
 			autoManager.update();
+
+			autoManager.showTelemetry(telemetryManager);
+			// autoManager.showAutomationsTelemetry(telemetryManager);
+			// autoManager.showFollowerTelemetry(telemetryManager);
+			telemetry.update();
 		}
 	}
 }
