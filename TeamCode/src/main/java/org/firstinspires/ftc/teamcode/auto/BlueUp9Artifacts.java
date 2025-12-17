@@ -70,7 +70,7 @@ public class BlueUp9Artifacts extends LinearOpMode {
 		follower = Constants.createFollower(hardwareMap);
 		follower.setStartingPose(startPose);
 		follower.setPose(startPose);
-		automationHandler = new Automations(hardwareMap, alliance, DEBUG);
+		automationHandler = new Automations(hardwareMap, alliance, true, DEBUG);
 		automationHandler.setArtifactsStored(new Colour[] {Colour.GREEN, Colour.PURPLE, Colour.PURPLE});
 		buildPaths();
 

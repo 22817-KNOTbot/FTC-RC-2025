@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoActionCommand;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoState;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.StartAutoState;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 
 import com.pedropathing.follower.Follower;
@@ -17,38 +20,80 @@ public class AutoManager {
 	private Alliance alliance;
 	private AutoComponents components;
 
-	private boolean pathFinished = true;
+	private Follower follower;
+	private Automations automationHandler;
+	private List<AutoAction> autoActions;
+
+	private boolean initialized = false;
+	private AutoState currentAutoState;
+	private boolean startedFollowingPath;
+	private boolean stateFinished;
 	private List<PathChain> pathList;
-	private int currentPathState = 0;
+	private int currentState = 0;
 
 	public AutoManager(Alliance alliance) {
 		this.alliance = alliance;
 		this.components = new AutoComponents(alliance);
 	}
 
-	public void initialize(HardwareMap hardwareMap, Follower follower, StartAutoState startAutoState, List<AutoAction> autoActions) {
-		pathList = new ArrayList<>();
-		Pose previousPose = startAutoState.getStartPose(alliance);
+	public void initialize(HardwareMap hardwareMap, StartAutoState startAutoState, List<AutoAction> autoActions) {
+		if (initialized)
+			return;
+		this.follower = Constants.createFollower(hardwareMap);
+		this.follower.setStartingPose(startAutoState.getStartPose());
+		this.automationHandler = new Automations(hardwareMap, alliance, true);
+		this.autoActions = autoActions;
+		this.stateFinished = false;
+
+		this.pathList = new ArrayList<>();
+		Pose previousPose = startAutoState.getStartPose();
 		for (AutoAction autoAction : autoActions) {
 			PathChain newPathChain = autoAction.getPathChain(follower, previousPose);
-			pathList.add(newPathChain);
+			this.pathList.add(newPathChain);
 			previousPose = newPathChain.endPose();
 		}
 	}
 
 	public StartAutoState[] getStartingStates() {
 		return new StartAutoState[] {
-			components.new StartLowState(),
-			components.new StartUpState(),
+				components.new StartLowState(),
+				components.new StartUpState(),
 		};
 	}
 
-	public void updatePathFollowing(Follower follower) {
-		if (pathFinished) {
-			if (currentPathState + 1 < pathList.size()) {
-				currentPathState++;
-				follower.followPath(pathList.get(currentPathState), true);
+	public void update() {
+		updateCommands();
+		updatePathFollowing();
+
+		if (stateFinished) {
+			if (currentState + 1 < autoActions.size()) {
+				setPathState(currentState + 1);
+			} else {
+				setPathState(-1);
 			}
 		}
+	}
+
+	public void updateCommands() {
+		if (stateFinished)
+			return;
+		AutoAction currentAction = autoActions.get(currentState);
+		AutoActionCommand currentCommand = currentAction.getActionCommand();
+		if (currentCommand != null) {
+			stateFinished = currentCommand.run(follower, automationHandler);
+		}
+	}
+
+	public void updatePathFollowing() {
+		if (!startedFollowingPath) {
+			follower.followPath(pathList.get(currentState), true);
+			startedFollowingPath = true;
+		}
+	}
+
+	private void setPathState(int state) {
+		currentState = state;
+		startedFollowingPath = false;
+		stateFinished = false;
 	}
 }

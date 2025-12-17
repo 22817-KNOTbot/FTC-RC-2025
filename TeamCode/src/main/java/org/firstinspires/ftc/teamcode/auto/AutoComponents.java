@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.auto;
 
 import java.util.concurrent.Callable;
 
+import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.util.BlueAlliance;
 import org.firstinspires.ftc.teamcode.util.RedAlliance;
@@ -18,37 +19,28 @@ public class AutoComponents {
 	}
 
 	public static abstract class AutoState {
-		private AutoState[] parents;
 		public abstract String getNameString();
+
 		public abstract AutoAction[] getAutoActions();
-		
-		public AutoState[] getParents()  {
-			return parents;
-		}
-		
-		public void setParents(AutoState[] parents) {
-			this.parents = parents;
-		}
 	}
 
 	public static abstract class StartAutoState extends AutoState {
-		public abstract Pose getStartPose(Alliance alliance);
+		public abstract Pose getStartPose();
 	}
-	
+
 	public static abstract class AutoAction {
-		private AutoState[] parents;
 		public abstract String getNameString();
-		public abstract Callable<Void> getCallable();
+
+		public abstract AutoActionCommand getActionCommand();
+
 		public abstract AutoState getResultingState();
+
 		public abstract PathChain getPathChain(Follower follower, Pose startingPose);
+	}
 
-		public AutoState[] getParents()  {
-			return parents;
-		}
-
-		public void setParents(AutoState[] parents) {
-			this.parents = parents;
-		}
+	public static interface AutoActionCommand {
+		// Returns true if finished, false if not
+		public boolean run(Follower follower, Automations automationHandler);
 	}
 
 	/*
@@ -62,17 +54,17 @@ public class AutoComponents {
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-				new ShootFarAction(),
-				new PrepareIntakeBottomAction(),
-				new PrepareIntakeMiddleAction(),
-				new PrepareIntakeTopAction(),
-				// new PrepareIntakeLoadingZoneAction(),
-				new LeaveLowAction(),
-				new EndAction()
+					new ShootFarAction(),
+					new PrepareIntakeBottomAction(),
+					new PrepareIntakeMiddleAction(),
+					new PrepareIntakeTopAction(),
+					// new PrepareIntakeLoadingZoneAction(),
+					new LeaveLowAction(),
+					new EndAction()
 			};
 		}
 
-		public Pose getStartPose(Alliance alliance) {
+		public Pose getStartPose() {
 			Pose startPose = new Pose(96, 9, Math.toRadians(0));
 			if (alliance instanceof BlueAlliance) {
 				startPose = startPose.mirror();
@@ -88,17 +80,17 @@ public class AutoComponents {
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-				new ShootCloseAction(),
-				new PrepareIntakeBottomAction(),
-				new PrepareIntakeMiddleAction(),
-				new PrepareIntakeTopAction(),
-				// new PrepareIntakeLoadingZoneAction(),
-				new LeaveUpAction(),
-				new EndAction()
+					new ShootCloseAction(),
+					new PrepareIntakeBottomAction(),
+					new PrepareIntakeMiddleAction(),
+					new PrepareIntakeTopAction(),
+					// new PrepareIntakeLoadingZoneAction(),
+					new LeaveUpAction(),
+					new EndAction()
 			};
 		}
 
-		public Pose getStartPose(Alliance alliance) {
+		public Pose getStartPose() {
 			Pose startPose = new Pose(123, 124, Math.toRadians(125));
 			if (alliance instanceof BlueAlliance) {
 				startPose = startPose.mirror();
@@ -114,8 +106,8 @@ public class AutoComponents {
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-				new IntakePreparedAction(),
-				new EndAction()
+					new IntakePreparedAction(),
+					new EndAction()
 			};
 		}
 	}
@@ -127,10 +119,10 @@ public class AutoComponents {
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-				new ShootCloseAction(),
-				new ShootFarAction(),
-				new OpenGateAction(),
-				new EndAction()
+					new ShootCloseAction(),
+					new ShootFarAction(),
+					new OpenGateAction(),
+					new EndAction()
 			};
 		}
 	}
@@ -142,9 +134,9 @@ public class AutoComponents {
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-				new ShootCloseAction(),
-				new ShootFarAction(),
-				new EndAction()
+					new ShootCloseAction(),
+					new ShootFarAction(),
+					new EndAction()
 			};
 		}
 	}
@@ -156,9 +148,9 @@ public class AutoComponents {
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-				new ShootSortedAction(),
-				new ShootUnsortedAction(),
-				new EndAction()
+					new ShootSortedAction(),
+					new ShootUnsortedAction(),
+					new EndAction()
 			};
 		}
 	}
@@ -170,13 +162,13 @@ public class AutoComponents {
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-				new PrepareIntakeBottomAction(),
-				new PrepareIntakeMiddleAction(),
-				new PrepareIntakeTopAction(),
-				// new PrepareIntakeLoadingZoneAction(),
-				new LeaveLowAction(),
-				new LeaveUpAction(),
-				new EndAction()
+					new PrepareIntakeBottomAction(),
+					new PrepareIntakeMiddleAction(),
+					new PrepareIntakeTopAction(),
+					// new PrepareIntakeLoadingZoneAction(),
+					new LeaveLowAction(),
+					new LeaveUpAction(),
+					new EndAction()
 			};
 		}
 	}
@@ -190,14 +182,16 @@ public class AutoComponents {
 			return "End";
 		}
 
-		public Callable<Void> getCallable() {
-			return null;
+		public AutoActionCommand getActionCommand() {
+			return (follower, automationHandler) -> {
+				return !follower.isBusy();
+			};
 		}
 
 		public AutoState getResultingState() {
 			return null;
 		}
-	
+
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			return null;
 		}
@@ -206,16 +200,18 @@ public class AutoComponents {
 	public class LeaveLowAction extends AutoAction {
 		public String getNameString() {
 			return "Leave Lower Zone And End";
-		}	
+		}
 
-		public Callable<Void> getCallable() {
-			return null;
-		}	
+		public AutoActionCommand getActionCommand() {
+			return (follower, automationHandler) -> {
+				return !follower.isBusy();
+			};
+		}
 
 		public AutoState getResultingState() {
 			return null;
-		}	
-	
+		}
+
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
 				return AutoPaths.Red.getExitLowShootingZone(follower);
@@ -224,21 +220,23 @@ public class AutoComponents {
 			}
 			return null;
 		}
-	}	
+	}
 
 	public class LeaveUpAction extends AutoAction {
 		public String getNameString() {
 			return "Leave Upper Zone And End";
-		}	
+		}
 
-		public Callable<Void> getCallable() {
-			return null;
-		}	
+		public AutoActionCommand getActionCommand() {
+			return (follower, automationHandler) -> {
+				return !follower.isBusy();
+			};
+		}
 
 		public AutoState getResultingState() {
 			return null;
-		}	
-	
+		}
+
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
 				return AutoPaths.Red.getExitUpShootingZone(follower);
@@ -247,23 +245,23 @@ public class AutoComponents {
 			}
 			return null;
 		}
-	}	
+	}
 
 	public class PrepareIntakeBottomAction extends AutoAction {
 		public String getNameString() {
 			return "Prepare Intake Bottom";
 		}
 
-		public Callable<Void> getCallable() {
-			return null;
+		public AutoActionCommand getActionCommand() {
+			return (follower, automationHandler) -> {
+				return !follower.isBusy();
+			};
 		}
 
 		public AutoState getResultingState() {
-			AutoState resultingState = new PrepareIntakeState();
-			resultingState.setParents(getParents());
-			return resultingState;
+			return new PrepareIntakeState();
 		}
-	
+
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
 				return AutoPaths.Red.getBottomApproach(follower, startingPose);
@@ -273,22 +271,22 @@ public class AutoComponents {
 			return null;
 		}
 	}
-	
+
 	public class PrepareIntakeMiddleAction extends AutoAction {
 		public String getNameString() {
 			return "Prepare Intake Middle";
 		}
 
-		public Callable<Void> getCallable() {
-			return null;
+		public AutoActionCommand getActionCommand() {
+			return (follower, automationHandler) -> {
+				return !follower.isBusy();
+			};
 		}
 
 		public AutoState getResultingState() {
-			AutoState resultingState = new PrepareIntakeState();
-			resultingState.setParents(getParents());
-			return resultingState;
+			return new PrepareIntakeState();
 		}
-	
+
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
 				return AutoPaths.Red.getMiddleApproach(follower, startingPose);
@@ -302,18 +300,18 @@ public class AutoComponents {
 	public class PrepareIntakeTopAction extends AutoAction {
 		public String getNameString() {
 			return "Prepare Intake Top";
-		}	
+		}
 
-		public Callable<Void> getCallable() {
-			return null;
-		}	
+		public AutoActionCommand getActionCommand() {
+			return (follower, automationHandler) -> {
+				return !follower.isBusy();
+			};
+		}
 
 		public AutoState getResultingState() {
-			AutoState resultingState = new PrepareIntakeState();
-			resultingState.setParents(getParents());
-			return resultingState;
-		}	
-	
+			return new PrepareIntakeState();
+		}
+
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
 				return AutoPaths.Red.getTopApproach(follower, startingPose);
@@ -322,48 +320,47 @@ public class AutoComponents {
 			}
 			return null;
 		}
-	}	
+	}
 
 	// public class PrepareIntakeLoadingZoneAction extends AutoAction {
-	// 	public String getNameString() {
-	// 		return "Prepare Intake Loading Zone";
-	// 	}	
+	// public String getNameString() {
+	// return "Prepare Intake Loading Zone";
+	// }
 
-	// 	public Callable<Void> getCallable() {
-	// 		return null;
-	// 	}	
+	// public AutoActionCommand getActionCommand() {
+	// return (follower, automationHandler) -> {
+	// return !follower.isBusy();};
+	// }
 
-	// 	public AutoState getResultingState() {
-	//		AutoState resultingState = new PrepareIntakeState();
-	//		resultingState.setParents(getParents());
-	//		return resultingState;
-	// 	}	
-	
-	// 	public PathChain getPathChain(Follower follower, Pose startingPose) {
-	// 		if (alliance instanceof RedAlliance) {
-	// 			return AutoPaths.Red.PATHCHAIN;
-	// 		} else if (alliance instanceof BlueAlliance) {
-	// 			return AutoPaths.Blue.PATHCHAIN;
-	// 		}
-	// 		return null;
-	// 	}
-	// }	
+	// public AutoState getResultingState() {
+	// return = new PrepareIntakeState();
+	// }
+
+	// public PathChain getPathChain(Follower follower, Pose startingPose) {
+	// if (alliance instanceof RedAlliance) {
+	// return AutoPaths.Red.PATHCHAIN;
+	// } else if (alliance instanceof BlueAlliance) {
+	// return AutoPaths.Blue.PATHCHAIN;
+	// }
+	// return null;
+	// }
+	// }
 
 	public class IntakePreparedAction extends AutoAction {
 		public String getNameString() {
 			return "Intake Prepared Set";
 		}
 
-		public Callable<Void> getCallable() {
-			return null;
+		public AutoActionCommand getActionCommand() {
+			return (follower, automationHandler) -> {
+				return !follower.isBusy();
+			};
 		}
 
 		public AutoState getResultingState() {
-			AutoState resultingState = new IntakeState();
-			resultingState.setParents(getParents());
-			return resultingState;
+			return new IntakeState();
 		}
-	
+
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
 				return AutoPaths.Red.getIntakePreparedSet(follower, startingPose);
@@ -379,16 +376,16 @@ public class AutoComponents {
 			return "Shoot Far";
 		}
 
-		public Callable<Void> getCallable() {
-			return null;
+		public AutoActionCommand getActionCommand() {
+			return (follower, automationHandler) -> {
+				return !follower.isBusy();
+			};
 		}
 
 		public AutoState getResultingState() {
-			AutoState resultingState = new ShootState();
-			resultingState.setParents(getParents());
-			return resultingState;
+			return new ShootState();
 		}
-	
+
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
 				return AutoPaths.Red.getLowLaunch(follower, startingPose);
@@ -404,16 +401,16 @@ public class AutoComponents {
 			return "Shoot Close";
 		}
 
-		public Callable<Void> getCallable() {
-			return null;
+		public AutoActionCommand getActionCommand() {
+			return (follower, automationHandler) -> {
+				return !follower.isBusy();
+			};
 		}
 
 		public AutoState getResultingState() {
-			AutoState resultingState = new ShootState();
-			resultingState.setParents(getParents());
-			return resultingState;
+			return new ShootState();
 		}
-	
+
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
 				return AutoPaths.Red.getUpLaunch(follower, startingPose);
@@ -429,16 +426,16 @@ public class AutoComponents {
 			return "Open Gate";
 		}
 
-		public Callable<Void> getCallable() {
-			return null;
+		public AutoActionCommand getActionCommand() {
+			return (follower, automationHandler) -> {
+				return !follower.isBusy();
+			};
 		}
 
 		public AutoState getResultingState() {
-			AutoState resultingState = new OpenGateState();
-			resultingState.setParents(getParents());
-			return resultingState;
+			return new OpenGateState();
 		}
-	
+
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
 				return AutoPaths.Red.getPushGate(follower, startingPose);
@@ -454,16 +451,16 @@ public class AutoComponents {
 			return "Shoot Sorted";
 		}
 
-		public Callable<Void> getCallable() {
-			return null;
+		public AutoActionCommand getActionCommand() {
+			return (follower, automationHandler) -> {
+				return !follower.isBusy();
+			};
 		}
 
 		public AutoState getResultingState() {
-			AutoState resultingState = new ShootFinishState();
-			resultingState.setParents(getParents());
-			return resultingState;
+			return new ShootFinishState();
 		}
-	
+
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			return null;
 		}
@@ -474,16 +471,16 @@ public class AutoComponents {
 			return "Shoot Unsorted";
 		}
 
-		public Callable<Void> getCallable() {
-			return null;
+		public AutoActionCommand getActionCommand() {
+			return (follower, automationHandler) -> {
+				return !follower.isBusy();
+			};
 		}
 
 		public AutoState getResultingState() {
-			AutoState resultingState = new ShootFinishState();
-			resultingState.setParents(getParents());
-			return resultingState;
+			return new ShootFinishState();
 		}
-	
+
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			return null;
 		}

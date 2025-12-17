@@ -46,38 +46,55 @@ public class Auto extends LinearOpMode {
 		AutoState currentState = startingState;
 		List<AutoAction> autoActions = new ArrayList<>();
 
-		while (opModeInInit() && configuring) {
+		while (configuring) {
+			if (isStopRequested())
+				return;
+
 			AutoAction[] actionOptions = currentState.getAutoActions();
 
 			if (gamepad1.dpadDownWasPressed() || gamepad2.dpadDownWasPressed()) {
 				selectedIndex = Math.min(selectedIndex + 1, actionOptions.length - 1);
 			} else if (gamepad1.dpadUpWasPressed() || gamepad2.dpadUpWasPressed()) {
 				selectedIndex = Math.max(selectedIndex - 1, 0);
+			} else if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
+				autoActions.add(actionOptions[selectedIndex]);
+				currentState = actionOptions[selectedIndex].getResultingState();
+				if (currentState == null) {
+					configuring = false;
+					break;
+				}
+				actionOptions = currentState.getAutoActions();
 			}
 
-			String[] parentStringList = autoActions.stream()
+			String[] breadcrumbsList = autoActions.stream()
 					.map(AutoAction::getNameString).toArray(String[]::new);
-			String parentString = String.join(" > ", parentStringList);
-			telemetryManager.addLine(parentString);
+			String breadcrumbsString = String.join(" > ", breadcrumbsList);
+			telemetryManager.addLine(breadcrumbsString);
 
-			telemetry.addLine();
-			telemetry.addLine("====================");
-			telemetry.addLine();
+			telemetryManager.addLine();
+			telemetryManager.addLine("====================");
+			telemetryManager.addLine();
 
 			for (int i = 0; i < actionOptions.length; i++) {
-				telemetry.addLine(selectedIndex == i ? "> " : "" + actionOptions[i].getNameString());
+				telemetryManager.addLine((selectedIndex == i ? "> " : "") + actionOptions[i].getNameString());
 			}
 			telemetryManager.update();
 		}
 
-		Follower follower = Constants.createFollower(hardwareMap);
-		autoActions.add(startingState.getAutoActions()[0]);
-		autoActions.add(autoActions.get(autoActions.size() - 1).getResultingState().getAutoActions()[0]);
-		autoActions.add(autoActions.get(autoActions.size() - 1).getResultingState().getAutoActions()[0]);
-		autoActions.add(autoActions.get(autoActions.size() - 1).getResultingState().getAutoActions()[3]);
+		autoManager.initialize(hardwareMap, startingState, autoActions);
 
-		autoManager.initialize(hardwareMap, follower, startingState, autoActions);
+		while (opModeInInit()) {
+			telemetryManager.addLine("Auto configuration complete");
+			telemetryManager.addLine("====================");
 
+			String[] breadcrumbsList = autoActions.stream()
+					.map(AutoAction::getNameString).toArray(String[]::new);
+			String breadcrumbsString = String.join(" > ", breadcrumbsList);
+			telemetryManager.addLine(breadcrumbsString);
+		}
 
+		while (opModeIsActive()) {
+			autoManager.update();
+		}
 	}
 }
