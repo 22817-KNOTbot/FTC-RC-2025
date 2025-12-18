@@ -124,7 +124,7 @@ public class Automations {
 
 	// Code that should be run on start but not during init
 	public void start() {
-		setShooterEnabled(true);
+		// setShooterEnabled(true);
 		storage.storageMotorEnable(true);
 		storage.start();
 	}

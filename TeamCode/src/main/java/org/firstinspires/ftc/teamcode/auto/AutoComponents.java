@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode.auto;
 
 import java.util.concurrent.Callable;
 
+import org.firstinspires.ftc.teamcode.scoring.Artifact;
+import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
+import org.firstinspires.ftc.teamcode.subsystems.Storage;
 import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.util.BlueAlliance;
@@ -10,6 +13,7 @@ import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class AutoComponents {
 	private Alliance alliance;
@@ -49,7 +53,7 @@ public class AutoComponents {
 
 	public class StartLowState extends StartAutoState {
 		public String getNameString() {
-			return "Start";
+			return "Start Low";
 		}
 
 		public AutoAction[] getAutoActions() {
@@ -65,17 +69,13 @@ public class AutoComponents {
 		}
 
 		public Pose getStartPose() {
-			Pose startPose = new Pose(96, 9, Math.toRadians(0));
-			if (alliance instanceof BlueAlliance) {
-				startPose = startPose.mirror();
-			}
-			return startPose;
+			return new Pose(96, 9, Math.toRadians(0));
 		}
 	}
 
 	public class StartUpState extends StartAutoState {
 		public String getNameString() {
-			return "Start";
+			return "Start Up";
 		}
 
 		public AutoAction[] getAutoActions() {
@@ -91,11 +91,7 @@ public class AutoComponents {
 		}
 
 		public Pose getStartPose() {
-			Pose startPose = new Pose(123, 124, Math.toRadians(125));
-			if (alliance instanceof BlueAlliance) {
-				startPose = startPose.mirror();
-			}
-			return startPose;
+			return new Pose(123, 124, Math.toRadians(125));
 		}
 	}
 
@@ -184,7 +180,7 @@ public class AutoComponents {
 
 		public AutoActionCommand getActionCommand() {
 			return (follower, automationHandler) -> {
-				return !follower.isBusy();
+				return false;
 			};
 		}
 
@@ -204,7 +200,7 @@ public class AutoComponents {
 
 		public AutoActionCommand getActionCommand() {
 			return (follower, automationHandler) -> {
-				return !follower.isBusy();
+				return false;
 			};
 		}
 
@@ -214,9 +210,9 @@ public class AutoComponents {
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
-				return AutoPaths.Red.getExitLowShootingZone(follower);
+				return AutoPaths.Red.getExitLowShootingZone(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
-				return AutoPaths.Blue.getExitLowShootingZone(follower);
+				return AutoPaths.Blue.getExitLowShootingZone(follower, startingPose);
 			}
 			return null;
 		}
@@ -229,7 +225,7 @@ public class AutoComponents {
 
 		public AutoActionCommand getActionCommand() {
 			return (follower, automationHandler) -> {
-				return !follower.isBusy();
+				return false;
 			};
 		}
 
@@ -239,9 +235,9 @@ public class AutoComponents {
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
-				return AutoPaths.Red.getExitUpShootingZone(follower);
+				return AutoPaths.Red.getExitUpShootingZone(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
-				return AutoPaths.Blue.getExitUpShootingZone(follower);
+				return AutoPaths.Blue.getExitUpShootingZone(follower, startingPose);
 			}
 			return null;
 		}
@@ -253,9 +249,7 @@ public class AutoComponents {
 		}
 
 		public AutoActionCommand getActionCommand() {
-			return (follower, automationHandler) -> {
-				return !follower.isBusy();
-			};
+			return new PrepareIntakeCommand();
 		}
 
 		public AutoState getResultingState() {
@@ -278,9 +272,7 @@ public class AutoComponents {
 		}
 
 		public AutoActionCommand getActionCommand() {
-			return (follower, automationHandler) -> {
-				return !follower.isBusy();
-			};
+			return new PrepareIntakeCommand();
 		}
 
 		public AutoState getResultingState() {
@@ -303,9 +295,7 @@ public class AutoComponents {
 		}
 
 		public AutoActionCommand getActionCommand() {
-			return (follower, automationHandler) -> {
-				return !follower.isBusy();
-			};
+			return new PrepareIntakeCommand();
 		}
 
 		public AutoState getResultingState() {
@@ -352,8 +342,24 @@ public class AutoComponents {
 		}
 
 		public AutoActionCommand getActionCommand() {
-			return (follower, automationHandler) -> {
-				return !follower.isBusy();
+			return new AutoActionCommand() {
+				private boolean initialized = false;
+				private ElapsedTime timer = new ElapsedTime();
+
+				public boolean run(Follower follower, Automations automationHandler) {
+					if (!initialized) {
+						follower.setMaxPower(0.25);
+						automationHandler.intakeEnableActions(true);
+						timer.reset();
+					}
+
+					if (!follower.isBusy() || (timer.time() > 1.5 && follower.getVelocity().getMagnitude() < 0.2)) {
+						follower.setMaxPower(1);
+						return true;
+					}
+
+					return false;
+				}
 			};
 		}
 
@@ -377,9 +383,7 @@ public class AutoComponents {
 		}
 
 		public AutoActionCommand getActionCommand() {
-			return (follower, automationHandler) -> {
-				return !follower.isBusy();
-			};
+			return new PostIntakeCommand();
 		}
 
 		public AutoState getResultingState() {
@@ -402,9 +406,7 @@ public class AutoComponents {
 		}
 
 		public AutoActionCommand getActionCommand() {
-			return (follower, automationHandler) -> {
-				return !follower.isBusy();
-			};
+			return new PostIntakeCommand();
 		}
 
 		public AutoState getResultingState() {
@@ -427,9 +429,7 @@ public class AutoComponents {
 		}
 
 		public AutoActionCommand getActionCommand() {
-			return (follower, automationHandler) -> {
-				return !follower.isBusy();
-			};
+			return new PostIntakeCommand();
 		}
 
 		public AutoState getResultingState() {
@@ -452,8 +452,42 @@ public class AutoComponents {
 		}
 
 		public AutoActionCommand getActionCommand() {
-			return (follower, automationHandler) -> {
-				return !follower.isBusy();
+			return new AutoActionCommand() {
+				private boolean initialized = false;
+				private ElapsedTime shootingTimer = new ElapsedTime();
+				private boolean shootingTimerSet = false;
+
+				public boolean run(Follower follower, Automations automationHandler) {
+					if (follower.isBusy())
+						return false;
+					if (!initialized) {
+						automationHandler.setTransferMode(Storage.TransferMode.FULL_SPIN);
+						automationHandler.setRapidFire(true);
+						automationHandler.setIgnoreVelocity(false);
+						Pattern pattern = automationHandler.getArtifactPattern();
+						if (pattern == null || pattern.getPattern() == null || automationHandler
+								.prepareOrShootArtifactSequence(pattern.getPattern()) == Storage.TurnDirection.NONE) {
+							automationHandler.shootActiveArtifact(true);
+						}
+
+						initialized = true;
+					}
+
+					if (automationHandler.getStorageState() == Automations.StorageState.WAITING) {
+						return true;
+					} else if (automationHandler.getTransferState() == Storage.TransferState.RAMP_OUT) {
+						if (!shootingTimerSet) {
+							shootingTimer.reset();
+							shootingTimerSet = true;
+						}
+					}
+
+					if (shootingTimerSet && shootingTimer.time() > 5) {
+						automationHandler.setIgnoreVelocity(true);
+					}
+
+					return false;
+				}
 			};
 		}
 
@@ -483,6 +517,25 @@ public class AutoComponents {
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			return null;
+		}
+	}
+
+	/*
+	 * Reusable action commands
+	 */
+
+	public class PrepareIntakeCommand implements AutoActionCommand {
+		public boolean run(Follower follower, Automations automationHandler) {
+			return follower.atParametricEnd();
+		}
+	}
+
+	public class PostIntakeCommand implements AutoActionCommand {
+		public boolean run(Follower follower, Automations automationHandler) {
+			if (follower.getPathCompletion() >= 0.9) {
+				automationHandler.intakeEnable(false);
+			}
+			return !follower.isBusy() && automationHandler.getStorageState() == Automations.StorageState.WAITING;
 		}
 	}
 }

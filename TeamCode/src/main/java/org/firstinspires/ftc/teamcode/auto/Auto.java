@@ -73,6 +73,7 @@ public class Auto extends LinearOpMode {
 			} else if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
 				if (configuringLevel == 0) {
 					alliance = ALLIANCES[selectedIndex];
+					autoManager = new AutoManager(alliance);
 				} else if (configuringLevel == 1) {
 					startingState = autoManager.getStartingStates()[selectedIndex];
 					configuring = false;
@@ -84,6 +85,8 @@ public class Auto extends LinearOpMode {
 				configuringLevel++;
 				selectedIndex = 0;
 				continue;
+			} else if (gamepad1.bWasPressed() || gamepad2.bWasPressed()) {
+				configuringLevel = 0;
 			}
 
 			telemetryManager.addData("Alliance", alliance != null ? alliance.getColourString() : "None");
@@ -99,8 +102,6 @@ public class Auto extends LinearOpMode {
 			telemetryManager.update();
 
 		}
-
-		autoManager = new AutoManager(alliance);
 
 		configuring = true;
 		selectedIndex = 0;
@@ -124,6 +125,11 @@ public class Auto extends LinearOpMode {
 					configuring = false;
 					break;
 				}
+				actionOptions = currentState.getAutoActions();
+				selectedIndex = 0;
+			} else if (gamepad1.bWasPressed() || gamepad2.bWasPressed()) {
+				autoActions.remove(autoActions.size() - 1);
+				currentState = autoActions.get(autoActions.size() - 1).getResultingState();
 				actionOptions = currentState.getAutoActions();
 				selectedIndex = 0;
 			}
@@ -153,15 +159,20 @@ public class Auto extends LinearOpMode {
 					.map(AutoAction::getNameString).toArray(String[]::new);
 			String breadcrumbsString = String.join(" > ", breadcrumbsList);
 			telemetryManager.addLine(breadcrumbsString);
+			telemetryManager.update();
 		}
+
+		autoManager.start();
 
 		while (opModeIsActive()) {
 			autoManager.update();
 
 			autoManager.showTelemetry(telemetryManager);
 			// autoManager.showAutomationsTelemetry(telemetryManager);
-			// autoManager.showFollowerTelemetry(telemetryManager);
-			telemetry.update();
+			autoManager.showFollowerTelemetry(telemetryManager);
+			telemetryManager.update();
 		}
+
+		autoManager.end();
 	}
 }
