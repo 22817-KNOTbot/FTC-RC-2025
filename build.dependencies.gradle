@@ -19,7 +19,7 @@ dependencies {
     implementation 'org.firstinspires.ftc:Vision:11.0.0'
     implementation 'androidx.appcompat:appcompat:1.2.0'
 	// implementation 'com.acmerobotics.dashboard:dashboard:0.4.17'
-	implementation "com.bylazar:fullpanels:1.0.9"
+	// implementation "com.bylazar:fullpanels:1.0.9"
 	implementation("com.squareup.moshi:moshi:1.15.2")
 
 	implementation 'com.pedropathing:ftc:2.0.4'
@@ -38,5 +38,7 @@ dependencies {
 	implementation("com.acmerobotics.roadrunner:actions:1.0.1") {
 		exclude group: "com.acmerobotics.dashboard", module: "core"
 	}
+
+	implementation "com.bylazar.sloth:fullpanels:0.2.4+1.0.12"
 }
 
