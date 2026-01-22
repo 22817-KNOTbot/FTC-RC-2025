@@ -2,20 +2,22 @@ package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoController;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import android.util.Log;
 
 public class AxonServo implements Servo {
 	public double halfTurnDelayMs = 200;
 
-	private Servo servo;
+	private ServoImplEx servo;
 
 	private double targetPosition = 0;
 	private double lastPosition = 0;
 	private long lastSetTime = 0;
 
 	public AxonServo(Servo servo) {
-		this.servo = servo;
+		this.servo = (ServoImplEx) servo;
+		this.servo.setPwmRange(new ServoImplEx.PwmRange(500, 2500));
 	}
 
 	@Override
