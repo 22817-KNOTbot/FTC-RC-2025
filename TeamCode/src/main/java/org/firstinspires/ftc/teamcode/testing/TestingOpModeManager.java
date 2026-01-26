@@ -37,6 +37,7 @@ public final class TestingOpModeManager {
 			AxonServoTesting.class,
 			BasicDriveTesting.class,
 			ColourTesting.class,
+			ColourLoopTesting.class,
 			HubLedTesting.class,
 			IntakeTesting.class,
 			LimelightPoseTesting.class,
