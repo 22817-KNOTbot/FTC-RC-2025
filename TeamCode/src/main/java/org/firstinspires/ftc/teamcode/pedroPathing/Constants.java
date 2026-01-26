@@ -12,11 +12,14 @@ import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
 import com.pedropathing.ftc.localization.Encoder;
+import com.pedropathing.ftc.localization.constants.PinpointConstants;
 import com.pedropathing.ftc.localization.constants.ThreeWheelConstants;
 import com.pedropathing.paths.PathConstraints;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver.GoBildaOdometryPods;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 @Config
@@ -53,45 +56,18 @@ public class Constants {
 			.xVelocity(74.30778390400556)
 			.yVelocity(59.68430371683744);
 
-	public final static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
-			.forwardTicksToInches(0.001987263346781042)
-			.strafeTicksToInches(0.0019750257521259037)
-			.turnTicksToInches(0.0019990158631831103)
-			.leftPodY(7.113188976)
-			.rightPodY(-7.113188976)
-			.strafePodX(-7.01423031496)
-			.leftEncoder_HardwareMapName("frontLeftMotor")
-			.rightEncoder_HardwareMapName("shooterMotorRight")
-			.strafeEncoder_HardwareMapName("backLeftMotor")
-			.leftEncoderDirection(Encoder.REVERSE)
-			.rightEncoderDirection(Encoder.REVERSE)
-			.strafeEncoderDirection(Encoder.FORWARD);
-			// .IMU_HardwareMapName("imu")
-			// .IMU_Orientation(new RevHubOrientationOnRobot(
-			// 		RevHubOrientationOnRobot.LogoFacingDirection.LEFT, 
-			// 		RevHubOrientationOnRobot.UsbFacingDirection.UP));
+	public final static PinpointConstants localizerConstants = new PinpointConstants()
+            .forwardPodY(0)
+            .strafePodX(2.834645669291339)
+            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
+            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
+			.encoderResolution(GoBildaOdometryPods.goBILDA_4_BAR_POD);
 
 	public static Follower createFollower(HardwareMap hardwareMap) {
 		return new FollowerBuilder(followerConstants, hardwareMap)
 				.pathConstraints(pathConstraints)
 				.mecanumDrivetrain(driveConstants)
-				.threeWheelLocalizer(
-						new ThreeWheelConstants()
-								.forwardTicksToInches(forwardTicksToInches)
-								.strafeTicksToInches(strafeTicksToInches)
-								.turnTicksToInches(turnTicksToInches)
-								.leftPodY(leftPodY)
-								.rightPodY(rightPodY)
-								.strafePodX(strafePodX)
-								// .strafePodX(-7.01423031496)
-								.leftEncoder_HardwareMapName("frontLeftMotor")
-								.rightEncoder_HardwareMapName("shooterMotorRight")
-								.strafeEncoder_HardwareMapName("backLeftMotor")
-								.leftEncoderDirection(Encoder.REVERSE)
-								.rightEncoderDirection(Encoder.REVERSE)
-								.strafeEncoderDirection(Encoder.FORWARD)
-				)
-				// .setLocalizer(new RoadRunnerToPedroLocalizer(hardwareMap, MecanumDrive.PARAMS, ThreeDeadWheelLocalizer.PARAMS))
+				.pinpointLocalizer(localizerConstants)
 				.build();
 	}
 
