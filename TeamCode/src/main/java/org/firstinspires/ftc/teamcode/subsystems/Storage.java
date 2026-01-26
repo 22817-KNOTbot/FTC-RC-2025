@@ -31,11 +31,11 @@ public class Storage {
 	public static double storageMotorPower = 0.3;
 	public static double storageTolerance = 20;
 	public static double transferMotorPower = 0.4;
-	public static double intakeGateUpPosition = 0.318;
-	public static double intakeGateDownPosition = 0.355;
-	public static double intakeGateTurnPosition = 0.33;
-	public static double transferRampOutPosition = 0.525;
-	public static double transferRampInPosition = 0.465;
+	// public static double intakeGateUpPosition = 0.318;
+	// public static double intakeGateDownPosition = 0.355;
+	// public static double intakeGateTurnPosition = 0.33;
+	// public static double transferRampOutPosition = 0.525;
+	// public static double transferRampInPosition = 0.465;
 	
 	private static int numOfArtifacts = 0;
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
@@ -47,22 +47,20 @@ public class Storage {
 
 	private DcMotorEx storageMotor;
 	private ColorRangeSensor colourSensor;
-	private Servo intakeGate;
-	private Servo transferRamp;
+	// private Servo intakeGate;
+	// private Servo transferRamp;
 	private ElapsedTime timer;
 
 	public enum IntakeState {
 		IDLE, 
-		GATE_UP, 
+		// GATE_UP, 
 		TURNING,
-		GATE_DOWN,
+		// GATE_DOWN,
 		RESET
 	}
 
 	public enum TransferState {
 		IDLE,
-		RAMP_OUT,
-		TURNING_HALF, 
 		TURNING, 
 		RESET
 	}
@@ -92,20 +90,20 @@ public class Storage {
 		storageMotor.setPIDCoefficients(DcMotor.RunMode.RUN_TO_POSITION,
 				new PIDCoefficients(6, 0, 0));
 
-		intakeGate = hardwareMap.get(Servo.class, "gateServo");
+		// intakeGate = hardwareMap.get(Servo.class, "gateServo");
 
-		transferRamp = hardwareMap.get(Servo.class, "transferRampServo");
+		// transferRamp = hardwareMap.get(Servo.class, "transferRampServo");
 
 		timer = new ElapsedTime();
 	}
 
 	public void start() {
-		transferRamp.setPosition(transferRampInPosition);
+		// transferRamp.setPosition(transferRampInPosition);
 	}
 
 	public void abort() {
-		gateUp();
-		transferRamp.setPosition(transferRampInPosition);
+		// gateUp();
+		// transferRamp.setPosition(transferRampInPosition);
 		transferState = TransferState.IDLE;
 		transferInit = false;
 	}
@@ -158,18 +156,19 @@ public class Storage {
 
 	public boolean intake() {
 		turnToArtifact(null, true);
-		gateDown();
+		// gateDown();
 		Colour colour = getArtifactColour();
 		if (isArtifactLoaded() && colour != null) {
 			artifactStored.set(0, colour);
 			numOfArtifacts += 1;
 			if (storageFull()) {
-				gateUp();
+				// gateUp();
 				intakeState = IntakeState.RESET;
 			} else {
-				intakeGate.setPosition(intakeGateTurnPosition);
+				// intakeGate.setPosition(intakeGateTurnPosition);
+				turnToArtifact(null, true);
 				timer.reset();
-				intakeState = IntakeState.GATE_UP;
+				intakeState = IntakeState.TURNING;
 			}
 			return true;
 		}
@@ -178,40 +177,41 @@ public class Storage {
 
 	public void intakeUpdate() {
 		switch (intakeState) {
-			case GATE_UP:
-				if (timer.time() >= 0.3) {
-					storageTurnCCW();
-					intakeState = IntakeState.TURNING;
-				}
-				break;
+			// case GATE_UP:
+			// 	if (timer.time() >= 0.3) {
+			// 		storageTurnCCW();
+			// 		intakeState = IntakeState.TURNING;
+			// 	}
+			// 	break;
 
 			case TURNING:
 				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 10) {
-					gateDown();
+					// gateDown();
 					timer.reset();
-					intakeState = IntakeState.GATE_DOWN;
-				}
-				break;
-
-			case GATE_DOWN:
-				if (timer.time() >= 0.3) {
-					timer.reset();
+					// intakeState = IntakeState.GATE_DOWN;
 					intakeState = IntakeState.RESET;
 				}
 				break;
+
+			// case GATE_DOWN:
+			// 	if (timer.time() >= 0.3) {
+			// 		timer.reset();
+			// 		intakeState = IntakeState.RESET;
+			// 	}
+			// 	break;
 
 			default:
 				break;
 		}
 	}
 
-	public void gateUp() {
-		intakeGate.setPosition(intakeGateUpPosition);
-	}
+	// public void gateUp() {
+	// 	intakeGate.setPosition(intakeGateUpPosition);
+	// }
 
-	public void gateDown() {
-		intakeGate.setPosition(intakeGateDownPosition);
-	}
+	// public void gateDown() {
+	// 	intakeGate.setPosition(intakeGateDownPosition);
+	// }
 
 	public void storageMotorEnable(boolean enabled){
 		if (enabled){
@@ -221,7 +221,7 @@ public class Storage {
 		}
 	}
 
-	public void storageToggleContinuous(boolean enable) {
+	public void storageToggleContinuous(boolean enable) { 
 		if (enable) {
 			storageMotor.setMode(RunMode.RUN_USING_ENCODER);
 			storageMotor.setPower(storageMotorPower);
@@ -231,14 +231,12 @@ public class Storage {
 		}
 	}
 
-	public boolean updateStorage() {
+	public boolean updateStorageArtifacts() {
 		if (storageMotor.getCurrentPosition() % 128 < storageTolerance) {
 			clearStorageMemory();
 			artifactStored.set(0, getArtifactColour());
 			//get the colour for the other slots
-			if (getNumOfArtifacts() == 2) {
-				return true;
-			}
+			numOfArtifacts = getNumOfArtifacts();
 		}
 		return false;
 	}
@@ -250,6 +248,15 @@ public class Storage {
 		artifactStored.set(0, getBackRightArtifact());
 		artifactStored.set(2, getBackLeftArtifact());
 		artifactStored.set(1, intakeArtifact);
+	}
+
+	public void storageDoubleTurnCW() {
+		storageMotor.setTargetPosition(currentTargetSlotPosition + 2*positionInterval);
+		currentTargetSlotPosition = storageMotor.getTargetPosition();
+		Colour intakeArtifact = getActiveArtifact();
+		artifactStored.set(0, getBackLeftArtifact());
+		artifactStored.set(1, getBackRightArtifact());
+		artifactStored.set(2, intakeArtifact);
 	}
 
 	public void storageTurnCCW() {
@@ -268,26 +275,6 @@ public class Storage {
 		artifactStored.set(0, getBackRightArtifact());
 		artifactStored.set(2, getBackLeftArtifact());
 		artifactStored.set(1, intakeArtifact);
-	}
-
-	public void storageHalfTurnCW(boolean update) {
-		storageMotor.setTargetPosition(storageMotor.getTargetPosition() + (int) (positionInterval/2));
-		if (update) {
-			Colour intakeArtifact = getActiveArtifact();
-			artifactStored.set(0, getBackLeftArtifact());
-			artifactStored.set(1, getBackRightArtifact());
-			artifactStored.set(2, intakeArtifact);
-		}
-	}
-
-	public void storageHalfTurnCCW(boolean update) {
-		storageMotor.setTargetPosition(storageMotor.getTargetPosition() - (int) (positionInterval/2));
-		if (update) {
-			Colour intakeArtifact = getActiveArtifact();
-			artifactStored.set(0, getBackLeftArtifact());
-			artifactStored.set(1, getBackRightArtifact());
-			artifactStored.set(2, intakeArtifact);
-		}
 	}
 
 	public boolean storageFull() {
@@ -328,7 +315,7 @@ public class Storage {
 				return TurnDirection.AVAILABLE;
 			} else if (getBackLeftArtifact() == desiredArtifact) {
 				if (move) {
-					storageTurnCCW();
+					storageDoubleTurnCW();
 				}
 				return TurnDirection.CCW;
 			} else if (getBackRightArtifact() == desiredArtifact) {
@@ -351,37 +338,15 @@ public class Storage {
 			} else if (getBackRightArtifact() != null) {
 				storageTurnCW();
 				return TurnDirection.CW;
-			} else if (getBackRightArtifact() != null) {
-				storageTurnCCW();
+			} else if (getBackLeftArtifact() != null) {
+				storageDoubleTurnCW();
 				return TurnDirection.CCW;
 			} else {
 				return TurnDirection.NONE;
-			}
+			} 
 		} else {
 			return TurnDirection.NONE;
 		}
-	}
-
-	public boolean transferInit(boolean force) {
-		if (getActiveArtifact() != null || force) {
-			gateUp();
-			if (getActiveArtifact() != null) {
-				numOfArtifacts -= 1;
-			}
-			artifactStored.set(0, null);
-			storageMotor.setTargetPosition(currentTargetSlotPosition - ((int) positionInterval / 4));
-			transferRamp.setPosition(transferRampOutPosition);
-			timer.reset();
-			transferState = TransferState.RAMP_OUT;
-			transferInit = true;
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	public boolean transferInit() {
-		return transferInit(false);
 	}
 
 	public boolean transferStart(boolean force) {
@@ -390,9 +355,9 @@ public class Storage {
 				numOfArtifacts -= 1;
 			}
 			artifactStored.set(0, null);
-			storageMotor.setTargetPosition(currentTargetSlotPosition - ((int) positionInterval / 4));
+			storageTurnCCW();
 			timer.reset();
-			transferState = TransferState.TURNING_HALF;
+			transferState = TransferState.TURNING;
 			return true;
 		} else {
 			return false;
@@ -405,20 +370,6 @@ public class Storage {
 
 	public void transferUpdate() {
 		switch (transferState) {
-			case RAMP_OUT:
-				if (timer.time() >= 0.8) {
-					storageMotor.setTargetPosition(currentTargetSlotPosition + ((int) positionInterval / 2));
-					timer.reset();
-					transferState = TransferState.TURNING_HALF;
-				}
-				break;
-		
-			case TURNING_HALF:
-				if (timer.time() >= 0.9) {
-					storageTurnCW();
-					transferState = TransferState.TURNING;
-				}
-				break;
 			case TURNING:
 				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 2) {
 					timer.reset();
@@ -432,9 +383,9 @@ public class Storage {
 	}
 
 	public void transferFinish() {
-		transferRamp.setPosition(transferRampInPosition);
+		// transferRamp.setPosition(transferRampInPosition);
 		if (storageEmpty()) {
-			gateDown();
+			// gateDown();
 		}
 		transferState = TransferState.IDLE;
 		transferInit = false;

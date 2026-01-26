@@ -54,8 +54,6 @@ public class Automations {
 	public enum StorageState {
 		WAITING,
 		INTAKING,
-		TURNING_TWOBALL,
-		TWOBALL,
 		TURNING_TRANSFER,
 		TRANSFERRING
 	}
@@ -122,33 +120,20 @@ public class Automations {
 		shooter.updateVelocityPid();
 		if (storageState == StorageState.WAITING && intakeEnabled) {
 			storageState = StorageState.INTAKING;
-			storage.storageToggleContinuous(true);
 		} else if (storageState == StorageState.INTAKING) {
-			if (storage.updateStorage()) {
-				storageState = StorageState.TURNING_TWOBALL;
-			}
-		} else if (storageState == StorageState.TURNING_TWOBALL) {
-			if (storage.getStoragePosition() % 128 < 20) {
-				storage.storageToggleContinuous(false);
-				storageState = StorageState.TWOBALL;
-			}
-		} else if (storageState == StorageState.TWOBALL) {
-			if (storage.isArtifactLoaded()) {
+			storage.intakeUpdate();
+			if (getIntakeState() == Storage.IntakeState.RESET) {
 				storageState = StorageState.WAITING;
-				intakeEnable(false);
 			}
 		} else if (storageState == StorageState.TURNING_TRANSFER && !storage.isMotorBusy()) {
 			shootActiveArtifact();
 			stateTimer.reset();
 		} else if (storageState == StorageState.TRANSFERRING) {
 			// Pause transfer updates while waiting to reach velocity
-			if (storage.getTransferState() != Storage.TransferState.RAMP_OUT || isShooterAtVelocity() || ignoreVelocity) {
+			if (storage.getTransferState() != Storage.TransferState.TURNING || isShooterAtVelocity() || ignoreVelocity) {
 				storage.transferUpdate();
 			}
-
-			if (storage.getTransferState() == Storage.TransferState.RAMP_OUT) {
-				intake.enable(true);
-			} else if (storage.getTransferState() == Storage.TransferState.RESET) {
+			if (storage.getTransferState() == Storage.TransferState.RESET) {
 				if (transferAll && Storage.getActiveArtifact() != null) {
 					if (isShooterAtVelocity()) {
 						intake.enable(true);
@@ -240,7 +225,6 @@ public class Automations {
 
 	public void intakeToggle() {
 		intakeEnable(!intakeEnabled);
-		storage.storageToggleContinuous(intakeEnabled);
 	}
 
 	public void intakeEject() {
@@ -270,7 +254,7 @@ public class Automations {
 		} else if (turnDirection == Storage.TurnDirection.NONE) {
 			vibrateControllers();
 		} else {
-			storage.gateUp();
+			// storage.gateUp();
 			stateTimer.reset();
 			storageState = StorageState.TURNING_TRANSFER;
 		}
@@ -285,7 +269,6 @@ public class Automations {
 		} else if (turnDirection == Storage.TurnDirection.NONE) {
 			vibrateControllers();
 		} else {
-			storage.gateUp();
 			stateTimer.reset();
 			storageState = StorageState.TURNING_TRANSFER;
 		}
@@ -307,11 +290,7 @@ public class Automations {
 	public void shootActiveArtifact(boolean force) {
 		shooter.enable(true);
 		setVisionOverrideEnabled(true);
-		if (!storage.getTransferInit()) {
-			storage.transferInit(force);
-		} else {
-			storage.transferStart(force);
-		}
+		storage.transferStart(force);
 		storageState = StorageState.TRANSFERRING;
 	}
 
