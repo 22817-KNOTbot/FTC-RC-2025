@@ -5,7 +5,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 /*
  * Class to manage the use of telemetry for FTC, Dashboard, and Panels
@@ -19,6 +19,10 @@ public class TelemetryManager {
 
 	public void setFtcTelemetry(Telemetry ftcTelemetry) {
 		this.ftcTelemetry = ftcTelemetry;
+	}
+
+	public void setFtcFastTelemetry(OpMode opmode) {
+		this.ftcTelemetry = new FastTelemetry(opmode);
 	}
 
 	public void setDashboardInstance (FtcDashboard dashboardInstance) {
