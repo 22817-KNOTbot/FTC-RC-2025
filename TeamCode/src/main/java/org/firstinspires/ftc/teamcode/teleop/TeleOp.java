@@ -144,6 +144,7 @@ public class TeleOp extends LinearOpMode {
 				mecanumDrive.setAutoDrive(gamepad1.left_bumper);
 			}
 			mecanumDrive.lockingMecanum(gamepad1.right_bumper);
+			automationHandler.engageBrakes(gamepad1.right_bumper);
 
 			if (gamepad1.aWasPressed()) {
 				automationHandler.intakeToggle();

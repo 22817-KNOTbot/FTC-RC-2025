@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
+import org.firstinspires.ftc.teamcode.subsystems.Brakes;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Storage;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
@@ -35,6 +36,7 @@ public class Automations {
 	private Shooter shooter;
 	private IntakeVision intakeVision;
 	private Limelight limelight;
+	private Brakes brakes;
 
 	private Gamepad gamepad1;
 	private Gamepad gamepad2;
@@ -89,6 +91,8 @@ public class Automations {
 		IntakeVision.DEBUG = DEBUG;
 		intakeVision = new IntakeVision(hardwareMap, alliance.getGoalAprilTagId());
 		limelight = new Limelight(hardwareMap, alliance.getGoalAprilTagId());
+
+		brakes = new Brakes(hardwareMap);
 	}
 	
 	public void setAlliance(Alliance alliance) {
@@ -411,6 +415,10 @@ public class Automations {
 	public void setVisionOverrideEnabled(boolean enable) {
 		visionOverridingTurret = enable;
 		visionOverridedTurret = false;
+	}
+
+	public void engageBrakes(boolean engage) {
+		brakes.engageBrakes(engage);
 	}
 
 	/*
