@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.SortedSet;
 import java.util.TreeSet;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -40,7 +39,7 @@ public class Shooter {
 	private DcMotorEx shooterMotorRight;
 
 	public static class VelocityEntries {
-		private SortedSet<VelocityEntry> entries;
+		private TreeSet<VelocityEntry> entries;
 
 		public static class VelocityEntry {
 			public double distance;
@@ -66,18 +65,9 @@ public class Shooter {
 		}
 
 		public VelocityEntry[] getNearestEntries(double distance) {
-			Iterator<VelocityEntry> iterator = entries.iterator();
-			VelocityEntry lastEntry = null;
-			VelocityEntry nextEntry = null;
-			while (iterator.hasNext()) {
-				VelocityEntry currentEntry = iterator.next();
-				if (distance < currentEntry.distance) {
-					nextEntry = currentEntry;
-					break;
-				} else {
-					lastEntry = currentEntry;
-				}
-			}
+			VelocityEntry compareEntry = new VelocityEntry(distance, 0);
+			VelocityEntry lastEntry = entries.floor(compareEntry);
+			VelocityEntry nextEntry = entries.ceiling(compareEntry);
 			if (lastEntry == null)
 				lastEntry = nextEntry;
 			if (nextEntry == null)
