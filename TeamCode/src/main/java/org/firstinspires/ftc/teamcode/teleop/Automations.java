@@ -224,7 +224,7 @@ public class Automations {
 			}
 			double bearing = direction.bearing;
 
-			double targetRotation = Turret.getRotation() - (bearing * Turret.rotation_per_deg) + Turret.vision_offset;
+			double targetRotation = turret.getRotation() - (bearing * Turret.rotation_per_deg) + Turret.vision_offset;
 			turret.setRotation(targetRotation);
 			visionOverridedTurret = true;
 		}

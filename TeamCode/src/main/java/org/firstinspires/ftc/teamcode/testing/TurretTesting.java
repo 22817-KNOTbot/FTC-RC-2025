@@ -52,8 +52,8 @@ public class TurretTesting extends LinearOpMode {
 				}
 			}
 
-			telemetry.addData("Position", Turret.getPosition());
-			telemetry.addData("Rotation", Turret.getRotation());
+			telemetry.addData("Rotation", Turret.getTargetRotation());
+			telemetry.addData("Rotation", turret.getRotation());
 			telemetry.addData("Pitch", Turret.getPitch());
 			telemetry.update();
 

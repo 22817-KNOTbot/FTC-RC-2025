@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.util.Range;
 
 import com.bylazar.configurables.annotations.Configurable;
 
+import org.firstinspires.ftc.teamcode.hardware.AxonServo;
+
 import com.acmerobotics.dashboard.config.Config;
 
 @Configurable
@@ -25,8 +27,8 @@ public class Turret {
 	public static double pitch_increment = 0.01;
 	public static double vision_offset = 0.0;
 
-	private Servo turretYawServo1;
-	private Servo turretYawServo2;
+	private AxonServo turretYawServo1;
+	private AxonServo turretYawServo2;
 	private Servo turretPitchServo;
 
 	private static Position position = Position.BASE;
@@ -39,8 +41,8 @@ public class Turret {
 	}
 
 	public Turret(HardwareMap hardwareMap) {
-		turretYawServo1 = hardwareMap.get(Servo.class, "turretYawServo1");
-		turretYawServo2 = hardwareMap.get(Servo.class, "turretYawServo2");
+		turretYawServo1 = new AxonServo(hardwareMap.get(Servo.class, "turretYawServo1"));
+		turretYawServo2 = new AxonServo(hardwareMap.get(Servo.class, "turretYawServo2"));
 		turretYawServo1.setDirection(Servo.Direction.FORWARD);
 		turretYawServo2.setDirection(Servo.Direction.FORWARD);
 		turretPitchServo = hardwareMap.get(Servo.class, "turretPitchServo");
@@ -56,11 +58,29 @@ public class Turret {
 	 * Getter methods
 	 */
 
-	public static Position getPosition() {
-		return Turret.position;
+	public double getRotation() {
+		Double servo1Angle = turretYawServo1.getAngle();
+		Double servo2Angle = turretYawServo2.getAngle() - (turretYawServo2.fullTurnDegrees / 2);
+
+		double count = 0;
+		double servo1AngleTurret = 0;
+		double servo2AngleTurret = 0;
+
+		if (servo1Angle != null) {
+			count++;
+			servo1AngleTurret = servo1Angle - (turretYawServo1.fullTurnDegrees / 2);
+		}
+		if (servo2Angle != null) {
+			count++;
+			servo2AngleTurret = servo2Angle - (turretYawServo2.fullTurnDegrees / 2);
+		}
+		if (count == 0) {
+			return getTargetRotation();
+		}
+		return (servo1AngleTurret + servo2AngleTurret) / count;
 	}
 
-	public static double getRotation() {
+	public static double getTargetRotation() {
 		return Turret.rotation;
 	}
 
