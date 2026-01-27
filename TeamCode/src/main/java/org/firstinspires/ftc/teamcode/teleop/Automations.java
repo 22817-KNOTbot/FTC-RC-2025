@@ -12,8 +12,9 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Storage;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
-import org.firstinspires.ftc.teamcode.subsystems.vision.Vision;
-import org.firstinspires.ftc.teamcode.subsystems.vision.AutoAlign.AlignmentDirection;
+import org.firstinspires.ftc.teamcode.subsystems.vision.IntakeVision;
+import org.firstinspires.ftc.teamcode.subsystems.vision.Limelight;
+import org.firstinspires.ftc.teamcode.subsystems.vision.Limelight.AlignmentDirection;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
@@ -27,13 +28,13 @@ public class Automations {
 	private StorageState storageState;
 	private ElapsedTime stateTimer;
 	private ElapsedTime ejectTimer;
-	private TelemetryManager telemetryManager;
 
 	private Intake intake;
 	private Storage storage;
 	private Turret turret;
 	private Shooter shooter;
-	private Vision vision;
+	private IntakeVision intakeVision;
+	private Limelight limelight;
 
 	private Gamepad gamepad1;
 	private Gamepad gamepad2;
@@ -85,16 +86,14 @@ public class Automations {
 		turret = new Turret(hardwareMap);
 		shooter = new Shooter(hardwareMap);
 
-		Vision.DEBUG = DEBUG;
-		vision = new Vision(hardwareMap, null);
-		vision.setMotifPrioritySide(alliance.getObeliskSidePriority());
-		vision.setTargetAprilTagId(alliance.getGoalAprilTagId());
+		IntakeVision.DEBUG = DEBUG;
+		intakeVision = new IntakeVision(hardwareMap, alliance.getGoalAprilTagId());
+		limelight = new Limelight(hardwareMap, alliance.getGoalAprilTagId());
 	}
 	
 	public void setAlliance(Alliance alliance) {
 		this.alliance = alliance;
-		vision.setMotifPrioritySide(alliance.getObeliskSidePriority());
-		vision.setTargetAprilTagId(alliance.getGoalAprilTagId());
+		limelight.setTargetAprilTagId(alliance.getGoalAprilTagId());
 	}
 
 	public void setGamepads(Gamepad gamepad1, Gamepad gamepad2) {
@@ -108,9 +107,8 @@ public class Automations {
 		telemetry.addData("Distance", pose.distanceFrom(alliance.getGoalPose()));
 		telemetry.addData("Intake timed ejecting", intakeTimedEjecting);
 		telemetry.addData("Using vision", useVision);
-		telemetry.addData("Vision Alignment Direction", vision.getAlignmentDirection());
+		telemetry.addData("Vision Alignment Direction", limelight.getAlignmentDirection());
 		storage.showTelemetry(telemetry);
-		telemetryManager = telemetry;
 		// vision.showTelemetry(telemetry);
 	}
 
@@ -187,7 +185,7 @@ public class Automations {
 
 	// Should only be called once as the opmode ends
 	public void end() {
-		vision.close();
+		intakeVision.close();
 	}
 
 	// Should be called to update the turret
@@ -219,7 +217,7 @@ public class Automations {
 			if (visionOverridedTurret)
 				return;
 
-			AlignmentDirection direction = vision.getAlignmentDirection();
+			AlignmentDirection direction = limelight.getAlignmentDirection();
 			if (!direction.directionKnown) {
 				setVisionOverrideEnabled(false);
 				return;
@@ -262,8 +260,8 @@ public class Automations {
 	}
 
 	public void updateMotifPattern() {
-		vision.updateMotifPattern();
-		pattern = vision.getLastMotifPattern();
+		limelight.updateMotifPattern();
+		pattern = limelight.getLastMotifPattern();
 	}
 
 	public void intakeEnable(boolean enable) {
@@ -492,7 +490,7 @@ public class Automations {
 	}
 
 	public boolean getVisionAlignmentKnown() {
-		return vision.getAlignmentDirection().directionKnown;
+		return limelight.getAlignmentDirection().directionKnown;
 	}
 
 	/*

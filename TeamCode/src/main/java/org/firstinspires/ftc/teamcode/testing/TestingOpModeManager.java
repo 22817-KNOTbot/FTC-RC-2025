@@ -43,7 +43,6 @@ public final class TestingOpModeManager {
 			LimelightPoseTesting.class,
 			ManualIndividualControl.class,
 			MecanumDriveTesting.class,
-			MotifDecodeTesting.class,
 			MotorPositionTesting.class,
 			MotorTesting.class,
 			MotorTwoTesting.class,

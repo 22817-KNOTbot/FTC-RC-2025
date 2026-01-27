@@ -51,11 +51,11 @@ public class LimelightPoseTesting extends LinearOpMode {
 
 		limelight.pipelineSwitch(PIPELINE);
 
-		List<Fiducial> fiducials = new ArrayList<>();
-		fiducials.add(new Fiducial(24, 165.1, "apriltag3_36h11_classic", new ArrayList<Double>(Arrays.asList(0.5877852522924731d,0.8090169943749473d,0d,-1.4827d,-0.8090169943749473d,0.5877852522924731d,0d,1.4133d,0d,0d,1d,0.7493d,0d,0d,0d,1d)), true));
+		// List<Fiducial> fiducials = new ArrayList<>();
+		// fiducials.add(new Fiducial(24, 165.1, "apriltag3_36h11_classic", new ArrayList<Double>(Arrays.asList(0.5877852522924731d,0.8090169943749473d,0d,-1.4827d,-0.8090169943749473d,0.5877852522924731d,0d,1.4133d,0d,0d,1d,0.7493d,0d,0d,0d,1d)), true));
 		// fiducials.add(new Fiducial(24, 165.1, "apriltag3_36h11_classic", new ArrayList<Double>(Arrays.asList(-0.3927376690073108, -0.9196505441431021d, 0d, 1.4827d, 0.9196505441431021d, -0.3927376690073108d, 0d, -1.4133d, 0d, 0d, 1d, 0.7493d, 0d, 0d, 0d, 1d)), true));
-		LLFieldMap fieldMap = new LLFieldMap(fiducials, "ftc");
-		boolean success = limelight.uploadFieldmap(fieldMap, null);
+		// LLFieldMap fieldMap = new LLFieldMap(fiducials, "ftc");
+		// boolean success = limelight.uploadFieldmap(fieldMap, null);
 
 		Drawing.init();
 
@@ -92,7 +92,7 @@ public class LimelightPoseTesting extends LinearOpMode {
 				}
 			}
 
-			telemetryManager.addData("Uploaded field", success);
+			// telemetryManager.addData("Uploaded field", success);
 			// telemetryManager.addData("Yaw", robotYaw);
 			telemetryManager.addData("Yaw", HEADING_DEG);
 			telemetryManager.addData("Pipeline", result != null ? result.getPipelineIndex() : "Unknown");
