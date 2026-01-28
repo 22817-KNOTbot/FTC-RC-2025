@@ -13,11 +13,9 @@ import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 @Configurable
 @Config
-// @TeleOp(name="Shooter testing", group="Debug")
-public class ShooterTesting extends LinearOpMode {
-	public static Pose robotPose = new Pose(72, 72, 0);
-	public static Vector robotVelocity = new Vector(0, 0);
-	public static Pose targetPose = new Pose(144, 144, 0);
+// @TeleOp(name="Shooter velocity testing", group="Debug")
+public class ShooterVelocityTesting extends LinearOpMode {
+	public static double desiredVelocity = 0;
 
 	private Shooter shooter;
 
@@ -36,7 +34,7 @@ public class ShooterTesting extends LinearOpMode {
 
 		while (opModeIsActive()) {
 			shooter.updateVelocityPid();
-			shooter.updateShooterTarget(robotPose, targetPose, robotVelocity);
+			shooter.desiredVelocity = desiredVelocity;
 
 			telemetry.addData("Desired", shooter.desiredVelocity);
 			telemetry.addData("Velocity", shooter.getVelocity());

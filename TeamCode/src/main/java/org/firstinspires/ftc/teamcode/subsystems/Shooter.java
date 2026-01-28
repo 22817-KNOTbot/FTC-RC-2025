@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
@@ -13,6 +14,7 @@ import java.util.TreeSet;
 
 import com.acmerobotics.dashboard.config.Config;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.util.ControlTheory.Pidf;
 
@@ -32,6 +34,12 @@ public class Shooter {
 	public static double min_pitch = 0.485;
 	public static double max_pitch = 0.73;
 	public static double pitch_increment = 0.01;
+
+	public static double goal_height = 46.25;
+	public static double robot_height = 9.175;
+	public static double goal_angle = -30;
+
+	private final double GRAVITY = DistanceUnit.INCH.fromMeters(9.80665);
 
 	public double desiredVelocity = 2200;
 
@@ -97,7 +105,7 @@ public class Shooter {
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 48).distanceFrom(goalShooterPose), 1850));
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 96).distanceFrom(goalShooterPose), 1650));
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 120).distanceFrom(goalShooterPose), 1600));
-		
+
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(96, 96).distanceFrom(goalShooterPose), 1600));
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(96, 9).distanceFrom(goalShooterPose), 1980));
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(96, 11).distanceFrom(goalShooterPose), 1900));
@@ -135,6 +143,42 @@ public class Shooter {
 		power = pow;
 	}
 
+	public static double convertProjectileToShooterVelocity(double projectileVelocity) {
+		// TODO: Create equation based on testing
+		return projectileVelocity;
+	}
+
+	public void updateShooterTarget(Pose robotPose, Pose targetPose, double distance) {
+		updateShooterTarget(robotPose, targetPose, new Vector());
+	}
+
+	public void updateShooterTarget(Pose robotPose, Pose targetPose, Vector robotVelocity) {
+		double horizontalDistance = robotPose.distanceFrom(targetPose);
+		double verticalDistance = goal_height - robot_height;
+
+		double angle = Math.atan((2 * verticalDistance) / horizontalDistance - Math.tan(goal_angle));
+		double v0 = Math.sqrt((GRAVITY * Math.pow(horizontalDistance, 2))
+				/ (2 * Math.pow(Math.cos(angle), 2) * (horizontalDistance * Math.tan(angle) - verticalDistance)));
+
+		double velocityAngleDifference = robotVelocity.getTheta()
+				- targetPose.minus(robotPose).getAsVector().getTheta();
+		double radialVelocity = Math.cos(velocityAngleDifference) * robotVelocity.getMagnitude();
+		double tangentialVelocity = Math.sin(velocityAngleDifference) * robotVelocity.getMagnitude();
+
+		double time = horizontalDistance / (v0 * Math.cos(angle));
+
+		double vxNew = Math.hypot((horizontalDistance / time) + radialVelocity, tangentialVelocity);
+		double vyNew = v0 * Math.sin(angle);
+
+		double newAngle = Math.atan(vyNew / vxNew);
+		double newHorizontalDistance = vxNew * time;
+		double newV0 = Math.sqrt((GRAVITY * Math.pow(newHorizontalDistance, 2))
+				/ (2 * Math.pow(Math.cos(newAngle), 2) * (newHorizontalDistance * Math.tan(newAngle) - verticalDistance)));
+
+		desiredVelocity = convertProjectileToShooterVelocity(newV0);
+		setPitchAngle(newAngle);
+	}
+
 	public void updateVelocityTarget(double distance) {
 		desiredVelocity = getVelocityTarget(distance);
 	}
@@ -162,7 +206,8 @@ public class Shooter {
 	}
 
 	public void updateVelocityPid() {
-		if (!enabled) return;
+		if (!enabled)
+			return;
 		if (PIDF_update) {
 			pidfController.setKp(PIDF_P);
 			pidfController.setKi(PIDF_I);
@@ -177,7 +222,7 @@ public class Shooter {
 	public void showPidTelemetry(TelemetryManager telemetry) {
 		telemetry.addData("Shooter power", power);
 		pidfController.showTelemetry(telemetry);
-	} 
+	}
 
 	public boolean atDesiredVelocity() {
 		return getVelocity() >= desiredVelocity;
@@ -190,10 +235,14 @@ public class Shooter {
 	public static double getPitch() {
 		return Shooter.pitch;
 	}
-	
+
 	public void pitchTurret(double vector) {
 		vector = Range.clip(vector, -1, 1);
 		setPitch(pitch + (vector * pitch_increment));
+	}
+
+	public void setPitchAngle(double angle) {
+		// TODO: Create equation based on testing
 	}
 
 	public void setPitch(double pitchTarget) {
