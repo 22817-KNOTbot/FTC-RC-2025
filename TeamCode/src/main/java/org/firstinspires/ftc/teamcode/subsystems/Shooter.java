@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
@@ -22,12 +23,15 @@ public class Shooter {
 	public static double velocityTolerance = 50;
 	public static double shootingAreaTolerance = 12.7279220614;
 	public static double defaultVelocity = 2200;
-	public static VelocityEntries velocityEntries;
 	public static double PIDF_P = 0.03;
 	public static double PIDF_I = 0;
 	public static double PIDF_D = 0;
 	public static double PIDF_F = 0.0004;
 	public static boolean PIDF_update = false;
+
+	public static double min_pitch = 0.485;
+	public static double max_pitch = 0.73;
+	public static double pitch_increment = 0.01;
 
 	public double desiredVelocity = 2200;
 
@@ -37,6 +41,10 @@ public class Shooter {
 
 	private DcMotorEx shooterMotorLeft;
 	private DcMotorEx shooterMotorRight;
+
+	private Servo shooterPitchServo;
+
+	private static double pitch = min_pitch;
 
 	public static class VelocityEntries {
 		private TreeSet<VelocityEntry> entries;
@@ -76,21 +84,9 @@ public class Shooter {
 		}
 	}
 
-	public Shooter(HardwareMap hardwareMap) {
-		shooterMotorLeft = hardwareMap.get(DcMotorEx.class, "shooterMotorLeft");
-		shooterMotorLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-		shooterMotorLeft.setDirection(DcMotorEx.Direction.REVERSE);
-		shooterMotorRight = hardwareMap.get(DcMotorEx.class, "shooterMotorRight");
+	private static final VelocityEntries velocityEntries;
 
-		shooterMotorLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-		shooterMotorRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-
-		pidfController = new Pidf(PIDF_P, PIDF_I, PIDF_D, PIDF_F);
-
-		addVelocityEntries();
-	}
-
-	public void addVelocityEntries() {
+	static {
 		Pose goalShooterPose = new Pose(144, 144);
 		velocityEntries = new VelocityEntries();
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 72).distanceFrom(goalShooterPose), 1750));
@@ -105,6 +101,21 @@ public class Shooter {
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(96, 96).distanceFrom(goalShooterPose), 1600));
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(96, 9).distanceFrom(goalShooterPose), 1980));
 		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(96, 11).distanceFrom(goalShooterPose), 1900));
+	}
+
+	public Shooter(HardwareMap hardwareMap) {
+		shooterMotorLeft = hardwareMap.get(DcMotorEx.class, "shooterMotorLeft");
+		shooterMotorLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+		shooterMotorLeft.setDirection(DcMotorEx.Direction.REVERSE);
+		shooterMotorRight = hardwareMap.get(DcMotorEx.class, "shooterMotorRight");
+
+		shooterMotorLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+		shooterMotorRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+
+		pidfController = new Pidf(PIDF_P, PIDF_I, PIDF_D, PIDF_F);
+
+		shooterPitchServo = hardwareMap.get(Servo.class, "turretPitchServo");
+		shooterPitchServo.setDirection(Servo.Direction.FORWARD);
 	}
 
 	public void enable(boolean enabled) {
@@ -174,5 +185,22 @@ public class Shooter {
 
 	public double getVelocity() {
 		return shooterMotorLeft.getVelocity();
+	}
+
+	public static double getPitch() {
+		return Shooter.pitch;
+	}
+	
+	public void pitchTurret(double vector) {
+		vector = Range.clip(vector, -1, 1);
+		setPitch(pitch + (vector * pitch_increment));
+	}
+
+	public void setPitch(double pitchTarget) {
+		pitchTarget = Range.clip(pitchTarget, min_pitch, max_pitch);
+
+		shooterPitchServo.setPosition(pitchTarget);
+
+		Shooter.pitch = pitchTarget;
 	}
 }

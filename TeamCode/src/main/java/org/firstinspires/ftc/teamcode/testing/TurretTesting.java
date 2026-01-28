@@ -19,9 +19,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Turret;
 // @TeleOp(name="Turret testing", group="Debug")
 public class TurretTesting extends LinearOpMode {
 	public static Mode mode = Mode.ABSOLUTE;
-	public static Turret.Position position = Turret.Position.BASE;
 	public static double rotation = Turret.BASE_ROTATION;
-	public static double pitch = Turret.BASE_PITCH;
 	public static double rotateVector = 0;
 
 	private Turret turret;
@@ -40,23 +38,16 @@ public class TurretTesting extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
-			if (position == Turret.Position.BASE) {
-				turret.setPosition(position);
-			} else if (position == Turret.Position.MANUAL) {
-				if (mode == Mode.ABSOLUTE) {
-					turret.setRotation(rotation);
-					turret.setPitch(pitch);
-				} else if (mode == Mode.RELATIVE) {
-					turret.rotateTurret(rotateVector);
-					rotateVector = 0;
-				}
+			if (mode == Mode.ABSOLUTE) {
+				turret.setRotation(rotation);
+			} else if (mode == Mode.RELATIVE) {
+				turret.rotateTurret(rotateVector);
+				rotateVector = 0;
 			}
 
 			telemetry.addData("Rotation", Turret.getTargetRotation());
 			telemetry.addData("Rotation", turret.getRotation());
-			telemetry.addData("Pitch", Turret.getPitch());
 			telemetry.update();
-
 		}
 	}
 }

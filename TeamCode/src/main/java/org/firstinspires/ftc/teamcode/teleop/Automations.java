@@ -241,10 +241,10 @@ public class Automations {
 			setShooterEnabled(true);
 			switch (getShootingArea()) {
 				case UPPER:
-					turret.setPitch(Turret.max_pitch);
+					shooter.setPitch(Shooter.max_pitch);
 					break;
 				case LOWER:
-					turret.setPitch(Turret.min_pitch);
+					shooter.setPitch(Shooter.min_pitch);
 				default:
 					break;
 			}
@@ -405,7 +405,7 @@ public class Automations {
 	}
 
 	public void pitchTurret(double vector) {
-		turret.pitchTurret(vector);
+		shooter.pitchTurret(vector);
 	}
 
 	public void clearStorageMemory() {
