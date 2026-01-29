@@ -16,10 +16,12 @@ import com.acmerobotics.dashboard.config.Config;
 public class AxonServoTesting extends LinearOpMode {
 	public static double POSITION = 0;
 	public static String SERVONAME = "testServo"; 
+	public static double halfTurnDelayMs = 400;
 
 	@Override
 	public void runOpMode() {
 		AxonServo testServo = new AxonServo(hardwareMap.get(Servo.class, SERVONAME));
+		halfTurnDelayMs = testServo.halfTurnDelayMs;
 		// testServo.setDirection(Servo.Direction.REVERSE);
 
 		waitForStart();
@@ -27,6 +29,7 @@ public class AxonServoTesting extends LinearOpMode {
 		while (opModeIsActive()) {
 			testServo.update();
 			testServo.setPosition(POSITION);
+			testServo.halfTurnDelayMs = halfTurnDelayMs;
 
 			telemetry.addData("Position", POSITION);
 			telemetry.update();

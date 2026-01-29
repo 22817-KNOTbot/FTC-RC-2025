@@ -1,14 +1,13 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
 import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.AnalogSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 public class AxonServo implements Servo {
 	public static final double FULL_TURN_VOLTAGE = 3.3;
-	public double halfTurnDelayMs = 200;
+	public double halfTurnDelayMs = 400;
 	public double fullTurnDegrees = 360;
 
 	private ServoImplEx servo;
@@ -42,9 +41,6 @@ public class AxonServo implements Servo {
 		servo.setPosition(target);
 		lastPosition = target;
 		lastSetTime = System.currentTimeMillis();
-
-		analogInput.getVoltage();
-		
 	}
 
 	public void update() {
