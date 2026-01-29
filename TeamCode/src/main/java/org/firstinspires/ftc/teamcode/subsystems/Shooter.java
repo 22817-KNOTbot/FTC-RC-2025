@@ -33,6 +33,11 @@ public class Shooter {
 
 	public static double min_pitch = 0.485;
 	public static double max_pitch = 0.73;
+	public static double min_angle = 0; // Angle at min_pitch
+	// Values are linear units calculated through linkage equation
+	public static double arm1_length = 0;
+	public static double arm2_length = 0;
+	public static double value_per_deg = 0;
 	public static double pitch_increment = 0.01;
 
 	public static double goal_height = 46.25;
@@ -243,6 +248,18 @@ public class Shooter {
 
 	public void setPitchAngle(double angle) {
 		// TODO: Create equation based on testing
+		
+	}
+
+	public void setPitchLinear(double value) {
+		value = Range.clip(value, 0, 1);
+		double minPitchValue = (arm1_length * Math.cos(min_pitch)) + Math.sqrt(Math.pow(arm2_length, 2) - (arm1_length * Math.sin(min_pitch)));
+		double maxPitchValue = (arm1_length * Math.cos(max_pitch)) + Math.sqrt(Math.pow(arm2_length, 2) - (arm1_length * Math.sin(max_pitch)));
+		double scaledValue = Range.scale(value, 0, 1, minPitchValue, maxPitchValue);
+
+		double pitchAngle = Math.acos((Math.pow(arm1_length, 2) + Math.pow(scaledValue, 2) - Math.pow(arm2_length, 2)) / (2 * arm1_length * scaledValue));
+		double pitchValue = pitchAngle * value_per_deg - minPitchValue;
+		setPitch(pitchValue);
 	}
 
 	public void setPitch(double pitchTarget) {
