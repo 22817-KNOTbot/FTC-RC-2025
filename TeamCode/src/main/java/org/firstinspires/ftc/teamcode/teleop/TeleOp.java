@@ -230,7 +230,7 @@ public class TeleOp extends LinearOpMode {
 			telemetryManager.addData("Shooter Velocity", automationHandler.getShooterVelocity());
 			telemetryManager.addData("Shooter Desired Velocity", automationHandler.getShooterDesiredVelocity());
 
-			if (!automationHandler.colourSensorResponding()) {
+			if (!automationHandler.colourSensorsResponding()) {
 				telemetryManager.addLine("********************");
 				telemetryManager.addLine("WARNING: COLOUR SENSOR");
 				telemetryManager.addLine("IS NOT RESPONDING");

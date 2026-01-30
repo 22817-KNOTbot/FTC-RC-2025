@@ -2,11 +2,10 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.DcMotor.RunMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -34,14 +33,22 @@ public class Storage {
 	
 	private static int numOfArtifacts = 0;
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
-	private static Iterator<Colour> artifactStore = artifactStored.iterator();
 	private static int currentTargetSlotPosition = 0;
 	private IntakeState intakeState = IntakeState.IDLE;
 	private TransferState transferState = TransferState.IDLE;
 	private boolean transferInit = false;
 
+	public static int colourCacheTimeMs = 10;
+	private NormalizedRGBA cachedColoursActive;
+	private NormalizedRGBA cachedColoursBackLeft;
+	private NormalizedRGBA cachedColoursBackRight;
+	private long lastColourUpdateTime;
+
+
 	private DcMotorEx storageMotor;
-	private ColorRangeSensor colourSensor;
+	private ColorRangeSensor colourSensorActive;
+	private ColorRangeSensor colourSensorBackRight;
+	private ColorRangeSensor colourSensorBackLeft;
 	private ElapsedTime timer;
 
 	public enum IntakeState {
@@ -52,6 +59,7 @@ public class Storage {
 
 	public enum TransferState {
 		IDLE,
+		WAITING_VELOCITY,
 		TURNING, 
 		RESET
 	}
@@ -64,8 +72,9 @@ public class Storage {
 	}
 
 	public Storage(HardwareMap hardwareMap, boolean resetEncoder) {
-		colourSensor = hardwareMap.get(ColorRangeSensor.class, "colourSensor");
-
+		colourSensorActive = hardwareMap.get(ColorRangeSensor.class, "colourSensorActive");
+		colourSensorBackLeft = hardwareMap.get(ColorRangeSensor.class, "colourSensorBackLeft");
+		colourSensorBackRight = hardwareMap.get(ColorRangeSensor.class, "colourSensorBackRight");
 		storageMotor = hardwareMap.get(DcMotorEx.class, "storageMotor");
 		storageMotor.setTargetPosition(0);
 
@@ -110,8 +119,9 @@ public class Storage {
 
 	public static int getNumOfArtifacts() {
 		numOfArtifacts = 0;
-		while (artifactStore.hasNext()) {
-			if (artifactStore.next() != null) {
+		Iterator<Colour> artifactIterator = artifactStored.iterator(); 
+		while (artifactIterator.hasNext()) {
+			if (artifactIterator.next() != null) {
 				numOfArtifacts++;
 			}
 		}
@@ -140,7 +150,7 @@ public class Storage {
 
 	public boolean intake() {
 		turnToArtifact(null, true);
-		Colour colour = getArtifactColour();
+		Colour colour = getActiveArtifact();
 		if (isArtifactLoaded() && colour != null) {
 			artifactStored.set(0, colour);
 			numOfArtifacts += 1;
@@ -155,7 +165,8 @@ public class Storage {
 		switch (intakeState) {
 
 			case INTAKING:
-				if (getNumOfArtifacts() == 3) {
+				updateStorageArtifacts();
+				if (storageFull()) {
 					timer.reset();
 					intakeState = IntakeState.RESET;
 				}
@@ -177,7 +188,9 @@ public class Storage {
 	public boolean updateStorageArtifacts() {
 		if (storageMotor.getCurrentPosition() % 128 < storageTolerance) {
 			clearStorageMemory();
-			artifactStored.set(0, getArtifactColour());
+			artifactStored.set(0, getActiveArtifact());
+			artifactStored.set(1, getBackLeftArtifact());
+			artifactStored.set(2, getBackRightArtifact());
 			//get the colour for the other slots
 			numOfArtifacts = getNumOfArtifacts();
 		}
@@ -256,14 +269,14 @@ public class Storage {
 		if (numOfArtifacts > 0) {
 			if (getActiveArtifact() == desiredArtifact) {
 				return TurnDirection.AVAILABLE;
-			} else if (getBackLeftArtifact() == desiredArtifact) {
-				if (move) {
-					storageDoubleTurnCW();
-				}
-				return TurnDirection.CCW;
 			} else if (getBackRightArtifact() == desiredArtifact) {
 				if (move) {
 					storageTurnCW();
+				}
+				return TurnDirection.CCW;
+			} else if (getBackLeftArtifact() == desiredArtifact) {
+				if (move) {
+					storageDoubleTurnCW();
 				}
 				return TurnDirection.CW;
 			} else {
@@ -300,7 +313,7 @@ public class Storage {
 			artifactStored.set(0, null);
 			storageTurnCCW();
 			timer.reset();
-			transferState = TransferState.TURNING;
+			transferState = TransferState.WAITING_VELOCITY;
 			return true;
 		} else {
 			return false;
@@ -352,16 +365,16 @@ public class Storage {
 	 */
 
 	public boolean isArtifactLoaded() {
-		return colourSensor.getDistance(DistanceUnit.MM) < distance_threshold_mm;
+		return colourSensorActive.getDistance(DistanceUnit.MM) < distance_threshold_mm;
 	}
 
 	// Returns null if unknown
 	public Colour getArtifactColour() {
-		int red = getRed();
-		int green = getGreen();
-		int blue = getBlue();
+		int red = getRedActive();
+		int green = getGreenActive();
+		int blue = getBlueActive();
 		Colour colour = null;
-		if (colourSensorResponding()) {
+		if (colourSensorActiveResponding()) {
 			if (red < green && green < blue && blue > red) {
 				colour = Colour.PURPLE;
 			} else if (red < green && green > blue && blue > red && green < 3500) {
@@ -371,21 +384,86 @@ public class Storage {
 		return colour;
 	}
 
-	public int getRed() {
-		return colourSensor.red();
+	public NormalizedRGBA getColoursActive() {
+		long currentTime = System.currentTimeMillis();
+		if (currentTime - lastColourUpdateTime > colourCacheTimeMs) {
+			lastColourUpdateTime = currentTime;
+			cachedColoursActive = colourSensorActive.getNormalizedColors();
+		}
+		return cachedColoursActive;
 	}
 
-	public int getGreen() {
-		return colourSensor.green();
+	public NormalizedRGBA getColoursBackLeft() {
+		long currentTime = System.currentTimeMillis();
+		if (currentTime - lastColourUpdateTime > colourCacheTimeMs) {
+			lastColourUpdateTime = currentTime;
+			cachedColoursBackLeft = colourSensorBackLeft.getNormalizedColors();
+		}
+		return cachedColoursBackLeft;
 	}
 
-	public int getBlue() {
-		return colourSensor.blue();
+	public NormalizedRGBA getColoursBackRight() {
+		long currentTime = System.currentTimeMillis();
+		if (currentTime - lastColourUpdateTime > colourCacheTimeMs) {
+			lastColourUpdateTime = currentTime;
+			cachedColoursBackRight = colourSensorBackRight.getNormalizedColors();
+		}
+		return cachedColoursBackRight;
 	}
 
-	public boolean colourSensorResponding() {
+	public int getRedActive() {
+		return colourSensorActive.red();
+	}
+
+	public int getGreenActive() {
+		return colourSensorActive.green();
+	}
+
+	public int getBlueActive() {
+		return colourSensorActive.blue();
+	}
+
+	public int getRedBackLeft() {
+		return colourSensorBackLeft.red();
+	}
+
+	public int getGreenBackLeft() {
+		return colourSensorBackLeft.green();
+	}
+
+	public int getBlueBackLeft() {
+		return colourSensorBackLeft.blue();
+	}
+
+	public int getRedBackRight() {
+		return colourSensorBackRight.red();
+	}
+
+	public int getGreenBackRight() {
+		return colourSensorBackRight.green();
+	}
+
+	public int getBlueBackRight() {
+		return colourSensorBackRight.blue();
+	}
+
+	public boolean colourSensorActiveResponding() {
 		// Try to find better way to detect disconnect
-		return !(colourSensor == null || (getRed() == 0 && getGreen() == 0 && getBlue() == 0));
+		return !(colourSensorActive == null || (getRedActive() == 0 && getGreenActive() == 0 && getBlueActive() == 0));
+	}
+
+	public boolean colourSensorBackRightResponding() {
+		// Try to find better way to detect disconnect
+		return !(colourSensorBackRight == null || (getRedBackRight() == 0 && getGreenBackRight() == 0 && getBlueBackRight() == 0));
+	}
+
+	public boolean colourSensorBackLeftResponding() {
+		// Try to find better way to detect disconnect
+		return !(colourSensorBackLeft == null || (getRedBackLeft() == 0 && getGreenBackLeft() == 0 && getBlueBackLeft() == 0));
+	}
+
+	public boolean colourSensorsResponding() {
+		return (colourSensorActiveResponding() && colourSensorBackLeftResponding() && colourSensorBackRightResponding());
 	}
 
 	public void showTelemetry(TelemetryManager telemetry) {

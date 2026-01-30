@@ -119,7 +119,16 @@ public class Automations {
 		pattern = vision.getLastMotifPattern();
 		shooter.updateVelocityPid();
 		if (storageState == StorageState.WAITING && intakeEnabled) {
-			storageState = StorageState.INTAKING;
+			if (storage.intake()) {
+				storageState = StorageState.INTAKING;
+				if (storage.storageFull()) {
+					vibrateControllers();
+					intake.enableReversed(true);
+					intakeEnabled = false;
+					intakeTimedEjecting = true;
+					ejectTimer.reset();
+				}
+			}
 		} else if (storageState == StorageState.INTAKING) {
 			storage.intakeUpdate();
 			if (getIntakeState() == Storage.IntakeState.RESET) {
@@ -130,13 +139,12 @@ public class Automations {
 			stateTimer.reset();
 		} else if (storageState == StorageState.TRANSFERRING) {
 			// Pause transfer updates while waiting to reach velocity
-			if (storage.getTransferState() != Storage.TransferState.TURNING || isShooterAtVelocity() || ignoreVelocity) {
+			if (storage.getTransferState() != Storage.TransferState.WAITING_VELOCITY || isShooterAtVelocity() || ignoreVelocity) {
 				storage.transferUpdate();
 			}
 			if (storage.getTransferState() == Storage.TransferState.RESET) {
 				if (transferAll && Storage.getActiveArtifact() != null) {
 					if (isShooterAtVelocity()) {
-						intake.enable(true);
 						shootActiveArtifact();
 						stateTimer.reset();
 					}
@@ -298,8 +306,20 @@ public class Automations {
 		shootActiveArtifact(false);
 	}
 
-	public boolean colourSensorResponding() {
-		return storage.colourSensorResponding();
+	public boolean colourSensorActiveResponding() {
+		return storage.colourSensorActiveResponding();
+	}
+
+	public boolean colourSensorBackLeftResponding() {
+		return storage.colourSensorBackLeftResponding();
+	}
+
+	public boolean colourSensorBackRightResponding() {
+		return storage.colourSensorBackRightResponding();
+	}
+
+	public boolean colourSensorsResponding() {
+		return storage.colourSensorsResponding();
 	}
 
 	public void rotateTurret(double vector) {
