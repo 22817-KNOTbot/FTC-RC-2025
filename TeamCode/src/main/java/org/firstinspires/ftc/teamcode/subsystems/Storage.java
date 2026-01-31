@@ -148,33 +148,15 @@ public class Storage {
 	 * Storage
 	 */
 
-	public boolean intake() {
-		turnToArtifact(null, true);
-		Colour colour = getActiveArtifact();
-		if (isArtifactLoaded() && colour != null) {
-			artifactStored.set(0, colour);
-			numOfArtifacts += 1;
+	//revamp intake process
+
+	public boolean intakeUpdate() {
+		updateStorageArtifacts();
+		if (storageFull()) {
 			timer.reset();
-			intakeState = IntakeState.INTAKING;
 			return true;
 		}
 		return false;
-	}
-
-	public void intakeUpdate() {
-		switch (intakeState) {
-
-			case INTAKING:
-				updateStorageArtifacts();
-				if (storageFull()) {
-					timer.reset();
-					intakeState = IntakeState.RESET;
-				}
-				break;
-
-			default:
-				break;
-		}
 	}
 
 	public void storageMotorEnable(boolean enabled){
@@ -326,6 +308,10 @@ public class Storage {
 
 	public void transferUpdate() {
 		switch (transferState) {
+			case WAITING_VELOCITY:
+				transferStart(false);
+				transferState = TransferState.TURNING;
+				timer.reset();
 			case TURNING:
 				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 2) {
 					timer.reset();
@@ -369,12 +355,42 @@ public class Storage {
 	}
 
 	// Returns null if unknown
-	public Colour getArtifactColour() {
-		int red = getRedActive();
-		int green = getGreenActive();
-		int blue = getBlueActive();
+	public Colour getActiveArtifactColour() {
+		double red = getRedActive();
+		double green = getGreenActive();
+		double blue = getBlueActive();
 		Colour colour = null;
 		if (colourSensorActiveResponding()) {
+			if (red < green && green < blue && blue > red) {
+				colour = Colour.PURPLE;
+			} else if (red < green && green > blue && blue > red && green < 3500) {
+				colour = Colour.GREEN;
+			}
+		}
+		return colour;
+	}
+
+	public Colour getBackLeftArtifactColour() {
+		double red = getRedBackLeft();
+		double green = getGreenBackLeft();
+		double blue = getBlueBackLeft();
+		Colour colour = null;
+		if (colourSensorBackLeftResponding()) {
+			if (red < green && green < blue && blue > red) {
+				colour = Colour.PURPLE;
+			} else if (red < green && green > blue && blue > red && green < 3500) {
+				colour = Colour.GREEN;
+			}
+		}
+		return colour;
+	}
+
+	public Colour getBackRightArtifactColour() {
+		double red = getRedBackRight();
+		double green = getGreenBackRight();
+		double blue = getBlueBackRight();
+		Colour colour = null;
+		if (colourSensorBackRightResponding()) {
 			if (red < green && green < blue && blue > red) {
 				colour = Colour.PURPLE;
 			} else if (red < green && green > blue && blue > red && green < 3500) {
@@ -411,40 +427,40 @@ public class Storage {
 		return cachedColoursBackRight;
 	}
 
-	public int getRedActive() {
-		return colourSensorActive.red();
+	public double getRedActive() {
+		return getColoursActive().red;
 	}
 
-	public int getGreenActive() {
-		return colourSensorActive.green();
+	public double getGreenActive() {
+		return getColoursActive().green;
 	}
 
-	public int getBlueActive() {
-		return colourSensorActive.blue();
+	public double getBlueActive() {
+		return getColoursActive().blue;
 	}
 
-	public int getRedBackLeft() {
-		return colourSensorBackLeft.red();
+	public double getRedBackLeft() {
+		return getColoursBackLeft().red;
 	}
 
-	public int getGreenBackLeft() {
-		return colourSensorBackLeft.green();
+	public double getGreenBackLeft() {
+		return getColoursBackLeft().green;
 	}
 
-	public int getBlueBackLeft() {
-		return colourSensorBackLeft.blue();
+	public double getBlueBackLeft() {
+		return getColoursBackLeft().blue;
 	}
 
-	public int getRedBackRight() {
-		return colourSensorBackRight.red();
+	public double getRedBackRight() {
+		return getColoursBackRight().red;
 	}
 
-	public int getGreenBackRight() {
-		return colourSensorBackRight.green();
+	public double getGreenBackRight() {
+		return getColoursBackRight().green;
 	}
 
-	public int getBlueBackRight() {
-		return colourSensorBackRight.blue();
+	public double getBlueBackRight() {
+		return getColoursBackRight().blue;
 	}
 
 	public boolean colourSensorActiveResponding() {
@@ -469,7 +485,9 @@ public class Storage {
 	public void showTelemetry(TelemetryManager telemetry) {
 		// telemetry.addData("Storage", artifactStored);
 		telemetry.addData("Artifact Loaded", isArtifactLoaded());
-		telemetry.addData("Artifact Colour", getArtifactColour());
+		telemetry.addData("Active Artifact Colour", getActiveArtifactColour());
+		telemetry.addData("BackLeft Artifact Colour", getBackLeftArtifactColour());
+		telemetry.addData("BackRight Artifact Colour", getBackRightArtifactColour());
 		// telemetry.addData("Spindexer Power", storageMotor.getPower());
 		telemetry.addData("Spindexer Position", storageMotor.getCurrentPosition());
 		telemetry.addData("Spindexer Target", storageMotor.getTargetPosition());
