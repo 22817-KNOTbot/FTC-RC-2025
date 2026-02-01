@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -14,10 +15,10 @@ import com.acmerobotics.dashboard.config.Config;
 @Configurable
 @Config
 public class Turret {
-	public static double BASE_ROTATION = 0.4;
+	public static double BASE_ROTATION = 0.5;
 
-	public static double min_rotation = 0.1;
-	public static double max_rotation = 0.7;
+	public static double min_rotation = 0.0;
+	public static double max_rotation = 1.0;
 	public static double rotation_increment = 0.005;
 	public static double rotation_per_deg = 0.205/90;
 	public static double vision_offset = 0.0;
@@ -28,7 +29,8 @@ public class Turret {
 	private static double rotation = BASE_ROTATION;
 
 	public Turret(HardwareMap hardwareMap) {
-		turretYawServo1 = new AxonServo(hardwareMap.get(Servo.class, "turretYawServo1"));
+		turretYawServo1 = new AxonServo(hardwareMap.get(Servo.class, "turretYawServo1"),
+			hardwareMap.get(AnalogInput.class, "turretAnalog1"));
 		turretYawServo2 = new AxonServo(hardwareMap.get(Servo.class, "turretYawServo2"));
 		turretYawServo1.setDirection(Servo.Direction.FORWARD);
 		turretYawServo2.setDirection(Servo.Direction.FORWARD);
@@ -39,13 +41,18 @@ public class Turret {
 		// Exists for future use
 	}
 
+	public void update() {
+		turretYawServo1.update();
+		turretYawServo2.update();
+	}
+
 	/*
 	 * Getter methods
 	 */
 
 	public double getRotation() {
 		Double servo1Angle = turretYawServo1.getAngle();
-		Double servo2Angle = turretYawServo2.getAngle() - (turretYawServo2.fullTurnDegrees / 2);
+		Double servo2Angle = turretYawServo2.getAngle();
 
 		double count = 0;
 		double servo1AngleTurret = 0;

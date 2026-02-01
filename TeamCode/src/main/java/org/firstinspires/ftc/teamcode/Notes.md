@@ -3,7 +3,7 @@ spindexer: 0.4 power; 6,0,0 pid; 128 increment\
 shooter power: 0.85; __velocity: 2200 far__, 1760 middle\
 intake: 0.8
 gate: 0.318 = closed; 0.355 = open; 0.33 = middle\
-hood: positive = up. 0.4 = lower; 0.73 = highest\
+hood: positive = up. 0.15 = lower; 0.45 = highest\
 \
 transfer ramp left: lower = out. 0.83 = in; 0.43 = out\
 transer ramp right: 0.533 = out; 0.47 = in\

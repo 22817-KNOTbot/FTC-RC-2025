@@ -1,18 +1,14 @@
 package org.firstinspires.ftc.teamcode.testing;
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
-
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-
-import com.acmerobotics.dashboard.config.Config;
 
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
+import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 @Configurable
 @Config
@@ -31,13 +27,17 @@ public class TurretTesting extends LinearOpMode {
 
 	@Override
 	public void runOpMode() {
-		telemetry = new JoinedTelemetry(PanelsTelemetry.INSTANCE.getFtcTelemetry(), telemetry);
+		TelemetryManager telemetryManager = new TelemetryManager();
+		telemetryManager.setFtcFastTelemetry(this);
+		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
+		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 
 		turret = new Turret(hardwareMap);
 
 		waitForStart();
 
 		while (opModeIsActive()) {
+			turret.update();
 			if (mode == Mode.ABSOLUTE) {
 				turret.setRotation(rotation);
 			} else if (mode == Mode.RELATIVE) {
@@ -45,9 +45,9 @@ public class TurretTesting extends LinearOpMode {
 				rotateVector = 0;
 			}
 
-			telemetry.addData("Rotation", Turret.getTargetRotation());
-			telemetry.addData("Rotation", turret.getRotation());
-			telemetry.update();
+			telemetryManager.addData("Rotation", Turret.getTargetRotation());
+			telemetryManager.addData("Analog Rotation", turret.getRotation());
+			telemetryManager.update();
 		}
 	}
 }
