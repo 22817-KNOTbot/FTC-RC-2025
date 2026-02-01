@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -32,6 +33,7 @@ public class Storage {
 	public static double intakeGateTurnPosition = 0.33;
 	public static double transferRampOutPosition = 0.527;
 	public static double transferRampInPosition = 0.465;
+	public static int colourCacheTimeMs = 100;
 	
 	private static int numOfArtifacts = 0;
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
@@ -46,6 +48,9 @@ public class Storage {
 	private Servo intakeGate;
 	private Servo transferRamp;
 	private ElapsedTime timer;
+
+	private NormalizedRGBA cachedColours;
+	private long lastColourUpdateTime;
 
 	public enum IntakeState {
 		IDLE, 
@@ -436,7 +441,7 @@ public class Storage {
 				}
 				break;
 			case TURNING:
-				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 3) {
+				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 1) {
 					timer.reset();
 					transferState = TransferState.RESET;
 				}				
@@ -479,9 +484,9 @@ public class Storage {
 
 	// Returns null if unknown
 	public Colour getArtifactColour() {
-		int red = getRed();
-		int green = getGreen();
-		int blue = getBlue();
+		double red = getRed();
+		double green = getGreen();
+		double blue = getBlue();
 		Colour colour = null;
 		if (colourSensorResponding()) {
 			if (red < green && green < blue && blue > red) {
@@ -493,16 +498,25 @@ public class Storage {
 		return colour;
 	}
 
-	public int getRed() {
-		return colourSensor.red();
+	public float getRed() {
+		return getColours().red;
 	}
 
-	public int getGreen() {
-		return colourSensor.green();
+	public float getGreen() {
+		return getColours().green;
 	}
 
-	public int getBlue() {
-		return colourSensor.blue();
+	public float getBlue() {
+		return getColours().blue;
+	}
+
+	public NormalizedRGBA getColours() {
+		long currentTime = System.currentTimeMillis();
+		if (currentTime - lastColourUpdateTime > colourCacheTimeMs) {
+			lastColourUpdateTime = currentTime;
+			cachedColours = colourSensor.getNormalizedColors();		
+		}
+		return cachedColours;
 	}
 
 	public boolean colourSensorResponding() {

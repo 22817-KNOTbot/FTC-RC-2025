@@ -82,7 +82,7 @@ public class TeleOp extends LinearOpMode {
 			hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 		}
 
-		automationHandler = new Automations(hardwareMap, alliance, DEBUG);
+		automationHandler = new Automations(hardwareMap, alliance, false, DEBUG);
 		automationHandler.setGamepads(gamepad1, gamepad2);
 		mecanumDrive = new MecanumDrive(hardwareMap);
 

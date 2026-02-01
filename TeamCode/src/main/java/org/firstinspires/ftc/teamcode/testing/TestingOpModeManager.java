@@ -32,17 +32,22 @@ public final class TestingOpModeManager {
 			return;
 
 		List<Class<? extends OpMode>> opModes = Arrays.asList(
+			ArtifactDetection.class,
 			AutoAlignTesting.class,
+			AxonServoTesting.class,
 			BasicDriveTesting.class,
 			ColourTesting.class,
+			ColourLoopTesting.class,
 			HubLedTesting.class,
 			IntakeTesting.class,
+			LimelightPoseTesting.class,
 			ManualIndividualControl.class,
 			MecanumDriveTesting.class,
 			MotifDecodeTesting.class,
 			MotorPositionTesting.class,
 			MotorTesting.class,
 			MotorTwoTesting.class,
+			PwmTesting.class,
 			ServoTesting.class,
 			ServoTwoTesting.class,
 			ShooterTesting.class,

@@ -69,7 +69,11 @@ public class Automations {
 		this(hardwareMap, alliance, false);
 	}
 
-	public Automations(HardwareMap hardwareMap, Alliance alliance, boolean DEBUG) {
+	public Automations(HardwareMap hardwareMap, Alliance alliance, boolean resetEncoders) {
+		this(hardwareMap, alliance, false, false);
+	}
+
+	public Automations(HardwareMap hardwareMap, Alliance alliance, boolean resetEncoders, boolean DEBUG) {
 		this.hardwareMap = hardwareMap;
 		this.alliance = alliance;
 		this.DEBUG = DEBUG;
@@ -77,7 +81,7 @@ public class Automations {
 		this.stateTimer = new ElapsedTime();
 		this.ejectTimer = new ElapsedTime();
 		intake = new Intake(hardwareMap);
-		storage = new Storage(hardwareMap, DEBUG);
+		storage = new Storage(hardwareMap, resetEncoders);
 		turret = new Turret(hardwareMap);
 		shooter = new Shooter(hardwareMap);
 
@@ -120,7 +124,7 @@ public class Automations {
 
 	// Code that should be run on start but not during init
 	public void start() {
-		setShooterEnabled(true);
+		// setShooterEnabled(true);
 		storage.storageMotorEnable(true);
 		storage.start();
 	}
