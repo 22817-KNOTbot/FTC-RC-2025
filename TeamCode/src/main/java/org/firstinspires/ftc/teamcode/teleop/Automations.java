@@ -236,7 +236,7 @@ public class Automations {
 
 	// Should be called to update the shooter velocity
 	public void updateShooter() {
-		shooter.updateVelocityTarget(pose.distanceFrom(alliance.getGoalShooterPose()));
+		shooter.updateShooterTarget(pose, alliance.getGoalShooterPose());
 		if (inShootingArea()) {
 			setShooterEnabled(true);
 			switch (getShootingArea()) {
@@ -467,10 +467,6 @@ public class Automations {
 
 	public double getShooterDesiredVelocity() {
 		return shooter.desiredVelocity;
-	}
-
-	public double getShooterVelocityTargetAtDistance(double distance) {
-		return shooter.getVelocityTarget(distance);
 	}
 
 	public Artifact.Pattern getArtifactPattern() {

@@ -51,22 +51,18 @@ public class Shooter {
 
 	private static double pitch = min_pitch;
 
-	private static final InterpolatedLUT<Double> velocityLUT = new InterpolatedLUT<Double>();
+	// Angle to servo value
+	private static final InterpolatedLUT<Double> hoodAngleLUT = new InterpolatedLUT<Double>();
 
 	static {
-		Pose goalShooterPose = new Pose(144, 144);
-		velocityLUT.add(
-			velocityLUT.new Entry(new Pose(72, 72).distanceFrom(goalShooterPose), 1750d),
-			velocityLUT.new Entry(new Pose(72, 135).distanceFrom(goalShooterPose), 1600d),
-			velocityLUT.new Entry(new Pose(72, 9).distanceFrom(goalShooterPose), 2100d),
-			velocityLUT.new Entry(new Pose(48, 9).distanceFrom(goalShooterPose), 2150d),
-			velocityLUT.new Entry(new Pose(72, 24).distanceFrom(goalShooterPose), 2000d),
-			velocityLUT.new Entry(new Pose(72, 48).distanceFrom(goalShooterPose), 1850d),
-			velocityLUT.new Entry(new Pose(72, 96).distanceFrom(goalShooterPose), 1650d),
-			velocityLUT.new Entry(new Pose(72, 120).distanceFrom(goalShooterPose), 1600d),
-			velocityLUT.new Entry(new Pose(96, 96).distanceFrom(goalShooterPose), 1600d),
-			velocityLUT.new Entry(new Pose(96, 9).distanceFrom(goalShooterPose), 1980d),
-			velocityLUT.new Entry(new Pose(96, 11).distanceFrom(goalShooterPose), 1900d)
+		hoodAngleLUT.add(
+			hoodAngleLUT.new Entry(29, 0.15),
+			hoodAngleLUT.new Entry(31, 0.21),
+			hoodAngleLUT.new Entry(35, 0.27),
+			hoodAngleLUT.new Entry(36, 0.3),
+			hoodAngleLUT.new Entry(38, 0.35),
+			hoodAngleLUT.new Entry(39, 0.4),
+			hoodAngleLUT.new Entry(40, 0.45)
 		);
 	}
 
@@ -107,7 +103,7 @@ public class Shooter {
 		return projectileVelocity;
 	}
 
-	public void updateShooterTarget(Pose robotPose, Pose targetPose, double distance) {
+	public void updateShooterTarget(Pose robotPose, Pose targetPose) {
 		updateShooterTarget(robotPose, targetPose, new Vector());
 	}
 
@@ -136,19 +132,6 @@ public class Shooter {
 
 		desiredVelocity = convertProjectileToShooterVelocity(newV0);
 		setPitchAngle(newAngle);
-	}
-
-	public void updateVelocityTarget(double distance) {
-		desiredVelocity = getVelocityTarget(distance);
-	}
-
-	public double getVelocityTarget(double distance) {
-		// Using linear interpolation
-		if (velocityLUT != null) {
-			return velocityLUT.get(distance);
-		} else {
-			return defaultVelocity;
-		}
 	}
 
 	public void updateVelocityPid() {
@@ -188,7 +171,11 @@ public class Shooter {
 	}
 
 	public void setPitchAngle(double angle) {
-		// TODO: Create equation based on testing
+		Double hoodPosition = hoodAngleLUT.get(angle);
+		if (hoodPosition == null) {
+			return;
+		}
+		setPitch(hoodPosition);
 	}
 
 	public void setPitch(double pitchTarget) {
