@@ -56,19 +56,18 @@ public class Shooter {
 
 	static {
 		hoodAngleLUT.add(
-			hoodAngleLUT.new Entry(29, 0.15),
-			hoodAngleLUT.new Entry(31, 0.21),
-			hoodAngleLUT.new Entry(35, 0.27),
-			hoodAngleLUT.new Entry(36, 0.3),
-			hoodAngleLUT.new Entry(38, 0.35),
-			hoodAngleLUT.new Entry(39, 0.4),
-			hoodAngleLUT.new Entry(40, 0.45)
+			hoodAngleLUT.new Entry(61, 0.15),
+			hoodAngleLUT.new Entry(59, 0.21),
+			hoodAngleLUT.new Entry(55, 0.27),
+			hoodAngleLUT.new Entry(54, 0.3),
+			hoodAngleLUT.new Entry(52, 0.35),
+			hoodAngleLUT.new Entry(51, 0.4),
+			hoodAngleLUT.new Entry(50, 0.45)
 		);
 	}
 
 	public Shooter(HardwareMap hardwareMap) {
 		shooterMotorLeft = hardwareMap.get(DcMotorEx.class, "shooterMotorLeft");
-		shooterMotorLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 		shooterMotorLeft.setDirection(DcMotorEx.Direction.REVERSE);
 		shooterMotorRight = hardwareMap.get(DcMotorEx.class, "shooterMotorRight");
 
