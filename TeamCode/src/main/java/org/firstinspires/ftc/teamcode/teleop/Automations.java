@@ -120,26 +120,22 @@ public class Automations {
 		shooter.updateVelocityPid();
 		if (storageState == StorageState.WAITING && intakeEnabled) {
 			storageState = StorageState.INTAKING;
-			if (storage.storageFull()) {
+		} else if (storageState == StorageState.INTAKING) {
+			if (storage.intakeUpdate()) {
 				vibrateControllers();
 				intake.enableReversed(true);
 				intakeEnabled = false;
 				intakeTimedEjecting = true;
 				ejectTimer.reset();
-			}
-		} else if (storageState == StorageState.INTAKING) {
-			if (storage.intakeUpdate()) {
 				storageState = StorageState.WAITING;
 			}
 		} else if (storageState == StorageState.TURNING_TRANSFER && !storage.isMotorBusy()) {
 			shootActiveArtifact();
+			storage.transferStart();
 			stateTimer.reset();
 		} else if (storageState == StorageState.TRANSFERRING) {
 			// Pause transfer updates while waiting to reach velocity
-			// WIP: fix WAITING VELOCIRY turnning issue
-			if (storage.getTransferState() != Storage.TransferState.WAITING_VELOCITY || isShooterAtVelocity() || ignoreVelocity) {
-				storage.transferUpdate();
-			}
+			storage.transferUpdate((isShooterAtVelocity() || ignoreVelocity));
 			if (storage.getTransferState() == Storage.TransferState.RESET) {
 				if (transferAll && Storage.getActiveArtifact() != null) {
 					if (isShooterAtVelocity()) {

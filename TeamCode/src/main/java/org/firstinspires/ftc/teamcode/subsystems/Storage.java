@@ -42,8 +42,9 @@ public class Storage {
 	private NormalizedRGBA cachedColoursActive;
 	private NormalizedRGBA cachedColoursBackLeft;
 	private NormalizedRGBA cachedColoursBackRight;
-	private long lastColourUpdateTime;
-
+	private long lastActiveColourUpdateTime;
+	private long lastBackLeftColourUpdateTime;
+	private long lastBackRightColourUpdateTime;
 
 	private DcMotorEx storageMotor;
 	private ColorRangeSensor colourSensorActive;
@@ -173,8 +174,8 @@ public class Storage {
 			artifactStored.set(0, getActiveArtifact());
 			artifactStored.set(1, getBackLeftArtifact());
 			artifactStored.set(2, getBackRightArtifact());
-			//get the colour for the other slots
 			numOfArtifacts = getNumOfArtifacts();
+			return true;
 		}
 		return false;
 	}
@@ -293,9 +294,6 @@ public class Storage {
 				numOfArtifacts -= 1;
 			}
 			artifactStored.set(0, null);
-			storageTurnCCW();
-			timer.reset();
-			transferState = TransferState.WAITING_VELOCITY;
 			return true;
 		} else {
 			return false;
@@ -306,12 +304,14 @@ public class Storage {
 		return transferStart(false);
 	}
 
-	public void transferUpdate() {
+	public void transferUpdate(boolean start) {
 		switch (transferState) {
 			case WAITING_VELOCITY:
-				transferStart(false);
-				transferState = TransferState.TURNING;
-				timer.reset();
+				if (start){
+					storageTurnCCW();
+					timer.reset();
+					transferState = TransferState.TURNING;
+				}
 			case TURNING:
 				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 2) {
 					timer.reset();
@@ -401,28 +401,25 @@ public class Storage {
 	}
 
 	public NormalizedRGBA getColoursActive() {
-		long currentTime = System.currentTimeMillis();
-		if (currentTime - lastColourUpdateTime > colourCacheTimeMs) {
-			lastColourUpdateTime = currentTime;
+		if (System.currentTimeMillis() - lastActiveColourUpdateTime > colourCacheTimeMs) {
 			cachedColoursActive = colourSensorActive.getNormalizedColors();
+			lastActiveColourUpdateTime = System.currentTimeMillis();
 		}
 		return cachedColoursActive;
 	}
 
 	public NormalizedRGBA getColoursBackLeft() {
-		long currentTime = System.currentTimeMillis();
-		if (currentTime - lastColourUpdateTime > colourCacheTimeMs) {
-			lastColourUpdateTime = currentTime;
+		if (System.currentTimeMillis() - lastBackLeftColourUpdateTime > colourCacheTimeMs) {
 			cachedColoursBackLeft = colourSensorBackLeft.getNormalizedColors();
+			lastBackLeftColourUpdateTime = System.currentTimeMillis();
 		}
 		return cachedColoursBackLeft;
 	}
 
 	public NormalizedRGBA getColoursBackRight() {
-		long currentTime = System.currentTimeMillis();
-		if (currentTime - lastColourUpdateTime > colourCacheTimeMs) {
-			lastColourUpdateTime = currentTime;
+		if (System.currentTimeMillis() - lastBackRightColourUpdateTime > colourCacheTimeMs) {
 			cachedColoursBackRight = colourSensorBackRight.getNormalizedColors();
+			lastBackRightColourUpdateTime = System.currentTimeMillis();
 		}
 		return cachedColoursBackRight;
 	}
