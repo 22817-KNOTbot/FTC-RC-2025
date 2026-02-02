@@ -8,15 +8,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.TreeSet;
-
 import com.acmerobotics.dashboard.config.Config;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.util.ControlTheory.Pidf;
+import org.firstinspires.ftc.teamcode.util.InterpolatedLUT;
 
 @Configurable
 @Config
@@ -54,61 +51,23 @@ public class Shooter {
 
 	private static double pitch = min_pitch;
 
-	public static class VelocityEntries {
-		private TreeSet<VelocityEntry> entries;
-
-		public static class VelocityEntry {
-			public double distance;
-			public double velocity;
-
-			public VelocityEntry(double distance, double velocity) {
-				this.distance = distance;
-				this.velocity = velocity;
-			}
-		}
-
-		public VelocityEntries() {
-			entries = new TreeSet<VelocityEntry>(new Comparator<VelocityEntry>() {
-				@Override
-				public int compare(VelocityEntry entry1, VelocityEntry entry2) {
-					return (int) Math.signum(entry1.distance - entry2.distance);
-				}
-			});
-		}
-
-		public void add(VelocityEntry entry) {
-			entries.add(entry);
-		}
-
-		public VelocityEntry[] getNearestEntries(double distance) {
-			VelocityEntry compareEntry = new VelocityEntry(distance, 0);
-			VelocityEntry lastEntry = entries.floor(compareEntry);
-			VelocityEntry nextEntry = entries.ceiling(compareEntry);
-			if (lastEntry == null)
-				lastEntry = nextEntry;
-			if (nextEntry == null)
-				nextEntry = lastEntry;
-			return new VelocityEntry[] { lastEntry, nextEntry };
-		}
-	}
-
-	private static final VelocityEntries velocityEntries;
+	private static final InterpolatedLUT<Double> velocityLUT = new InterpolatedLUT<Double>();
 
 	static {
 		Pose goalShooterPose = new Pose(144, 144);
-		velocityEntries = new VelocityEntries();
-		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 72).distanceFrom(goalShooterPose), 1750));
-		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 135).distanceFrom(goalShooterPose), 1600));
-		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 9).distanceFrom(goalShooterPose), 2100));
-		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(48, 9).distanceFrom(goalShooterPose), 2150));
-		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 24).distanceFrom(goalShooterPose), 2000));
-		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 48).distanceFrom(goalShooterPose), 1850));
-		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 96).distanceFrom(goalShooterPose), 1650));
-		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(72, 120).distanceFrom(goalShooterPose), 1600));
-
-		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(96, 96).distanceFrom(goalShooterPose), 1600));
-		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(96, 9).distanceFrom(goalShooterPose), 1980));
-		velocityEntries.add(new VelocityEntries.VelocityEntry(new Pose(96, 11).distanceFrom(goalShooterPose), 1900));
+		velocityLUT.add(
+			velocityLUT.new Entry(new Pose(72, 72).distanceFrom(goalShooterPose), 1750d),
+			velocityLUT.new Entry(new Pose(72, 135).distanceFrom(goalShooterPose), 1600d),
+			velocityLUT.new Entry(new Pose(72, 9).distanceFrom(goalShooterPose), 2100d),
+			velocityLUT.new Entry(new Pose(48, 9).distanceFrom(goalShooterPose), 2150d),
+			velocityLUT.new Entry(new Pose(72, 24).distanceFrom(goalShooterPose), 2000d),
+			velocityLUT.new Entry(new Pose(72, 48).distanceFrom(goalShooterPose), 1850d),
+			velocityLUT.new Entry(new Pose(72, 96).distanceFrom(goalShooterPose), 1650d),
+			velocityLUT.new Entry(new Pose(72, 120).distanceFrom(goalShooterPose), 1600d),
+			velocityLUT.new Entry(new Pose(96, 96).distanceFrom(goalShooterPose), 1600d),
+			velocityLUT.new Entry(new Pose(96, 9).distanceFrom(goalShooterPose), 1980d),
+			velocityLUT.new Entry(new Pose(96, 11).distanceFrom(goalShooterPose), 1900d)
+		);
 	}
 
 	public Shooter(HardwareMap hardwareMap) {
@@ -185,21 +144,8 @@ public class Shooter {
 
 	public double getVelocityTarget(double distance) {
 		// Using linear interpolation
-		if (velocityEntries != null) {
-			VelocityEntries.VelocityEntry[] nearestEntries = velocityEntries.getNearestEntries(distance);
-			VelocityEntries.VelocityEntry lowerEntry = nearestEntries[0];
-			VelocityEntries.VelocityEntry higherEntry = nearestEntries[1];
-
-			double distanceDifference = higherEntry.distance - lowerEntry.distance;
-			double distanceFraction = (distance - lowerEntry.distance) / distanceDifference;
-
-			double velocityDifference = higherEntry.velocity - lowerEntry.velocity;
-
-			if (distanceDifference != 0) {
-				return (distanceFraction * velocityDifference) + lowerEntry.velocity + velocityConstant;
-			} else {
-				return lowerEntry.velocity + velocityConstant;
-			}
+		if (velocityLUT != null) {
+			return velocityLUT.get(distance);
 		} else {
 			return defaultVelocity;
 		}
