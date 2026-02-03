@@ -62,11 +62,7 @@ public class AutoAlign {
 
 		List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
 		for (AprilTagDetection detection : detections) {
-			if (aprilTagId == null) {
-				targetedAprilTag = detection;
-				break;
-			}
-			if (detection.id == aprilTagId) {
+			if (aprilTagId == null || detection.id == aprilTagId) {
 				targetedAprilTag = detection;
 				break;
 			}

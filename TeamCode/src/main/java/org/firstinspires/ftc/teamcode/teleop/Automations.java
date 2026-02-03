@@ -50,6 +50,7 @@ public class Automations {
 	private boolean transferAll;
 	private boolean visionOverridingTurret;
 	private boolean visionOverridedTurret;
+	private boolean useVision = true;
 
 	public enum StorageState {
 		WAITING,
@@ -58,11 +59,21 @@ public class Automations {
 		TRANSFERRING
 	}
 
+	public enum ShootingZone {
+		UPPER,
+		LOWER,
+		NONE
+	}
+
 	public Automations(HardwareMap hardwareMap, Alliance alliance) {
 		this(hardwareMap, alliance, false);
 	}
 
-	public Automations(HardwareMap hardwareMap, Alliance alliance, boolean DEBUG) {
+	public Automations(HardwareMap hardwareMap, Alliance alliance, boolean resetEncoders) {
+		this(hardwareMap, alliance, false, false);
+	}
+
+	public Automations(HardwareMap hardwareMap, Alliance alliance, boolean resetEncoders, boolean DEBUG) {
 		this.hardwareMap = hardwareMap;
 		this.alliance = alliance;
 		this.DEBUG = DEBUG;
@@ -70,16 +81,20 @@ public class Automations {
 		this.stateTimer = new ElapsedTime();
 		this.ejectTimer = new ElapsedTime();
 		intake = new Intake(hardwareMap);
-		storage = new Storage(hardwareMap, true);
+		storage = new Storage(hardwareMap, resetEncoders);
 		turret = new Turret(hardwareMap);
 		shooter = new Shooter(hardwareMap);
 
 		Vision.DEBUG = DEBUG;
 		vision = new Vision(hardwareMap, null);
+		vision.setMotifPrioritySide(alliance.getObeliskSidePriority());
+		vision.setTargetAprilTagId(alliance.getGoalAprilTagId());
 	}
-
+	
 	public void setAlliance(Alliance alliance) {
 		this.alliance = alliance;
+		vision.setMotifPrioritySide(alliance.getObeliskSidePriority());
+		vision.setTargetAprilTagId(alliance.getGoalAprilTagId());
 	}
 
 	public void setGamepads(Gamepad gamepad1, Gamepad gamepad2) {
@@ -92,6 +107,7 @@ public class Automations {
 		telemetry.addData("Shooter Desired Velocity", shooter.desiredVelocity);
 		telemetry.addData("Distance", pose.distanceFrom(alliance.getGoalPose()));
 		telemetry.addData("Intake timed ejecting", intakeTimedEjecting);
+		telemetry.addData("Using vision", useVision);
 		telemetry.addData("Vision Alignment Direction", vision.getAlignmentDirection());
 		storage.showTelemetry(telemetry);
 		telemetryManager = telemetry;
@@ -103,11 +119,12 @@ public class Automations {
 		intakeTimedEjecting = false;
 		intake.enable(false);
 		storage.abort();
+		setVisionOverrideEnabled(false);
 	}
 
 	// Code that should be run on start but not during init
 	public void start() {
-		setShooterEnabled(true);
+		// setShooterEnabled(true);
 		storage.storageMotorEnable(true);
 		storage.start();
 	}
@@ -115,8 +132,8 @@ public class Automations {
 	// Should be called every loop. Handles various things
 	// that need to be called repeatedly
 	public void automationLoop() {
-		vision.updateMotifPattern();
-		pattern = vision.getLastMotifPattern();
+		updateMotifPattern();
+
 		shooter.updateVelocityPid();
 		if (storageState == StorageState.WAITING && intakeEnabled) {
 			storageState = StorageState.INTAKING;
@@ -148,7 +165,7 @@ public class Automations {
 					intake.enable(false);
 					storageState = StorageState.WAITING;
 				}
-			} 
+			}
 		}
 
 		if (intakeTimedEjecting && ejectTimer.time() > 0.5) {
@@ -169,21 +186,27 @@ public class Automations {
 			Vector turretOffset = pose.getHeadingAsUnitVector().times(4);
 			Pose turretPose = pose.plus(new Pose(turretOffset.getXComponent(), turretOffset.getYComponent()));
 			Pose poseDifference = goalPose.minus(turretPose);
-	
+
 			// Converting to normal coordinate system where
 			// 0 = up, increases clockwise; In radians
 			double robotAngle = (0.5 * Math.PI) - pose.getHeading();
 			robotAngle = robotAngle % (2 * Math.PI);
 			double targetAngle = Math.atan2(poseDifference.getX(), poseDifference.getY());
-	
+
 			double angleDifference = targetAngle - robotAngle;
 			double normalizedAngle = angleDifference - (Math.ceil((angleDifference + Math.PI) / (2 * Math.PI)) - 1)
 					* 2 * Math.PI;
-	
+
 			double targetRotation = Turret.BASE_ROTATION + Math.toDegrees(normalizedAngle) * Turret.rotation_per_deg;
 			turret.setRotation(targetRotation);
 		} else {
-			if (visionOverridedTurret) return;
+			if (!useVision) {
+				setVisionOverrideEnabled(false);
+				updateTurret();
+				return;
+			}
+			if (visionOverridedTurret)
+				return;
 
 			AlignmentDirection direction = vision.getAlignmentDirection();
 			if (!direction.directionKnown) {
@@ -192,7 +215,7 @@ public class Automations {
 			}
 			double bearing = direction.bearing;
 
-			double targetRotation = Turret.getRotation() - (bearing * Turret.rotation_per_deg);
+			double targetRotation = Turret.getRotation() - (bearing * Turret.rotation_per_deg) + Turret.vision_offset;
 			turret.setRotation(targetRotation);
 			visionOverridedTurret = true;
 		}
@@ -203,6 +226,15 @@ public class Automations {
 		shooter.updateVelocityTarget(pose.distanceFrom(alliance.getGoalShooterPose()));
 		if (inShootingArea()) {
 			setShooterEnabled(true);
+			switch (getShootingArea()) {
+				case UPPER:
+					turret.setPitch(Turret.max_pitch);
+					break;
+				case LOWER:
+					turret.setPitch(Turret.min_pitch);
+				default:
+					break;
+			}
 		} else {
 			setShooterEnabled(false);
 		}
@@ -218,6 +250,11 @@ public class Automations {
 		this.velocity = velocity;
 	}
 
+	public void updateMotifPattern() {
+		vision.updateMotifPattern();
+		pattern = vision.getLastMotifPattern();
+	}
+
 	public void intakeEnable(boolean enable) {
 		intake.enable(enable);
 		intakeEnabled = enable;
@@ -227,6 +264,10 @@ public class Automations {
 
 	public void intakeToggle() {
 		intakeEnable(!intakeEnabled);
+	}
+
+	public void intakeEnableActions(boolean enable) {
+		intakeEnable(enable);
 	}
 
 	public void intakeEject() {
@@ -263,6 +304,19 @@ public class Automations {
 		return false;
 	}
 
+	public Storage.TurnDirection prepareOrShootArtifactSequence(Artifact.Colour[] sequence) {
+		Storage.TurnDirection turnDirection = storage.turnToArtifactSequence(sequence);
+		if (turnDirection == Storage.TurnDirection.AVAILABLE) {
+			shootActiveArtifact();
+		} else if (turnDirection == Storage.TurnDirection.NONE) {
+			vibrateControllers();
+		} else {
+			stateTimer.reset();
+			storageState = StorageState.TURNING_TRANSFER;
+		}
+		return turnDirection;
+	}
+
 	public boolean prepareOrShootAnyArtifact() {
 		Storage.TurnDirection turnDirection = storage.turnToAnyArtifact();
 		if (turnDirection == Storage.TurnDirection.AVAILABLE) {
@@ -287,6 +341,11 @@ public class Automations {
 
 	public void setRapidFire(boolean enabled) {
 		transferAll = enabled;
+		if (enabled) {
+			setTransferMode(Storage.TransferMode.FULL_SPIN);
+		} else {
+			setTransferMode(Storage.TransferMode.NORMAL);
+		}
 	}
 
 	public void shootActiveArtifact(boolean force) {
@@ -313,6 +372,14 @@ public class Automations {
 
 	public boolean colourSensorsResponding() {
 		return storage.colourSensorsResponding();
+	}
+
+	public void setTurretRotationDegrees(double positionDegrees) {
+		turret.setRotation(Turret.BASE_ROTATION + Turret.rotation_per_deg * positionDegrees);
+	}
+
+	public void setTurretRotation(double position) {
+		turret.setRotation(position);
 	}
 
 	public void rotateTurret(double vector) {
@@ -348,6 +415,10 @@ public class Automations {
 		return storage.getArtifactsStored();
 	}
 
+	public void setArtifactsStored(Colour[] colours) {
+		Storage.setArtifactsStored(colours);
+	}
+
 	public StorageState getStorageState() {
 		return storageState;
 	}
@@ -360,6 +431,10 @@ public class Automations {
 		return storage.getTransferState();
 	}
 
+	public void setTransferMode(Storage.TransferMode transferMode) {
+		storage.setTransferMode(transferMode);
+	}
+
 	public boolean getShooterEnabled() {
 		return shooterEnabled;
 	}
@@ -370,6 +445,10 @@ public class Automations {
 
 	public double getShooterDesiredVelocity() {
 		return shooter.desiredVelocity;
+	}
+
+	public double getShooterVelocityTargetAtDistance(double distance) {
+		return shooter.getVelocityTarget(distance);
 	}
 
 	public Artifact.Pattern getArtifactPattern() {
@@ -388,16 +467,40 @@ public class Automations {
 		this.ignoreVelocity = ignoreVelocity;
 	}
 
+	public void setUseVision(boolean useVision) {
+		this.useVision = useVision;
+	}
+
+	public boolean getVisionOverridingTurret() {
+		return visionOverridingTurret;
+	}
+
+	public boolean getVisionAlignmentKnown() {
+		return vision.getAlignmentDirection().directionKnown;
+	}
+
 	/*
 	 * Misc. util methods
 	 */
 
 	public boolean inShootingArea() {
+		return getShootingArea() != ShootingZone.NONE;
+	}
+
+	public ShootingZone getShootingArea() {
+		if (velocity == null) {
+			velocity = new Vector();
+		}
 		Pose futurePose = pose.plus(new Pose(velocity.getXComponent(), velocity.getYComponent()));
-		return ((futurePose.getY() - 72) + Shooter.shootingAreaTolerance >= Math.abs(futurePose.getX() - 72) ||
-				(pose.getY() - 72) + Shooter.shootingAreaTolerance >= Math.abs(pose.getX() - 72)) ||
-				((futurePose.getY() + (Math.abs(futurePose.getX() - 72)) <= 24 + Shooter.shootingAreaTolerance) ||
-				(pose.getY() + (Math.abs(pose.getX() - 72)) <= 24 + Shooter.shootingAreaTolerance));
+		if ((futurePose.getY() - 72) + Shooter.shootingAreaTolerance >= Math.abs(futurePose.getX() - 72) ||
+				(pose.getY() - 72) + Shooter.shootingAreaTolerance >= Math.abs(pose.getX() - 72)) {
+			return ShootingZone.UPPER;
+		} else if ((futurePose.getY() + (Math.abs(futurePose.getX() - 72)) <= 24 + Shooter.shootingAreaTolerance) ||
+				(pose.getY() + (Math.abs(pose.getX() - 72)) <= 24 + Shooter.shootingAreaTolerance)) {
+			return ShootingZone.LOWER;
+		} else {
+			return ShootingZone.NONE;
+		}
 	}
 
 	public void setShooterEnabled(boolean enabled) {

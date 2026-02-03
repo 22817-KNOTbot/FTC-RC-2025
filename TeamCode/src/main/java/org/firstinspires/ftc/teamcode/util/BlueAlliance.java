@@ -23,6 +23,10 @@ public class BlueAlliance implements Alliance {
 		return new Pose(0, 144, 0);
 	}
 
+	public Integer getGoalAprilTagId() {
+		return 20;
+	}
+
 	public double getHeadingOffset() {
 		return Math.PI;
 	}
@@ -33,5 +37,9 @@ public class BlueAlliance implements Alliance {
 	
 	public Pose getResetPose() {
 		return new Pose(135, 9, Math.PI);
+	}
+
+	public int getObeliskSidePriority() {
+		return 1;
 	}
 }

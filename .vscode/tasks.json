@@ -17,6 +17,19 @@
 			"problemMatcher": []
 		},
 		{
+			"label": "Disconnect from control hub",
+			"type": "shell",
+			"command": "adb disconnect 192.168.43.1 ",
+			"presentation": {
+				"reveal": "never",
+				"showReuseMessage": false,
+				"focus": false,
+				"close": true,
+				"group": "RC code send"
+			},
+			"problemMatcher": []
+		},
+		{
 			"type": "gradle",
 			"id": "${cwd}installDebugSoftware",
 			"script": "installDebug",

@@ -21,7 +21,13 @@ public class MecanumDrive {
 	private Pose autoDriveTarget;
 
 	public MecanumDrive(HardwareMap hardwareMap) {
+		// follower = Constants.createFollowerRoadRunner(hardwareMap);
 		follower = Constants.createFollower(hardwareMap);
+		follower.setStartingPose(new Pose());
+	}
+
+	public MecanumDrive(Follower follower) {
+		this.follower = follower;
 	}
 
 	public void initialize() {
@@ -85,11 +91,13 @@ public class MecanumDrive {
 
 	public void setStartingPose(Pose pose) {
 		follower.setStartingPose(pose);
+		// setPose(pose);
+		follower.update();
 	}
 
 	public void setPose(Pose pose){
 		follower.setPose(pose);
-		// follower.update();
+		follower.update();
 	}
 
 	public Pose getPose() {

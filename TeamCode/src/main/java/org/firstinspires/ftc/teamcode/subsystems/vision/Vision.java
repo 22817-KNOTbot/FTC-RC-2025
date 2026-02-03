@@ -85,6 +85,10 @@ public class Vision {
 		return motifDecodeProcessor.getLastPattern();
 	}
 
+	public void setMotifPrioritySide(Integer side) {
+		motifDecodeProcessor.setPrioritySide(side);
+	}
+
 	public void setTargetAprilTagId(Integer aprilTagId) {
 		autoAlignProcessor.setAprilTagId(aprilTagId);
 	}
