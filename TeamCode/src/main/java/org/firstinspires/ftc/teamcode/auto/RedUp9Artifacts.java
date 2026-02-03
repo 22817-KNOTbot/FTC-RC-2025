@@ -362,12 +362,10 @@ public class RedUp9Artifacts extends LinearOpMode {
 	public void readyToShoot() {
 		if (doActions) {
 			// automationHandler.setIgnoreVelocity(true);
-			automationHandler.setTransferMode(Storage.TransferMode.FULL_SPIN);
 			Pattern pattern = automationHandler.getArtifactPattern();
 			if (pattern != null) {
 				patternColours = pattern.getPattern();
 			}
-			automationHandler.setRapidFire(true);
 		}
 	}
 

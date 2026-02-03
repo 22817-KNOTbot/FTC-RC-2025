@@ -355,7 +355,6 @@ public class BlueLow9Artifacts extends LinearOpMode {
 			if (pattern != null) {
 				patternColours = pattern.getPattern();
 			}
-			automationHandler.setRapidFire(true);
 			automationHandler.setUseVision(false);
 		}
 	}
