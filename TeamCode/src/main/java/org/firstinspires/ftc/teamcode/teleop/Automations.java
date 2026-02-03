@@ -47,7 +47,7 @@ public class Automations {
 	private boolean intakeTimedEjecting;
 	private boolean shooterEnabled;
 	private boolean ignoreVelocity;
-	private boolean transferAll;
+	private boolean transferAll = true;
 	private boolean visionOverridingTurret;
 	private boolean visionOverridedTurret;
 	private boolean useVision = true;
@@ -148,7 +148,6 @@ public class Automations {
 			}
 		} else if (storageState == StorageState.TURNING_TRANSFER && !storage.isMotorBusy()) {
 			shootActiveArtifact();
-			storage.transferStart();
 			stateTimer.reset();
 		} else if (storageState == StorageState.TRANSFERRING) {
 			// Pause transfer updates while waiting to reach velocity
@@ -297,7 +296,6 @@ public class Automations {
 		} else if (turnDirection == Storage.TurnDirection.NONE) {
 			vibrateControllers();
 		} else {
-			// storage.gateUp();
 			stateTimer.reset();
 			storageState = StorageState.TURNING_TRANSFER;
 		}
@@ -339,18 +337,10 @@ public class Automations {
 		storage.storageTurnCCW();
 	}
 
-	public void setRapidFire(boolean enabled) {
-		transferAll = enabled;
-		if (enabled) {
-			setTransferMode(Storage.TransferMode.FULL_SPIN);
-		} else {
-			setTransferMode(Storage.TransferMode.NORMAL);
-		}
-	}
-
 	public void shootActiveArtifact(boolean force) {
 		shooter.enable(true);
 		setVisionOverrideEnabled(true);
+		storage.transferStart();
 		storageState = StorageState.TRANSFERRING;
 	}
 
@@ -429,10 +419,6 @@ public class Automations {
 
 	public Storage.TransferState getTransferState() {
 		return storage.getTransferState();
-	}
-
-	public void setTransferMode(Storage.TransferMode transferMode) {
-		storage.setTransferMode(transferMode);
 	}
 
 	public boolean getShooterEnabled() {

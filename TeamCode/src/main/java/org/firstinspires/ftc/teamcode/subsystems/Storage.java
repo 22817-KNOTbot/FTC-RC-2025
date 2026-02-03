@@ -48,7 +48,6 @@ public class Storage {
 	private long lastActiveColourUpdateTime;
 	private long lastBackLeftColourUpdateTime;
 	private long lastBackRightColourUpdateTime;
-	private TransferMode transferMode = TransferMode.NORMAL;
 
 	private DcMotorEx storageMotor;
 	private ColorRangeSensor colourSensorActive;
@@ -79,10 +78,6 @@ public class Storage {
 		CCW
 	}
 
-	public enum TransferMode {
-		NORMAL,
-		FULL_SPIN
-	}
 
 	public Storage(HardwareMap hardwareMap, boolean resetEncoder) {
 		colourSensorActive = hardwareMap.get(ColorRangeSensor.class, "colourSensorActive");
@@ -160,19 +155,11 @@ public class Storage {
 		return transferInit;
 	}
 
-	public TransferMode getTransferMode() {
-		return transferMode;
-	}
-
-	public void setTransferMode(TransferMode transferMode) {
-		this.transferMode = transferMode;
-	}
+	
 
 	/*
 	 * Storage
 	 */
-
-	//revamp intake process
 
 	public boolean intakeUpdate() {
 		updateStorageArtifacts();
@@ -321,14 +308,14 @@ public class Storage {
 		for (int i = 0; i < 3; i++) {
 			if (
 				artifactStored.get(i) == desiredSequence[0]
-				&& artifactStored.get((i + 2) % 3) == desiredSequence[1]
-				&& artifactStored.get((i + 1) % 3) == desiredSequence[2]
+				&& artifactStored.get((i + 1) % 3) == desiredSequence[1]
+				&& artifactStored.get((i + 2) % 3) == desiredSequence[2]
 			) {
 				switch (i) {
 					case 0:
 						return TurnDirection.AVAILABLE;
 					case 1:
-						storageTurnCCW();
+						storageDoubleTurnCW();
 						return TurnDirection.CCW;
 					case 2:
 						storageTurnCW();
@@ -376,10 +363,6 @@ public class Storage {
 	}
 
 	public void transferFinish() {
-		// transferRamp.setPosition(transferRampInPosition);
-		if (storageEmpty()) {
-			// gateDown();
-		}
 		transferState = TransferState.IDLE;
 		transferInit = false;
 	}

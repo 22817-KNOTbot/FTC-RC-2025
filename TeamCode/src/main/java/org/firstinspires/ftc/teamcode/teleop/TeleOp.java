@@ -156,7 +156,6 @@ public class TeleOp extends LinearOpMode {
 
 			if (gamepad1.xWasPressed()) {
 				boolean newRapidFireState = !automationHandler.getRapidFire();
-				automationHandler.setRapidFire(newRapidFireState);
 				automationHandler.vibrateControllersBlips(newRapidFireState ? 2 : 1);
 			}
 			if (!automationHandler.getRapidFire()) {
