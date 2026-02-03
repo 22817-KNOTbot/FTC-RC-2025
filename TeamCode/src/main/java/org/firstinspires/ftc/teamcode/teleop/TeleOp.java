@@ -208,15 +208,6 @@ public class TeleOp extends LinearOpMode {
 			if (gamepad2.dpadDownWasPressed()) {
 				manualTurretMode = !manualTurretMode;
 			}
-			if (gamepad2.dpadLeftWasPressed()) {
-				automationHandler.setVisionOverrideEnabled(true);
-				manualVisionOverrideTurret = true;
-			} else if (!gamepad2.dpad_left) {
-				if (manualVisionOverrideTurret) {
-					automationHandler.setVisionOverrideEnabled(false);
-					manualVisionOverrideTurret = false;
-				}
-			}
 			if (manualTurretMode && !manualVisionOverrideTurret) {
 				automationHandler.rotateTurret(gamepad2.left_stick_x);
 				automationHandler.pitchTurret(gamepad2.right_stick_y);

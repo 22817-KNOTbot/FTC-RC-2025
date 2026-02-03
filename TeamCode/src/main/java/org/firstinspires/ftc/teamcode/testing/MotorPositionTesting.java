@@ -19,7 +19,9 @@ import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 // @TeleOp(name="Motor position testing", group="Debug")
 public class MotorPositionTesting extends LinearOpMode {
 	public static String MOTOR_NAME = "testMotor";
+	public static String MOTOR_NAME_2 = "testMotor2";
 	public static double POWER = 0;
+	public static double POWER_2 = 0;
 	public static double VELOCITY = 0;
 	public static int TARGET = 0;
 	public static boolean resetEncoder = true;
@@ -39,6 +41,7 @@ public class MotorPositionTesting extends LinearOpMode {
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 
 		DcMotorEx motor = hardwareMap.get(DcMotorEx.class, MOTOR_NAME);
+		DcMotor motor2 = hardwareMap.get(DcMotor.class, MOTOR_NAME_2);
 		if (resetEncoder) {
 			motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		}
@@ -56,6 +59,8 @@ public class MotorPositionTesting extends LinearOpMode {
 			}
 			motor.setPower(POWER);
 			motor.setTargetPosition(TARGET);
+
+			motor2.setPower(POWER_2);
 
 			if (motor.getMode() == DcMotor.RunMode.RUN_USING_ENCODER) {
 				motor.setVelocity(VELOCITY);	

@@ -51,8 +51,6 @@ public class Automations {
 	private boolean shooterEnabled;
 	private boolean ignoreVelocity;
 	private boolean transferAll;
-	private boolean visionOverridingTurret;
-	private boolean visionOverridedTurret;
 	private boolean useVision = true;
 
 	public enum StorageState {
@@ -121,7 +119,6 @@ public class Automations {
 		intakeTimedEjecting = false;
 		intake.enable(false);
 		storage.abort();
-		setVisionOverrideEnabled(false);
 	}
 
 	// Code that should be run on start but not during init
@@ -174,7 +171,6 @@ public class Automations {
 					}
 				} else {
 					storage.transferFinish();
-					setVisionOverrideEnabled(false);
 					intake.enable(false);
 					storageState = StorageState.WAITING;
 				}
@@ -194,43 +190,30 @@ public class Automations {
 
 	// Should be called to update the turret
 	public void updateTurret() {
-		if (!visionOverridingTurret) {
+		AlignmentDirection direction = limelight.getAlignmentDirection();
+		if (!direction.directionKnown || !useVision) {
 			Pose goalPose = alliance.getGoalPose();
 			Vector turretOffset = pose.getHeadingAsUnitVector().times(4);
 			Pose turretPose = pose.plus(new Pose(turretOffset.getXComponent(), turretOffset.getYComponent()));
 			Pose poseDifference = goalPose.minus(turretPose);
-
+	
 			// Converting to normal coordinate system where
 			// 0 = up, increases clockwise; In radians
 			double robotAngle = (0.5 * Math.PI) - pose.getHeading();
 			robotAngle = robotAngle % (2 * Math.PI);
 			double targetAngle = Math.atan2(poseDifference.getX(), poseDifference.getY());
-
+	
 			double angleDifference = targetAngle - robotAngle;
 			double normalizedAngle = angleDifference - (Math.ceil((angleDifference + Math.PI) / (2 * Math.PI)) - 1)
 					* 2 * Math.PI;
-
+	
 			double targetRotation = Turret.BASE_ROTATION + Math.toDegrees(normalizedAngle) * Turret.rotation_per_deg;
 			turret.setRotation(targetRotation);
 		} else {
-			if (!useVision) {
-				setVisionOverrideEnabled(false);
-				updateTurret();
-				return;
-			}
-			if (visionOverridedTurret)
-				return;
-
-			AlignmentDirection direction = limelight.getAlignmentDirection();
-			if (!direction.directionKnown) {
-				setVisionOverrideEnabled(false);
-				return;
-			}
 			double bearing = direction.bearing;
 
 			double targetRotation = turret.getRotation() - (bearing * Turret.rotation_per_deg) + Turret.vision_offset;
 			turret.setRotation(targetRotation);
-			visionOverridedTurret = true;
 		}
 	}
 
@@ -375,7 +358,6 @@ public class Automations {
 
 	public void shootActiveArtifact(boolean force) {
 		shooter.enable(true);
-		setVisionOverrideEnabled(true);
 		if (!storage.getTransferInit()) {
 			storage.transferInit(force);
 		} else {
@@ -410,11 +392,6 @@ public class Automations {
 
 	public void clearStorageMemory() {
 		storage.clearStorageMemory();
-	}
-
-	public void setVisionOverrideEnabled(boolean enable) {
-		visionOverridingTurret = enable;
-		visionOverridedTurret = false;
 	}
 
 	public void engageBrakes(boolean engage) {
@@ -487,10 +464,6 @@ public class Automations {
 
 	public void setUseVision(boolean useVision) {
 		this.useVision = useVision;
-	}
-
-	public boolean getVisionOverridingTurret() {
-		return visionOverridingTurret;
 	}
 
 	public boolean getVisionAlignmentKnown() {

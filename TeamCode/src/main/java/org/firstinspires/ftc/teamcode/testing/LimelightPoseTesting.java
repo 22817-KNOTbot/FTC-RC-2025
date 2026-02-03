@@ -1,9 +1,5 @@
 package org.firstinspires.ftc.teamcode.testing;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
@@ -15,22 +11,17 @@ import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.field.Style;
 import com.bylazar.telemetry.PanelsTelemetry;
-import com.pedropathing.ftc.InvertedFTCCoordinates;
-import com.pedropathing.geometry.CoordinateSystem;
 import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.hardware.limelightvision.LLFieldMap;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.limelightvision.LLFieldMap.Fiducial;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.IMU;
 
 @Config
 @Configurable
 public class LimelightPoseTesting extends LinearOpMode {
 	public static int PIPELINE = 1;
+	public static boolean USE_MT1_HEADING = true;
 	public static int HEADING_DEG = 90; // 90 = obelisk, ccw positive
 
 	@Override
@@ -64,7 +55,9 @@ public class LimelightPoseTesting extends LinearOpMode {
 		while (opModeIsActive()) {
 			// double robotYaw = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 			// limelight.updateRobotOrientation(robotYaw);
-			limelight.updateRobotOrientation(HEADING_DEG);
+			if (!USE_MT1_HEADING) {
+				limelight.updateRobotOrientation(HEADING_DEG);
+			}
 			
 			LLResult result = limelight.getLatestResult();
 			if (result != null && result.isValid()) {
@@ -77,13 +70,18 @@ public class LimelightPoseTesting extends LinearOpMode {
 
 					Pose pedroPose = new Pose(y + 72, -x + 72, botpose.getOrientation().getYaw(AngleUnit.RADIANS) - Math.PI / 2);
 					Drawing.drawRobot(pedroPose.getAsCoordinateSystem(PedroCoordinates.INSTANCE), new Style("", "#47b53fff", 0.75), telemetryManager.getDashboardCanvas());
+
+					if (USE_MT1_HEADING) {
+						limelight.updateRobotOrientation(botpose.getOrientation().getYaw(AngleUnit.DEGREES));
+					}
 				}
 				if (botpose_mt2 != null) {
 					double x = botpose_mt2.getPosition().x / DistanceUnit.mPerInch;
 					double y = botpose_mt2.getPosition().y / DistanceUnit.mPerInch;
 					telemetryManager.addData("MT2 Location:", "(" + x + ", " + y + ")");
 
-					Pose pedroPose = new Pose(x + (72 - -100), y + (144 - 57), botpose_mt2.getOrientation().getYaw(AngleUnit.RADIANS));
+					// Pose pedroPose = new Pose(x + (72 - -100), y + (144 - 57), botpose_mt2.getOrientation().getYaw(AngleUnit.RADIANS));
+					Pose pedroPose = new Pose(y + 72, -x + 72, botpose.getOrientation().getYaw(AngleUnit.RADIANS) - Math.PI / 2);
 					Drawing.drawRobot(pedroPose, new Style("", "#3F51B5", 0.75), telemetryManager.getDashboardCanvas());
 
 					// Pose pedroPose = new Pose(x, y, botpose_mt2.getOrientation().getYaw(AngleUnit.RADIANS), InvertedFTCCoordinates.INSTANCE).getAsCoordinateSystem(PedroCoordinates.INSTANCE);
