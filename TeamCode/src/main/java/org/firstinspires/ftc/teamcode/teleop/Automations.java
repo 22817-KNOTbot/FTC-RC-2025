@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
 import org.firstinspires.ftc.teamcode.subsystems.Brakes;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Pto;
 import org.firstinspires.ftc.teamcode.subsystems.Storage;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
@@ -37,6 +38,7 @@ public class Automations {
 	private IntakeVision intakeVision;
 	private Limelight limelight;
 	private Brakes brakes;
+	private Pto pto;
 
 	private Gamepad gamepad1;
 	private Gamepad gamepad2;
@@ -91,6 +93,7 @@ public class Automations {
 		limelight = new Limelight(hardwareMap, alliance.getGoalAprilTagId());
 
 		brakes = new Brakes(hardwareMap);
+		pto = new Pto(hardwareMap);
 	}
 	
 	public void setAlliance(Alliance alliance) {
@@ -190,6 +193,9 @@ public class Automations {
 
 	// Should be called to update the turret
 	public void updateTurret() {
+		if (pto.getPtoEngaged()) {
+			return;
+		}
 		AlignmentDirection direction = limelight.getAlignmentDirection();
 		if (!direction.directionKnown || !useVision) {
 			Pose goalPose = alliance.getGoalPose();
@@ -398,6 +404,11 @@ public class Automations {
 		brakes.engageBrakes(engage);
 	}
 
+	public void setPtoEngaged(boolean engaged) {
+		turret.setRotation(Turret.max_rotation);
+		pto.setPtoEngaged(engaged);
+	}
+
 	/*
 	 * Getter methods
 	 */
@@ -468,6 +479,10 @@ public class Automations {
 
 	public boolean getVisionAlignmentKnown() {
 		return limelight.getAlignmentDirection().directionKnown;
+	}
+
+	public boolean getPtoEngaged() {
+		return pto.getPtoEngaged();
 	}
 
 	/*

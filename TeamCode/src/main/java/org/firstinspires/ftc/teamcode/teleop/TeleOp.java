@@ -5,11 +5,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.field.Style;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.knotbot.practiceapp.RobotEvent;
 import com.bylazar.gamepad.PanelsGamepad;
-import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
@@ -142,6 +140,17 @@ public class TeleOp extends LinearOpMode {
 
 			if (getRuntime() >= 100 || DEBUG || gamepad2.right_trigger > 0.9) {
 				mecanumDrive.setAutoDrive(gamepad1.left_bumper);
+				if (!automationHandler.getPtoEngaged() && gamepad1.dpadDownWasPressed()) {
+					automationHandler.setPtoEngaged(true);
+					mecanumDrive.setLifting(true);
+				} else if (automationHandler.getPtoEngaged()) {
+					if (gamepad1.dpadDownWasPressed()) {
+						automationHandler.setPtoEngaged(false);
+						mecanumDrive.setLifting(false);
+					} else {
+						mecanumDrive.liftControl(gamepad1.left_stick_y);
+					}
+				}
 			}
 			mecanumDrive.lockingMecanum(gamepad1.right_bumper);
 			automationHandler.engageBrakes(gamepad1.right_bumper);
