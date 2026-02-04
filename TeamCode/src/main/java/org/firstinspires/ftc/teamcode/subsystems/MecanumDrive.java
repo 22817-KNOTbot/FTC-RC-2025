@@ -44,7 +44,7 @@ public class MecanumDrive {
 	public void move(float forward, float lateral, float rotation) {
 		updateLocalizers();
 
-		if (autoDrive || lifting)
+		if (autoDrive)
 			return;
 
 		double denominator = Math.max(Math.abs(forward) + Math.abs(lateral) + Math.abs(rotation), 1);
