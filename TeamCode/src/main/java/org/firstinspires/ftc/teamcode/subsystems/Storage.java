@@ -306,20 +306,21 @@ public class Storage {
 		}
 
 		for (int i = 0; i < 3; i++) {
+			int startingIndex = (3 - i) % 3;
 			if (
-				artifactStored.get(i) == desiredSequence[0]
-				&& artifactStored.get((i + 1) % 3) == desiredSequence[1]
-				&& artifactStored.get((i + 2) % 3) == desiredSequence[2]
+				artifactStored.get(startingIndex) == desiredSequence[0]
+				&& artifactStored.get((startingIndex + 1) % 3) == desiredSequence[1]
+				&& artifactStored.get((startingIndex + 2) % 3) == desiredSequence[2]
 			) {
 				switch (i) {
 					case 0:
 						return TurnDirection.AVAILABLE;
 					case 1:
-						storageDoubleTurnCW();
-						return TurnDirection.CCW;
-					case 2:
 						storageTurnCW();
 						return TurnDirection.CW;
+					case 2:
+						storageDoubleTurnCW();
+						return TurnDirection.CCW;
 				}
 			}
 		}
