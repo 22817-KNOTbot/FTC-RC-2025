@@ -32,7 +32,8 @@ public class Storage {
 	public static int positionInterval = 128;
 	public static double storageMotorPower = 0.3;
 	public static double storageTolerance = 20;
-	public static double transferMotorPower = 0.4;
+	public static double transferMotorCWPower = 0.5;
+	public static double transferMotorCCWPower = 1;
 	
 	private static int numOfArtifacts = 0;
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
@@ -191,6 +192,7 @@ public class Storage {
 	}
 
 	public void storageTurnCW() {
+		storageMotor.setPower(transferMotorCWPower);
 		storageMotor.setTargetPosition(currentTargetSlotPosition + positionInterval);
 		currentTargetSlotPosition = storageMotor.getTargetPosition();
 		Colour intakeArtifact = getActiveArtifact();
@@ -200,6 +202,7 @@ public class Storage {
 	}
 
 	public void storageDoubleTurnCW() {
+		storageMotor.setPower(transferMotorCWPower);
 		storageMotor.setTargetPosition(currentTargetSlotPosition + 2*positionInterval);
 		currentTargetSlotPosition = storageMotor.getTargetPosition();
 		Colour intakeArtifact = getActiveArtifact();
@@ -209,6 +212,7 @@ public class Storage {
 	}
 
 	public void storageTurnCCW() {
+		storageMotor.setPower(transferMotorCCWPower);
 		storageMotor.setTargetPosition(currentTargetSlotPosition - positionInterval);
 		currentTargetSlotPosition = storageMotor.getTargetPosition();
 		Colour intakeArtifact = getActiveArtifact();
@@ -218,12 +222,19 @@ public class Storage {
 	}
 
 	public void storageDoubleTurnCCW() {
+		storageMotor.setPower(transferMotorCCWPower);
 		storageMotor.setTargetPosition(currentTargetSlotPosition - 2*positionInterval);
 		currentTargetSlotPosition = storageMotor.getTargetPosition();
 		Colour intakeArtifact = getActiveArtifact();
 		artifactStored.set(0, getBackRightArtifact());
 		artifactStored.set(2, getBackLeftArtifact());
 		artifactStored.set(1, intakeArtifact);
+	}
+
+	public void storageFullTurnCCW() {
+		storageMotor.setPower(transferMotorCCWPower);
+		storageMotor.setTargetPosition(currentTargetSlotPosition - 3*positionInterval);
+		currentTargetSlotPosition = storageMotor.getTargetPosition();
 	}
 
 	public boolean storageFull() {
@@ -347,7 +358,7 @@ public class Storage {
 		switch (transferState) {
 			case WAITING_VELOCITY:
 				if (start){
-					storageTurnCCW();
+					storageFullTurnCCW();
 					timer.reset();
 					transferState = TransferState.TURNING;
 				}
@@ -366,6 +377,20 @@ public class Storage {
 	public void transferFinish() {
 		transferState = TransferState.IDLE;
 		transferInit = false;
+		turnToNeutralPosition();
+	}
+
+	public void turnToNeutralPosition() {
+		float positionPercentage = (storageMotor.getCurrentPosition() % 3*positionInterval)/3*positionInterval;
+		if (positionPercentage == 0) {
+			return;
+		} else if (positionPercentage < 0.5) {
+			storageDoubleTurnCW();
+			return;
+		} else {
+			storageTurnCW();
+			return;
+		}
 	}
 
 	public boolean isMotorBusy() {

@@ -152,16 +152,9 @@ public class Automations {
 			// Pause transfer updates while waiting to reach velocity
 			storage.transferUpdate((isShooterAtVelocity() || ignoreVelocity));
 			if (storage.getTransferState() == Storage.TransferState.RESET) {
-				if (transferAll && Storage.getActiveArtifact() != null) {
-					if (isShooterAtVelocity()) {
-						shootActiveArtifact();
-						stateTimer.reset();
-					}
-				} else {
-					storage.transferFinish();
-					intake.enable(false);
-					storageState = StorageState.WAITING;
-				}
+				storage.transferFinish();
+				intake.enable(false);
+				storageState = StorageState.WAITING;
 			}
 		}
 
