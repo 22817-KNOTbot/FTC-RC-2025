@@ -461,8 +461,6 @@ public class AutoComponents {
 					if (follower.isBusy())
 						return false;
 					if (!initialized) {
-						automationHandler.setTransferMode(Storage.TransferMode.FULL_SPIN);
-						automationHandler.setRapidFire(true);
 						automationHandler.setIgnoreVelocity(false);
 						Pattern pattern = automationHandler.getArtifactPattern();
 						if (pattern == null || pattern.getPattern() == null || automationHandler
@@ -475,7 +473,7 @@ public class AutoComponents {
 
 					if (automationHandler.getStorageState() == Automations.StorageState.WAITING) {
 						return true;
-					} else if (automationHandler.getTransferState() == Storage.TransferState.RAMP_OUT) {
+					} else if (automationHandler.getTransferState() == Storage.TransferState.WAITING_VELOCITY) {
 						if (!shootingTimerSet) {
 							shootingTimer.reset();
 							shootingTimerSet = true;

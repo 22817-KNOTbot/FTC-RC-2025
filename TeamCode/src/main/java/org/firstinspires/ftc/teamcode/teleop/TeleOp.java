@@ -157,7 +157,6 @@ public class TeleOp extends LinearOpMode {
 
 			if (gamepad1.xWasPressed()) {
 				boolean newRapidFireState = !automationHandler.getRapidFire();
-				automationHandler.setRapidFire(newRapidFireState);
 				automationHandler.vibrateControllersBlips(newRapidFireState ? 2 : 1);
 			}
 			if (!automationHandler.getRapidFire()) {
@@ -243,7 +242,7 @@ public class TeleOp extends LinearOpMode {
 			telemetryManager.addData("Shooter Velocity", automationHandler.getShooterVelocity());
 			telemetryManager.addData("Shooter Desired Velocity", automationHandler.getShooterDesiredVelocity());
 
-			if (!automationHandler.colourSensorResponding()) {
+			if (!automationHandler.colourSensorsResponding()) {
 				telemetryManager.addLine("********************");
 				telemetryManager.addLine("WARNING: COLOUR SENSOR");
 				telemetryManager.addLine("IS NOT RESPONDING");

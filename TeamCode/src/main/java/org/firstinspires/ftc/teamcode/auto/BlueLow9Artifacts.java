@@ -126,7 +126,7 @@ public class BlueLow9Artifacts extends LinearOpMode {
 						actionDone = true;
 						manuallyMovedTurret = false;
 						shots++;
-					} else if (automationHandler.getTransferState() == Storage.TransferState.RAMP_OUT) {
+					} else if (automationHandler.getTransferState() == Storage.TransferState.WAITING_VELOCITY) {
 						if (!manuallyMovedTurret) {
 							switch (shots) {
 								case 0:
@@ -355,7 +355,6 @@ public class BlueLow9Artifacts extends LinearOpMode {
 			if (pattern != null) {
 				patternColours = pattern.getPattern();
 			}
-			automationHandler.setRapidFire(true);
 			automationHandler.setUseVision(false);
 		}
 	}

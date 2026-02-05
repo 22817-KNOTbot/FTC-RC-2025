@@ -50,13 +50,13 @@ public class Automations {
 	private boolean intakeTimedEjecting;
 	private boolean shooterEnabled;
 	private boolean ignoreVelocity;
-	private boolean transferAll;
+	private boolean transferAll = true;
 	private boolean useVision = true;
 
 	public enum StorageState {
 		WAITING,
 		INTAKING,
-		TURNING,
+		TURNING_TRANSFER,
 		TRANSFERRING
 	}
 
@@ -135,37 +135,25 @@ public class Automations {
 
 		shooter.updateVelocityPid();
 		if (storageState == StorageState.WAITING && intakeEnabled) {
-			if (storage.intake()) {
-				storageState = StorageState.INTAKING;
-				if (storage.storageFull()) {
-					vibrateControllers();
-					intake.enableReversed(true);
-					intakeEnabled = false;
-					intakeTimedEjecting = true;
-					ejectTimer.reset();
-				}
-			}
+			storageState = StorageState.INTAKING;
 		} else if (storageState == StorageState.INTAKING) {
-			storage.intakeUpdate();
-			if (storage.getIntakeState() == Storage.IntakeState.RESET) {
+			if (storage.intakeUpdate()) {
+				vibrateControllers();
+				intake.enableReversed(true);
+				intakeEnabled = false;
+				intakeTimedEjecting = true;
+				ejectTimer.reset();
 				storageState = StorageState.WAITING;
 			}
-		} else if (storageState == StorageState.TURNING && !storage.isMotorBusy()) {
+		} else if (storageState == StorageState.TURNING_TRANSFER && !storage.isMotorBusy()) {
 			shootActiveArtifact();
 			stateTimer.reset();
 		} else if (storageState == StorageState.TRANSFERRING) {
 			// Pause transfer updates while waiting to reach velocity
-			if (storage.getTransferState() != Storage.TransferState.RAMP_OUT || isShooterAtVelocity()
-					|| ignoreVelocity) {
-				storage.transferUpdate();
-			}
-
-			if (storage.getTransferState() == Storage.TransferState.RAMP_OUT) {
-				intake.enable(true);
-			} else if (storage.getTransferState() == Storage.TransferState.RESET) {
+			storage.transferUpdate((isShooterAtVelocity() || ignoreVelocity));
+			if (storage.getTransferState() == Storage.TransferState.RESET) {
 				if (transferAll && Storage.getActiveArtifact() != null) {
 					if (isShooterAtVelocity()) {
-						intake.enable(true);
 						shootActiveArtifact();
 						stateTimer.reset();
 					}
@@ -260,20 +248,10 @@ public class Automations {
 
 	public void intakeToggle() {
 		intakeEnable(!intakeEnabled);
-		if (intakeEnabled) {
-			storage.gateDown();
-		} else {
-			storage.gateUp();
-		}
 	}
 
 	public void intakeEnableActions(boolean enable) {
 		intakeEnable(enable);
-		if (enable) {
-			storage.gateDown();
-		} else {
-			storage.gateUp();
-		}
 	}
 
 	public void intakeEject() {
@@ -290,7 +268,7 @@ public class Automations {
 	public Storage.TurnDirection prepareArtifact(Artifact.Colour colour) {
 		Storage.TurnDirection turnDirection = storage.turnToArtifact(colour);
 		stateTimer.reset();
-		storageState = StorageState.TURNING;
+		storageState = StorageState.TURNING_TRANSFER;
 		return turnDirection;
 	}
 
@@ -303,9 +281,8 @@ public class Automations {
 		} else if (turnDirection == Storage.TurnDirection.NONE) {
 			vibrateControllers();
 		} else {
-			storage.gateUp();
 			stateTimer.reset();
-			storageState = StorageState.TURNING;
+			storageState = StorageState.TURNING_TRANSFER;
 		}
 		return false;
 	}
@@ -317,9 +294,8 @@ public class Automations {
 		} else if (turnDirection == Storage.TurnDirection.NONE) {
 			vibrateControllers();
 		} else {
-			storage.gateUp();
 			stateTimer.reset();
-			storageState = StorageState.TURNING;
+			storageState = StorageState.TURNING_TRANSFER;
 		}
 		return turnDirection;
 	}
@@ -332,9 +308,8 @@ public class Automations {
 		} else if (turnDirection == Storage.TurnDirection.NONE) {
 			vibrateControllers();
 		} else {
-			storage.gateUp();
 			stateTimer.reset();
-			storageState = StorageState.TURNING;
+			storageState = StorageState.TURNING_TRANSFER;
 		}
 		return false;
 	}
@@ -347,22 +322,9 @@ public class Automations {
 		storage.storageTurnCCW();
 	}
 
-	public void setRapidFire(boolean enabled) {
-		transferAll = enabled;
-		if (enabled) {
-			setTransferMode(Storage.TransferMode.FULL_SPIN);
-		} else {
-			setTransferMode(Storage.TransferMode.NORMAL);
-		}
-	}
-
 	public void shootActiveArtifact(boolean force) {
 		shooter.enable(true);
-		if (!storage.getTransferInit()) {
-			storage.transferInit(force);
-		} else {
-			storage.transferStart(force);
-		}
+		storage.transferStart();
 		storageState = StorageState.TRANSFERRING;
 	}
 
@@ -370,8 +332,20 @@ public class Automations {
 		shootActiveArtifact(false);
 	}
 
-	public boolean colourSensorResponding() {
-		return storage.colourSensorResponding();
+	public boolean colourSensorActiveResponding() {
+		return storage.colourSensorActiveResponding();
+	}
+
+	public boolean colourSensorBackLeftResponding() {
+		return storage.colourSensorBackLeftResponding();
+	}
+
+	public boolean colourSensorBackRightResponding() {
+		return storage.colourSensorBackRightResponding();
+	}
+
+	public boolean colourSensorsResponding() {
+		return storage.colourSensorsResponding();
 	}
 
 	public void setTurretRotationDegrees(double positionDegrees) {
@@ -428,10 +402,6 @@ public class Automations {
 
 	public Storage.TransferState getTransferState() {
 		return storage.getTransferState();
-	}
-
-	public void setTransferMode(Storage.TransferMode transferMode) {
-		storage.setTransferMode(transferMode);
 	}
 
 	public boolean getShooterEnabled() {

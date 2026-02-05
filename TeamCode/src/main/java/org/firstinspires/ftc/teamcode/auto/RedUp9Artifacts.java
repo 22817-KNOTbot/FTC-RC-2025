@@ -123,7 +123,7 @@ public class RedUp9Artifacts extends LinearOpMode {
 						shooting = false;
 						shootingTimerReset = false;
 						actionDone = true;
-					} else if (automationHandler.getTransferState() == Storage.TransferState.RAMP_OUT) {
+					} else if (automationHandler.getTransferState() == Storage.TransferState.WAITING_VELOCITY) {
 						if (!shootingTimerReset) {
 							shootingTimer.reset();
 							shootingTimerReset = true;
@@ -362,12 +362,10 @@ public class RedUp9Artifacts extends LinearOpMode {
 	public void readyToShoot() {
 		if (doActions) {
 			// automationHandler.setIgnoreVelocity(true);
-			automationHandler.setTransferMode(Storage.TransferMode.FULL_SPIN);
 			Pattern pattern = automationHandler.getArtifactPattern();
 			if (pattern != null) {
 				patternColours = pattern.getPattern();
 			}
-			automationHandler.setRapidFire(true);
 		}
 	}
 
