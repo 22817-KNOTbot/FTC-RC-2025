@@ -157,7 +157,7 @@ public class Shooter {
 	}
 
 	public double getVelocity() {
-		return shooterMotorLeft.getVelocity();
+		return shooterMotorRight.getVelocity();
 	}
 
 	public static double getPitch() {
