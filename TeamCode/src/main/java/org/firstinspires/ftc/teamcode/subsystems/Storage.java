@@ -29,7 +29,7 @@ import com.acmerobotics.dashboard.config.Config;
 @Config
 public class Storage {
 	public static double distance_threshold_mm = 30;
-	public static int positionInterval = 128;
+	public static int positionInterval = 175;
 	public static double storageMotorPower = 0.3;
 	public static double storageTolerance = 20;
 	public static double transferMotorCWPower = 0.5;
@@ -382,7 +382,7 @@ public class Storage {
 	}
 
 	public void turnToNeutralPosition() {
-		float positionPercentage = (storageMotor.getCurrentPosition() % 3*positionInterval)/3*positionInterval;
+		float positionPercentage = (storageMotor.getCurrentPosition() % 3*positionInterval)/(3*positionInterval);
 		if (positionPercentage == 0) {
 			return;
 		} else if (positionPercentage < 0.5) {

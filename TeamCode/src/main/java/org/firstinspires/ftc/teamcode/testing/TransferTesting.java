@@ -23,25 +23,12 @@ import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 @Config
 // @TeleOp(name="Transfer Testing", group="Debug")
 public class TransferTesting extends LinearOpMode {
-	public static final String MOTOR_NAME_SPINDEXER = "storageMotor";
-	public static final String MOTOR_NAME_INTAKE = "intakeMotor";
-	public static final String MOTOR_NAME_SHOOTER_1 = "shooterMotorLeft";
-	public static final String MOTOR_NAME_SHOOTER_2 = "shooterMotorRight";
-	
-	public static double POWER_SPINDEXER = 0;
-	public static double POWER_INTAKE = 0;
-	public static double POWER_SHOOTER = 0;
-	public static int SPINDEXER_TARGET = 0;
-	public static boolean SPINDEXER_RESET_ENCODER = true;
-	public static double TRANSFER_RIGHT_POSITION = 0.47;
-
-	public static double SPINDEXER_PID_P = 10;
-	public static double SPINDEXER_PID_I = 0;
-	public static double SPINDEXER_PID_D = 0;
+	public static double DESIRED_VELOCITY = 0;
 
 	public static int ARTIFACT_PATTERN = 0;
 
 	public static boolean START = false;
+	public static boolean IGNORE_VELOCITY;
 
 
 	private Artifact.Colour[] pattern;
@@ -56,16 +43,19 @@ public class TransferTesting extends LinearOpMode {
 		Storage storage = new Storage(hardwareMap, true);
 		Shooter shooter = new Shooter(hardwareMap);
 
+		shooter.enable(true);
+
 		waitForStart();
 
 		while (opModeIsActive()) {
 			// storageMotor.setPIDCoefficients(DcMotor.RunMode.RUN_TO_POSITION,
 			// 		new PIDCoefficients(SPINDEXER_PID_P, SPINDEXER_PID_I, SPINDEXER_PID_D));
 
-			shooter.enable(true);
+			shooter.updateVelocityPid();
+			shooter.desiredVelocity = DESIRED_VELOCITY;
 
 			storage.updateStorageArtifacts();
-			storage.transferUpdate(true);
+			storage.transferUpdate(IGNORE_VELOCITY || shooter.atDesiredVelocity());
 
 			if (START){
 				switch (ARTIFACT_PATTERN) {
