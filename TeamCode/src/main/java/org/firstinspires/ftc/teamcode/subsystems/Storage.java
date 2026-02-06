@@ -341,7 +341,7 @@ public class Storage {
 
 	public boolean transferStart(boolean force) {
 		if (getActiveArtifact() != null || force) {
-			numOfArtifacts -= 1;
+			numOfArtifacts -= 3;
 			artifactStored.set(0, null);
 			transferState = TransferState.WAITING_VELOCITY;
 			return true;
@@ -357,7 +357,7 @@ public class Storage {
 	public void transferUpdate(boolean start) {
 		switch (transferState) {
 			case WAITING_VELOCITY:
-				if (start){
+				if (start && !isMotorBusy()){
 					storageFullTurnCCW();
 					timer.reset();
 					transferState = TransferState.TURNING;
@@ -365,6 +365,7 @@ public class Storage {
 			case TURNING:
 				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 1) {
 					timer.reset();
+					transferFinish();
 					transferState = TransferState.RESET;
 				}				
 				break;

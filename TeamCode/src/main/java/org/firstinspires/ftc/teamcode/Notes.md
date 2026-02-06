@@ -10,7 +10,7 @@ transer ramp right: 0.533 = out; 0.47 = in\
 \
 mini flipper: 0.87 = out; 0.1 = in (pushing)
 
-brake right: 0.4 = down; 0.49 = up
+brake right: 0.39 = down; 0.49 = up
 brake left: 0.6 = down; 0.5 = up
 
 # Configuration
