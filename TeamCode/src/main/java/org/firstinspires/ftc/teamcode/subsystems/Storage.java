@@ -8,8 +8,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
 import com.bylazar.configurables.annotations.Configurable;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
@@ -53,9 +51,6 @@ public class Storage {
 	private ColorRangeSensor colourSensorBackLeft;
 	private ElapsedTime timer;
 
-	private NormalizedRGBA cachedColours;
-	private long lastColourUpdateTime;
-
 	public enum IntakeState {
 		IDLE, 
 		INTAKING,
@@ -94,8 +89,6 @@ public class Storage {
 
 		storageMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		storageMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);		
-		storageMotor.setPIDCoefficients(DcMotor.RunMode.RUN_TO_POSITION,
-				new PIDCoefficients(6, 0, 0));
 
 		timer = new ElapsedTime();
 	}
@@ -418,7 +411,7 @@ public class Storage {
 	 */
 
 	public boolean isArtifactLoaded() {
-		return colourSensorActive.getDistance(DistanceUnit.MM) < distance_threshold_mm;
+		return getActiveArtifactColour() != null;
 	}
 
 	// Returns null if unknown
@@ -430,7 +423,7 @@ public class Storage {
 		if (colourSensorActiveResponding()) {
 			if (red < green && green < blue && blue > red) {
 				colour = Colour.PURPLE;
-			} else if (red < green && green > blue && blue > red && green < 3500) {
+			} else if (red < green && green > blue && blue > red && green > 0.008 && blue > 0.008) {
 				colour = Colour.GREEN;
 			}
 		}
@@ -445,7 +438,7 @@ public class Storage {
 		if (colourSensorBackLeftResponding()) {
 			if (red < green && green < blue && blue > red) {
 				colour = Colour.PURPLE;
-			} else if (red < green && green > blue && blue > red && green < 3500) {
+			} else if (red < green && green > blue && blue > red && green > 0.008 && blue > 0.008) {
 				colour = Colour.GREEN;
 			}
 		}
@@ -460,7 +453,7 @@ public class Storage {
 		if (colourSensorBackRightResponding()) {
 			if (red < green && green < blue && blue > red) {
 				colour = Colour.PURPLE;
-			} else if (red * 2 < green && green > blue && blue > red && green < 3500) {
+			} else if (red * 2 < green && green > blue && blue > red && green > 0.008 && blue > 0.008) {
 				colour = Colour.GREEN;
 			}
 		}
