@@ -54,7 +54,7 @@ public class AxonServo implements Servo {
 	 * Returns null if analog device not given
 	 */
 	public Double getAngle() {
-		if (analogInput != null) {
+		if (analogInput != null && analogInput.getVoltage() != 0) {
 			return (analogInput.getVoltage() / FULL_TURN_VOLTAGE) * fullTurnDegrees;
 		} else {
 			return null;

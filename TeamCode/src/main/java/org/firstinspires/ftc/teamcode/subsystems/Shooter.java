@@ -28,8 +28,8 @@ public class Shooter {
 	public static double PIDF_F = 0.0004;
 	public static boolean PIDF_update = false;
 
-	public static double min_pitch = 0.485;
-	public static double max_pitch = 0.73;
+	public static double min_pitch = 0.15;
+	public static double max_pitch = 0.45;
 	public static double pitch_increment = 0.01;
 
 	public static double goal_height = 46.25;
@@ -73,6 +73,8 @@ public class Shooter {
 
 		shooterMotorLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 		shooterMotorRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+		shooterMotorLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+		shooterMotorRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
 		pidfController = new Pidf(PIDF_P, PIDF_I, PIDF_D, PIDF_F);
 
@@ -171,7 +173,7 @@ public class Shooter {
 
 	public void setPitchAngle(double angle) {
 		Double hoodPosition = hoodAngleLUT.get(angle);
-		if (hoodPosition == null) {
+		if (hoodPosition == null || hoodPosition.isNaN()) {
 			return;
 		}
 		setPitch(hoodPosition);

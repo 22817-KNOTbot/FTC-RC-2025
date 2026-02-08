@@ -3,11 +3,9 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -15,7 +13,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.bylazar.configurables.annotations.Configurable;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
-import org.firstinspires.ftc.teamcode.teleop.Automations.StorageState;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 import java.util.ArrayList;
@@ -86,6 +83,7 @@ public class Storage {
 		colourSensorBackRight = hardwareMap.get(ColorRangeSensor.class, "colourSensorBackRight");
 		storageMotor = hardwareMap.get(DcMotorEx.class, "storageMotor");
 		storageMotor.setTargetPosition(currentTargetSlotPosition);
+		storageMotor.setDirection(DcMotor.Direction.REVERSE);
 
 		if (resetEncoder) {
 			storageMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -232,7 +230,8 @@ public class Storage {
 	}
 
 	public void storageFullTurnCCW() {
-		storageMotor.setPower(transferMotorCCWPower);
+		storageMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		storageMotor.setPower(-transferMotorCCWPower);
 		storageMotor.setTargetPosition(currentTargetSlotPosition - 3*positionInterval);
 		currentTargetSlotPosition = storageMotor.getTargetPosition();
 	}
@@ -363,7 +362,8 @@ public class Storage {
 					transferState = TransferState.TURNING;
 				}
 			case TURNING:
-				if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 1) {
+				// if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 1) {
+				if (timer.time() > 1) {
 					timer.reset();
 					transferFinish();
 					transferState = TransferState.RESET;
@@ -378,14 +378,20 @@ public class Storage {
 	public void transferFinish() {
 		transferState = TransferState.IDLE;
 		transferInit = false;
+		storageMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 		turnToNeutralPosition();
 	}
 
 	public void turnToNeutralPosition() {
-		float positionPercentage = (storageMotor.getCurrentPosition() % 3*positionInterval)/(3*positionInterval);
-		if (positionPercentage == 0) {
+		double positionPercentage = Math.abs((float) ((float) storageMotor.getCurrentPosition() % (3*positionInterval)) / (3*positionInterval));
+		if (positionPercentage < 0) {
+			positionPercentage += 1;
+		}
+		currentTargetSlotPosition = Math.floorDiv(storageMotor.getCurrentPosition(), (3*positionInterval)) * (3*positionInterval);
+		if (positionPercentage <= ((float) 1 / 3)) {
+			storageMotor.setTargetPosition(Math.floorDiv(storageMotor.getCurrentPosition(), (3*positionInterval)) * (3*positionInterval));
 			return;
-		} else if (positionPercentage < 0.5) {
+		} else if (positionPercentage <= ((float) 2 / 3)) {
 			storageDoubleTurnCW();
 			return;
 		} else {

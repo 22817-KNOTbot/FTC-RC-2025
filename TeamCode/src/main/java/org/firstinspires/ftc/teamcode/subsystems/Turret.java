@@ -31,7 +31,8 @@ public class Turret {
 	public Turret(HardwareMap hardwareMap) {
 		turretYawServo1 = new AxonServo(hardwareMap.get(Servo.class, "turretYawServo1"),
 			hardwareMap.get(AnalogInput.class, "turretAnalog1"));
-		turretYawServo2 = new AxonServo(hardwareMap.get(Servo.class, "turretYawServo2"));
+		turretYawServo2 = new AxonServo(hardwareMap.get(Servo.class, "turretYawServo2"),
+			hardwareMap.get(AnalogInput.class, "turretAnalog2"));
 		turretYawServo1.setDirection(Servo.Direction.FORWARD);
 		turretYawServo2.setDirection(Servo.Direction.FORWARD);
 	}
@@ -67,7 +68,7 @@ public class Turret {
 			servo2AngleTurret = servo2Angle - (turretYawServo2.fullTurnDegrees / 2);
 		}
 		if (count == 0) {
-			return getTargetRotation();
+			return (getTargetRotation() - Turret.BASE_ROTATION) * rotation_per_deg;
 		}
 		return (servo1AngleTurret + servo2AngleTurret) / count;
 	}

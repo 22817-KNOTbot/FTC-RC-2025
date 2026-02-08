@@ -10,14 +10,13 @@ import com.acmerobotics.dashboard.config.Config;
 @Configurable
 @Config
 public class Intake {
-	public static float power = 0.8f;
+	public static float power = 1f;
 
 	private DcMotor intakeMotor;
 
 	public Intake(HardwareMap hardwareMap) {
 		intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
 		intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-		intakeMotor.setDirection(DcMotor.Direction.REVERSE);
 	}
 
 	public void enable(boolean enable) {

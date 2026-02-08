@@ -1,11 +1,6 @@
 package org.firstinspires.ftc.teamcode.testing;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.PIDCoefficients;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
@@ -14,7 +9,6 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
-import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.subsystems.Storage;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
@@ -58,21 +52,26 @@ public class TransferTesting extends LinearOpMode {
 			storage.transferUpdate(IGNORE_VELOCITY || shooter.atDesiredVelocity());
 
 			if (START){
-				switch (ARTIFACT_PATTERN) {
-					case 0:
-						pattern = Artifact.Pattern.GPP.getPattern();
-						break;
-					case 1:
-						pattern = Artifact.Pattern.PGP.getPattern();
-						break;
-					case 2:
-						pattern = Artifact.Pattern.PPG.getPattern();
-						break;
-				}
-				storage.turnToArtifactSequence(pattern);
-				storage.transferStart();
+				// switch (ARTIFACT_PATTERN) {
+				// 	case 0:
+				// 		pattern = Artifact.Pattern.GPP.getPattern();
+				// 		break;
+				// 	case 1:
+				// 		pattern = Artifact.Pattern.PGP.getPattern();
+				// 		break;
+				// 	case 2:
+				// 		pattern = Artifact.Pattern.PPG.getPattern();
+				// 		break;
+				// }
+				// storage.turnToArtifactSequence(pattern);
+				storage.transferStart(true);
 				START = false;
 			}
+
+			telemetryManager.addData("Start", START);
+			telemetryManager.addData("Transfer State", storage.getTransferState());
+			telemetryManager.addData("Motor busy", storage.isMotorBusy());
+			telemetryManager.update();
 		}
 	}
 }

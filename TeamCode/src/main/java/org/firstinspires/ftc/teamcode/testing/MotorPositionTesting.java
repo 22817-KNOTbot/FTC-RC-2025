@@ -41,7 +41,7 @@ public class MotorPositionTesting extends LinearOpMode {
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 
 		DcMotorEx motor = hardwareMap.get(DcMotorEx.class, MOTOR_NAME);
-		DcMotor motor2 = hardwareMap.get(DcMotor.class, MOTOR_NAME_2);
+		// DcMotor motor2 = hardwareMap.get(DcMotor.class, MOTOR_NAME_2);
 		if (resetEncoder) {
 			motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		}
@@ -60,7 +60,7 @@ public class MotorPositionTesting extends LinearOpMode {
 			motor.setPower(POWER);
 			motor.setTargetPosition(TARGET);
 
-			motor2.setPower(POWER_2);
+			// motor2.setPower(POWER_2);
 
 			if (motor.getMode() == DcMotor.RunMode.RUN_USING_ENCODER) {
 				motor.setVelocity(VELOCITY);	

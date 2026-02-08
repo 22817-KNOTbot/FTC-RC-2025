@@ -29,11 +29,15 @@ public class Brakes {
 		return engaged;
 	}
 
-	public void engageBrakes() {
-		engageBrakes(true);
-	}
-
 	public void engageBrakes(boolean engage) {
+		if (engage) {
+			engageBrakes();
+		} else {
+			releaseBrakes();
+		}
+	}
+	
+	public void engageBrakes() {
 		brakeServoLeft.setPosition(LEFT_BRAKE_ENGAGED_POSITION);
 		brakeServoRight.setPosition(RIGHT_BRAKE_ENGAGED_POSITION);
 		engaged = true;
