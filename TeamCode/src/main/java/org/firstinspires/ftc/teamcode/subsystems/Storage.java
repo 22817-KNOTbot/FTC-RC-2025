@@ -140,6 +140,19 @@ public class Storage {
 		return numOfArtifacts;
 	}
 
+
+
+	public static int getNumbOfGreen() {
+		int numOfGreenArtifacts = 0;
+		Iterator<Colour> artifactIterator = artifactStored.iterator(); 
+		while (artifactIterator.hasNext()) {
+			if (artifactIterator.next() == Colour.GREEN) {
+				numOfGreenArtifacts++;
+			}
+		}
+		return numOfGreenArtifacts;
+	}
+
 	public int getStoragePosition() {
 		return storageMotor.getCurrentPosition();
 	}
@@ -311,9 +324,25 @@ public class Storage {
 
 	// Will return NONE if invalid input or sequence not possible
 	// Only works for sequences of 3
-	public TurnDirection turnToArtifactSequence(Colour[] desiredSequence) {
+	public TurnDirection turnToArtifactSequence(Colour[] desiredSequence, boolean exactSequence) {
 		if (desiredSequence.length < 3 || !storageFull()) {
 			return TurnDirection.NONE;
+		}
+
+		if (!exactSequence) {
+			int numOfGreen = getNumbOfGreen();
+			if (numOfGreen > 2 || numOfGreen < 1) {
+				return TurnDirection.NONE;
+			} else if (numOfGreen == 2) {
+				if (
+				artifactStored.get(0) != desiredSequence[0]
+				&& artifactStored.get(1) != desiredSequence[1]
+				&& artifactStored.get(2) != desiredSequence[2]
+				) {
+					storageTurnCW();
+					return TurnDirection.CW;
+				}
+			}
 		}
 
 		for (int i = 0; i < 3; i++) {
@@ -337,6 +366,10 @@ public class Storage {
 		}
 
 		return TurnDirection.NONE;
+	}
+
+	public TurnDirection turnToArtifactSequence(Colour[] desiredSequence) {
+		return (turnToArtifactSequence(desiredSequence, true));
 	}
 
 	public boolean transferStart(boolean force) {
