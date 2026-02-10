@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.util;
 
-import java.util.Arrays;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 
@@ -42,6 +41,8 @@ public class InterpolatedLUT<T extends Number> {
 
 		if (lowerEntry == null && higherEntry == null) {
 			return null;
+		} else if (lowerEntry.output == higherEntry.output) {
+			return lowerEntry.output;
 		}
 
 		Double scaledOutput = Range.scale(input, lowerEntry.input, higherEntry.input, 

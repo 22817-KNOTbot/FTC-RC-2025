@@ -51,10 +51,32 @@ public class Shooter {
 
 	private static double pitch = min_pitch;
 
+	// Projectile velocity (v0) to shooter velocity
+	private static final InterpolatedLUT<Double> velocityLUT = new InterpolatedLUT<Double>();
 	// Angle to servo value
 	private static final InterpolatedLUT<Double> hoodAngleLUT = new InterpolatedLUT<Double>();
 
 	static {
+		/*
+		 * Projectile velocity obtained by finding working flywheel speed at a point
+		 * and reversing equation to find expected linear velocity at that point.
+		 * Original data can be found in Notes.md
+		 */
+		velocityLUT.add(
+			velocityLUT.new Entry(199.6838915, 1300d),
+			velocityLUT.new Entry(210.7986527, 1460d),
+			velocityLUT.new Entry(217.0768591, 1520d),
+			velocityLUT.new Entry(225.357833, 1620d),
+			velocityLUT.new Entry(237.0700391, 1680d),
+			velocityLUT.new Entry(234.8927397, 1680d),
+			velocityLUT.new Entry(241.2216985, 1790d),
+			velocityLUT.new Entry(252.3611122, 1800d),
+			velocityLUT.new Entry(264.9817953, 1960d),
+			velocityLUT.new Entry(268.4887215, 1980d),
+			velocityLUT.new Entry(275.1588117, 2060d),
+			velocityLUT.new Entry(283.6739618, 2200d)
+		);
+
 		hoodAngleLUT.add(
 			hoodAngleLUT.new Entry(61, 0.15),
 			hoodAngleLUT.new Entry(59, 0.21),
@@ -100,8 +122,7 @@ public class Shooter {
 	}
 
 	public static double convertProjectileToShooterVelocity(double projectileVelocity) {
-		// TODO: Create equation based on testing
-		return projectileVelocity;
+		return velocityLUT.get(projectileVelocity);
 	}
 
 	public void updateShooterTarget(Pose robotPose, Pose targetPose) {
