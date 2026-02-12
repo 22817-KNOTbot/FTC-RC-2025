@@ -132,6 +132,17 @@ public class Storage {
 		return numOfArtifacts;
 	}
 
+	public static int getNumberOfGreen() {
+		int numOfGreenArtifacts = 0;
+		Iterator<Colour> artifactIterator = artifactStored.iterator(); 
+		while (artifactIterator.hasNext()) {
+			if (artifactIterator.next() == Colour.GREEN) {
+				numOfGreenArtifacts++;
+			}
+		}
+		return numOfGreenArtifacts;
+	}
+
 	public int getStoragePosition() {
 		return storageMotor.getCurrentPosition();
 	}
@@ -304,32 +315,70 @@ public class Storage {
 
 	// Will return NONE if invalid input or sequence not possible
 	// Only works for sequences of 3
-	public TurnDirection turnToArtifactSequence(Colour[] desiredSequence) {
-		if (desiredSequence.length < 3 || !storageFull()) {
-			return TurnDirection.NONE;
+	public TurnDirection turnToArtifactSequence(Colour[] desiredSequence, boolean exactSequence) {
+		getNumOfArtifacts();
+		if (!exactSequence) {
+			if (numOfArtifacts == 1) {
+				return turnToAnyArtifact();
+			}
+			int numOfGreen = getNumberOfGreen();
+			if (numOfGreen == 3 || numOfGreen== 0) {
+				return TurnDirection.AVAILABLE;
+			} 
 		}
 
-		for (int i = 0; i < 3; i++) {
-			int startingIndex = (3 - i) % 3;
-			if (
-				artifactStored.get(startingIndex) == desiredSequence[0]
-				&& artifactStored.get((startingIndex + 1) % 3) == desiredSequence[1]
-				&& artifactStored.get((startingIndex + 2) % 3) == desiredSequence[2]
-			) {
-				switch (i) {
-					case 0:
-						return TurnDirection.AVAILABLE;
-					case 1:
-						storageTurnCW();
-						return TurnDirection.CW;
-					case 2:
-						storageDoubleTurnCW();
-						return TurnDirection.CCW;
+		if (numOfArtifacts == 3 || !exactSequence) {
+			int highestScore = 0;
+			int highestPos = -1;
+			for (int i = 0; i < 3; i++) {
+
+				int startingIndex = (3 - i) % 3;
+				List<Colour> sequence = new ArrayList<>();
+				sequence.add(artifactStored.get(startingIndex));
+				sequence.add(artifactStored.get((startingIndex + 1) % 3));
+				sequence.add(artifactStored.get((startingIndex + 2) % 3));
+
+				for (int x = 0; x < 3; x++) {
+					if (sequence.get(x) == null) {
+						sequence.remove(x);
+						sequence.add(null);
+					}
 				}
+
+				int currentScore = 0;
+				for (int x = 0; x < 3; x++) {
+					if (sequence.get(x) == desiredSequence[x]) {
+						currentScore += 2;
+					}
+				}
+				if (currentScore == 6) {
+					highestPos = i;
+					break;
+				}
+				if (currentScore > highestScore) {
+					highestScore = currentScore;
+					highestPos = i;
+				}
+			}
+
+			switch (highestPos) {
+				case 0:
+					return TurnDirection.AVAILABLE;
+				case 1:
+					storageTurnCW();
+					return TurnDirection.CW;
+				case 2:
+					storageDoubleTurnCW();
+					return TurnDirection.CCW;
+				default:
 			}
 		}
 
 		return TurnDirection.NONE;
+	}
+
+	public TurnDirection turnToArtifactSequence(Colour[] desiredSequence) {
+		return (turnToArtifactSequence(desiredSequence, true));
 	}
 
 	public boolean transferStart(boolean force) {
