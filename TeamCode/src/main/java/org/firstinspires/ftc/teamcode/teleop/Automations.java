@@ -10,14 +10,15 @@ import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
 import org.firstinspires.ftc.teamcode.subsystems.Brakes;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Light;
 import org.firstinspires.ftc.teamcode.subsystems.Storage;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
-import org.firstinspires.ftc.teamcode.subsystems.vision.IntakeVision;
 import org.firstinspires.ftc.teamcode.subsystems.vision.Limelight;
 import org.firstinspires.ftc.teamcode.subsystems.vision.Limelight.AlignmentDirection;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
+import org.firstinspires.ftc.teamcode.util.ControlTheory.Pid;
 
 import com.pedropathing.math.Vector;
 import com.pedropathing.geometry.Pose;
@@ -34,15 +35,17 @@ public class Automations {
 	private Storage storage;
 	private Turret turret;
 	private Shooter shooter;
-	private IntakeVision intakeVision;
 	private Limelight limelight;
 	private Brakes brakes;
+	private Light light;
 
 	private Gamepad gamepad1;
 	private Gamepad gamepad2;
 
 	private Pose pose;
 	private Vector velocity;
+
+	private Pid turretPid;
 
 	private Artifact.Pattern pattern;
 	private boolean intakeEnabled;
@@ -86,11 +89,12 @@ public class Automations {
 		turret = new Turret(hardwareMap);
 		shooter = new Shooter(hardwareMap);
 
-		IntakeVision.DEBUG = DEBUG;
-		intakeVision = new IntakeVision(hardwareMap, alliance.getGoalAprilTagId());
 		limelight = new Limelight(hardwareMap, alliance.getGoalAprilTagId());
 
 		brakes = new Brakes(hardwareMap);
+		light = new Light(hardwareMap);
+
+		turretPid = new Pid(Turret.Kp, Turret.Ki, Turret.Kd);
 	}
 	
 	public void setAlliance(Alliance alliance) {
@@ -108,6 +112,9 @@ public class Automations {
 		telemetry.addData("Shooter Desired Velocity", shooter.desiredVelocity);
 		telemetry.addData("Distance", pose.distanceFrom(alliance.getGoalPose()));
 		telemetry.addData("Intake timed ejecting", intakeTimedEjecting);
+		telemetry.addData("Turret analog angle", turret.getRotation());
+		telemetry.addData("Turret target", Turret.getTargetRotation());
+		telemetry.addData("Turret calculated angle", Turret.getTargetRotation() / Turret.rotation_per_deg);
 		telemetry.addData("Using vision", useVision);
 		telemetry.addData("Vision Alignment Direction", limelight.getAlignmentDirection());
 		storage.showTelemetry(telemetry);
@@ -134,12 +141,14 @@ public class Automations {
 		updateMotifPattern();
 
 		shooter.updateVelocityPid();
+		turret.update();
 		if (storageState == StorageState.WAITING && intakeEnabled) {
 			storageState = StorageState.INTAKING;
 		} else if (storageState == StorageState.INTAKING) {
 			if (storage.intakeUpdate()) {
 				vibrateControllers();
 				intake.enableReversed(true);
+				intake.raiseIntake();
 				intakeEnabled = false;
 				intakeTimedEjecting = true;
 				ejectTimer.reset();
@@ -165,13 +174,13 @@ public class Automations {
 
 	// Should only be called once as the opmode ends
 	public void end() {
-		intakeVision.close();
 	}
 
 	// Should be called to update the turret
 	public void updateTurret() {
 		AlignmentDirection direction = limelight.getAlignmentDirection();
 		if (!direction.directionKnown || !useVision) {
+			turretPid.reset();
 			Pose goalPose = alliance.getGoalPose();
 			Vector turretOffset = pose.getHeadingAsUnitVector().times(4);
 			Pose turretPose = pose.plus(new Pose(turretOffset.getXComponent(), turretOffset.getYComponent()));
@@ -190,27 +199,24 @@ public class Automations {
 			double targetRotation = Turret.BASE_ROTATION + Math.toDegrees(normalizedAngle) * Turret.rotation_per_deg;
 			turret.setRotation(targetRotation);
 		} else {
-			double bearing = direction.bearing;
+			double bearing = direction.bearing + Turret.vision_offset;
 
-			double targetRotation = turret.getRotation() - (bearing * Turret.rotation_per_deg) + Turret.vision_offset;
+			if (DEBUG) {
+				turretPid.setKp(Turret.Kp);
+				turretPid.setKi(Turret.Ki);
+				turretPid.setKd(Turret.Kd);
+			}
+			double difference = turretPid.calculate(bearing, 0);
+			double targetRotation = Turret.getTargetRotation() + difference;
 			turret.setRotation(targetRotation);
 		}
 	}
 
 	// Should be called to update the shooter velocity
 	public void updateShooter() {
-		shooter.updateShooterTarget(pose, alliance.getGoalShooterPose());
 		if (inShootingArea()) {
 			setShooterEnabled(true);
-			switch (getShootingArea()) {
-				case UPPER:
-					shooter.setPitch(Shooter.max_pitch);
-					break;
-				case LOWER:
-					shooter.setPitch(Shooter.min_pitch);
-				default:
-					break;
-			}
+			shooter.updateShooterTarget(pose, alliance.getGoalShooterPose());
 		} else {
 			setShooterEnabled(false);
 		}
@@ -233,6 +239,11 @@ public class Automations {
 
 	public void intakeEnable(boolean enable) {
 		intake.enable(enable);
+		if (enable) {
+			intake.lowerIntake();
+		} else {
+			intake.raiseIntake();
+		}
 		intakeEnabled = enable;
 		intakeEjecting = false;
 		intakeTimedEjecting = false;
@@ -316,7 +327,7 @@ public class Automations {
 
 	public void shootActiveArtifact(boolean force) {
 		shooter.enable(true);
-		storage.transferStart();
+		storage.transferStart(force);
 		storageState = StorageState.TRANSFERRING;
 	}
 
@@ -361,6 +372,11 @@ public class Automations {
 	}
 
 	public void engageBrakes(boolean engage) {
+		if (engage) {
+			light.setRed();
+		} else {
+			light.setOff();
+		}
 		brakes.engageBrakes(engage);
 	}
 

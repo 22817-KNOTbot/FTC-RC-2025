@@ -34,11 +34,11 @@ public class Shooter {
 
 	public static double goal_height = 46.25;
 	public static double robot_height = 9.175;
-	public static double goal_angle = -30;
+	public static double goal_angle = -37;
 
 	private final double GRAVITY = DistanceUnit.INCH.fromMeters(9.80665);
 
-	public double desiredVelocity = 2200;
+	public double desiredVelocity = 0;
 
 	private Pidf pidfController;
 	private boolean enabled;
@@ -133,7 +133,7 @@ public class Shooter {
 		double horizontalDistance = robotPose.distanceFrom(targetPose);
 		double verticalDistance = goal_height - robot_height;
 
-		double angle = Math.atan((2 * verticalDistance) / horizontalDistance - Math.tan(goal_angle));
+		double angle = Math.atan((2 * verticalDistance) / horizontalDistance - Math.tan(Math.toRadians(goal_angle)));
 		double v0 = Math.sqrt((GRAVITY * Math.pow(horizontalDistance, 2))
 				/ (2 * Math.pow(Math.cos(angle), 2) * (horizontalDistance * Math.tan(angle) - verticalDistance)));
 
@@ -153,7 +153,7 @@ public class Shooter {
 				/ (2 * Math.pow(Math.cos(newAngle), 2) * (newHorizontalDistance * Math.tan(newAngle) - verticalDistance)));
 
 		desiredVelocity = convertProjectileToShooterVelocity(newV0);
-		setPitchAngle(newAngle);
+		setPitchAngle(Math.toDegrees(newAngle));
 	}
 
 	public void updateVelocityPid() {

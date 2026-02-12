@@ -7,8 +7,8 @@ import com.pedropathing.geometry.Pose;
 @Configurable
 @Config
 public class RedAlliance implements Alliance {
-	public static double goalPoseX = 139;
-	public static double goalPoseY = 125;
+	public static double goalPoseX = 144;
+	public static double goalPoseY = 144;
 	public static double goalPoseHeading = 0;
 
 	public String getColourString() {

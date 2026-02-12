@@ -54,6 +54,11 @@ public class ControlTheory {
 				telemetry.addData("calculated difference", difference);
 		}
 
+		public void reset() {
+			resetIntegral();
+			resetLastError();
+		}
+
 		public void resetIntegral() {
 			integralSum = 0;
 		}

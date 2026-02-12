@@ -24,7 +24,8 @@ import com.acmerobotics.dashboard.config.Config;
 @Config
 public class Storage {
 	public static double distance_threshold_mm = 30;
-	public static int positionInterval = 175;
+	public static int positionInterval = 178;
+	public static double transferTime = 1.5;
 	public static double storageMotorPower = 0.3;
 	public static double storageTolerance = 20;
 	public static double transferMotorCWPower = 0.5;
@@ -59,6 +60,7 @@ public class Storage {
 
 	public enum TransferState {
 		IDLE,
+		BACK_TURNING,
 		WAITING_VELOCITY,
 		TURNING, 
 		RESET
@@ -122,9 +124,8 @@ public class Storage {
 
 	public static int getNumOfArtifacts() {
 		numOfArtifacts = 0;
-		Iterator<Colour> artifactIterator = artifactStored.iterator(); 
-		while (artifactIterator.hasNext()) {
-			if (artifactIterator.next() != null) {
+		for (Colour artifact : artifactStored) {
+			if (artifact != null) {
 				numOfArtifacts++;
 			}
 		}
@@ -171,11 +172,11 @@ public class Storage {
 	}
 
 	public boolean updateStorageArtifacts() {
-		if (storageMotor.getCurrentPosition() % 128 < storageTolerance) {
+		if (storageMotor.getCurrentPosition() % positionInterval < storageTolerance) {
 			clearStorageMemory();
-			artifactStored.set(0, getActiveArtifact());
-			artifactStored.set(1, getBackLeftArtifact());
-			artifactStored.set(2, getBackRightArtifact());
+			artifactStored.set(0, getActiveArtifactColour());
+			artifactStored.set(1, getBackLeftArtifactColour());
+			artifactStored.set(2, getBackRightArtifactColour());
 			numOfArtifacts = getNumOfArtifacts();
 			return true;
 		}
@@ -225,7 +226,7 @@ public class Storage {
 	public void storageFullTurnCCW() {
 		storageMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 		storageMotor.setPower(-transferMotorCCWPower);
-		storageMotor.setTargetPosition(currentTargetSlotPosition - 3*positionInterval);
+		// storageMotor.setTargetPosition(currentTargetSlotPosition - 6*positionInterval);
 		currentTargetSlotPosition = storageMotor.getTargetPosition();
 	}
 
@@ -333,9 +334,9 @@ public class Storage {
 
 	public boolean transferStart(boolean force) {
 		if (getActiveArtifact() != null || force) {
-			numOfArtifacts -= 3;
-			artifactStored.set(0, null);
-			transferState = TransferState.WAITING_VELOCITY;
+			clearStorageMemory();
+			storageMotor.setTargetPosition(currentTargetSlotPosition + (int) (positionInterval * 0.375));
+			transferState = TransferState.BACK_TURNING;
 			return true;
 		} else {
 			return false;
@@ -348,15 +349,21 @@ public class Storage {
 
 	public void transferUpdate(boolean start) {
 		switch (transferState) {
+			case BACK_TURNING:
+				if (!isMotorBusy()) {
+					transferState = TransferState.WAITING_VELOCITY;
+				}
+				break;
 			case WAITING_VELOCITY:
 				if (start && !isMotorBusy()){
 					storageFullTurnCCW();
 					timer.reset();
 					transferState = TransferState.TURNING;
 				}
+				break;
 			case TURNING:
 				// if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 1) {
-				if (timer.time() > 1) {
+				if (timer.time() > transferTime) {
 					timer.reset();
 					transferFinish();
 					transferState = TransferState.RESET;

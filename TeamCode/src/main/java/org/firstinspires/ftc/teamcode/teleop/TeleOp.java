@@ -31,7 +31,7 @@ import java.util.List;
 @Config
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp")
 public class TeleOp extends LinearOpMode {
-	public static boolean DEBUG = false;
+	public static boolean DEBUG = true;
 	public static boolean pedroLocalizer = true; // Roadrunner if false
 
 	private GamepadManager gamepadManager;
@@ -53,6 +53,7 @@ public class TeleOp extends LinearOpMode {
 		gamepad2 = gamepadManager.getGamepad2();
 
 		TelemetryManager telemetryManager = new TelemetryManager();
+		// telemetryManager.setFtcFastTelemetry(this);
 		telemetryManager.setFtcTelemetry(telemetry);
 		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());

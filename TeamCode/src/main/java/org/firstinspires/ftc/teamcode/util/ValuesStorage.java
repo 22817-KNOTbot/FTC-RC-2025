@@ -68,7 +68,7 @@ public class ValuesStorage {
 		String value() default "";
 	}
 
-	@TeleOp(name = "Save Values")
+	// @TeleOp(name = "Save Values")
 	public static class SaveValuesOpMode extends LinearOpMode {
 		@Override
 		public void runOpMode() {
@@ -79,7 +79,7 @@ public class ValuesStorage {
 	}
 
 	@SuppressWarnings("unchecked")
-	@OnCreate
+	// @OnCreate
 	public static void initialize(Context context) {
 		Log.i(TAG, "Initializing");
 		valuesMap = parseJson(readFile(VALUES_FILE));

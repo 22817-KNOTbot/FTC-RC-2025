@@ -41,7 +41,8 @@ light: 0.28 = red; 0.45 = green; 0.6
 2 - light
 ## I2C
 ### Control Hub
-0 - colour sensor
+2 - pinpoint
+3 - colour sensor
 ### Expansion Hub
 1 - colour sensor\
 2 - colour sensor

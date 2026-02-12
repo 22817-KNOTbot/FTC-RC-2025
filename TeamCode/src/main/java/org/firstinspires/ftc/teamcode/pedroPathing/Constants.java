@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 import org.firstinspires.ftc.teamcode.roadrunner.RoadRunnerToPedroLocalizer;
 import org.firstinspires.ftc.teamcode.roadrunner.ThreeDeadWheelLocalizer;
@@ -57,9 +58,9 @@ public class Constants {
 			.yVelocity(59.68430371683744);
 
 	public final static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(0)
-            .strafePodX(2.834645669291339)
-            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
+            .forwardPodY(-DistanceUnit.INCH.fromMm(122.5))
+            .strafePodX(DistanceUnit.INCH.fromMm(100))
+            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
 			.encoderResolution(GoBildaOdometryPods.goBILDA_4_BAR_POD);
 

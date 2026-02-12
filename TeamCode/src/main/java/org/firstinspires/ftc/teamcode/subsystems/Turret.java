@@ -19,9 +19,14 @@ public class Turret {
 
 	public static double min_rotation = 0.0;
 	public static double max_rotation = 1.0;
-	public static double rotation_increment = 0.005;
-	public static double rotation_per_deg = 0.205/90;
-	public static double vision_offset = 0.0;
+	public static double rotation_increment = 0.02;
+	public static double rotation_per_deg = 0.25/90;
+	public static double vision_offset = 0;
+	public static double servo_threshold = 0.005;
+
+	public static double Kp = 0.0008;
+	public static double Ki = 0.000001;
+	public static double Kd = 0.00005;
 
 	private AxonServo turretYawServo1;
 	private AxonServo turretYawServo2;
@@ -31,8 +36,7 @@ public class Turret {
 	public Turret(HardwareMap hardwareMap) {
 		turretYawServo1 = new AxonServo(hardwareMap.get(Servo.class, "turretYawServo1"),
 			hardwareMap.get(AnalogInput.class, "turretAnalog1"));
-		turretYawServo2 = new AxonServo(hardwareMap.get(Servo.class, "turretYawServo2"),
-			hardwareMap.get(AnalogInput.class, "turretAnalog2"));
+		turretYawServo2 = new AxonServo(hardwareMap.get(Servo.class, "turretYawServo2"));
 		turretYawServo1.setDirection(Servo.Direction.FORWARD);
 		turretYawServo2.setDirection(Servo.Direction.FORWARD);
 	}
@@ -73,6 +77,10 @@ public class Turret {
 		return (servo1AngleTurret + servo2AngleTurret) / count;
 	}
 
+	public static double getTargetRotationAngle() {
+		return Turret.getTargetRotation() / Turret.rotation_per_deg - 180;
+	}
+
 	public static double getTargetRotation() {
 		return Turret.rotation;
 	}
@@ -96,7 +104,9 @@ public class Turret {
 
 	private void setRotationInternal(double rotationTarget) {
 		rotationTarget = Range.clip(rotationTarget, min_rotation, max_rotation);
-
+		if (Math.abs(rotationTarget - rotation) <= servo_threshold) {
+			return;
+		}
 		turretYawServo1.setPosition(rotationTarget);
 		turretYawServo2.setPosition(rotationTarget);
 
