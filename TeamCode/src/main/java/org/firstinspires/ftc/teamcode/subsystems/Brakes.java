@@ -2,11 +2,15 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import org.firstinspires.ftc.teamcode.hardware.AxonServo;
 
+import com.acmerobotics.dashboard.config.Config;
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+@Configurable
+@Config
 public class Brakes {
-	public static double LEFT_BRAKE_ENGAGED_POSITION = 0.6;
+	public static double LEFT_BRAKE_ENGAGED_POSITION = 0.59;
 	public static double LEFT_BRAKE_RELEASED_POSITION = 0.5;
 	public static double RIGHT_BRAKE_ENGAGED_POSITION = 0.4;
 	public static double RIGHT_BRAKE_RELEASED_POSITION = 0.49;

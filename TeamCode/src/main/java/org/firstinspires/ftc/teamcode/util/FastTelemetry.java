@@ -30,6 +30,9 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+/*
+ * All raw types warnings suppressed as it is copied from SDK
+ */
 package org.firstinspires.ftc.teamcode.util;
 
 import androidx.annotation.NonNull;
@@ -51,7 +54,8 @@ import org.firstinspires.ftc.robotcore.internal.opmode.TelemetryInternal;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -191,7 +195,7 @@ public class FastTelemetry implements Telemetry, TelemetryInternal
                 }
             }
 
-        Item addItemAfter(Lineable prev, String caption, Value value)
+        Item addItemAfter(Lineable prev, String caption, @SuppressWarnings("rawtypes") Value value)
             {
             synchronized (theLock)
                 {
@@ -284,14 +288,15 @@ public class FastTelemetry implements Telemetry, TelemetryInternal
 
         final LineableContainer parent;
         String  caption  = null;
-        Value   value    = null;
+        @SuppressWarnings("rawtypes")
+		Value   value    = null;
         Boolean retained = null;
 
         //------------------------------------------------------------------------------------------
         // Construction
         //------------------------------------------------------------------------------------------
 
-        ItemImpl(LineableContainer parent, String caption, Value value)
+        ItemImpl(LineableContainer parent, String caption, @SuppressWarnings("rawtypes") Value value)
             {
             this.parent = parent;
             this.caption = caption;
@@ -349,7 +354,7 @@ public class FastTelemetry implements Telemetry, TelemetryInternal
                 }
             }
 
-        void internalSetValue(Value value)
+        void internalSetValue(@SuppressWarnings("rawtypes") Value value)
             {
             synchronized (theLock)
                 {
@@ -357,13 +362,15 @@ public class FastTelemetry implements Telemetry, TelemetryInternal
                 }
             }
 
-        @Override public Item setValue(String format, Object... args)
+        @SuppressWarnings("rawtypes")
+		@Override public Item setValue(String format, Object... args)
             {
             internalSetValue(new Value(format, args));
             return this;
             }
 
-        @Override public Item setValue(Object value)
+        @SuppressWarnings("rawtypes")
+		@Override public Item setValue(Object value)
             {
             internalSetValue(new Value(value));
             return this;
@@ -381,12 +388,14 @@ public class FastTelemetry implements Telemetry, TelemetryInternal
             return this;
             }
 
-        @Override public Item addData(String caption, String format, Object... args)
+        @SuppressWarnings("rawtypes")
+		@Override public Item addData(String caption, String format, Object... args)
             {
             return parent.addItemAfter(this, caption, new Value(format, args));
             }
 
-        @Override public Item addData(String caption, Object value)
+        @SuppressWarnings("rawtypes")
+		@Override public Item addData(String caption, Object value)
             {
             return parent.addItemAfter(this, caption, new Value(value));
             }
@@ -444,12 +453,14 @@ public class FastTelemetry implements Telemetry, TelemetryInternal
             return result.toString();
             }
 
-        @Override public Item addData(String caption, String format, Object... args)
+        @SuppressWarnings("rawtypes")
+		@Override public Item addData(String caption, String format, Object... args)
             {
             return lineables.addItemAfter(null, caption, new Value(format, args));
             }
 
-        @Override public Item addData(String caption, Object value)
+        @SuppressWarnings("rawtypes")
+		@Override public Item addData(String caption, Object value)
             {
             return lineables.addItemAfter(null, caption, new Value(value));
             }
@@ -615,7 +626,7 @@ public class FastTelemetry implements Telemetry, TelemetryInternal
                            iLine++;
                            }
                        }
-                   else
+                   else 
                        {
                        for (int i = entries.size() - 1; i >= 0; i--)
                            {
@@ -632,6 +643,7 @@ public class FastTelemetry implements Telemetry, TelemetryInternal
     //----------------------------------------------------------------------------------------------
 
     protected final Object theLock = new Object();
+    protected final Object updateLock = new Object();
     protected LineableContainer   lines;
     protected ArrayList<Lineable> linesCopyBuffer = new ArrayList<>(); // When telemetry.update() is called, we copy the contents of `lines` in the hot path so we can punt the heavy processing off to a thread and return as quick as possible
     protected List<String>        composedLines;
@@ -723,26 +735,32 @@ public class FastTelemetry implements Telemetry, TelemetryInternal
 
     protected enum UpdateReason { USER, LOG, IFDIRTY }
 
-    private final ConcurrentLinkedQueue<Runnable> taskQueue = new ConcurrentLinkedQueue<>();
+    private final BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<>();
         {
-        Thread worker = new Thread(() ->
+        Thread worker = new Thread(null, () ->
             {
             while (true)
                 {
-                Runnable task = taskQueue.poll();
-                if (task != null)
+                try
+                    {
+                    Runnable task = taskQueue.take();
                     task.run();
-                else
-                    Thread.yield();
+                    }
+                catch (InterruptedException e)
+                    {
+                    Thread.currentThread().interrupt();
+                    break;
+                    }
                 }
-            });
+            }, "TelemetryImplUpdateWorkerThread");
         worker.setDaemon(true);
         worker.start();
         }
 
     protected boolean tryUpdate(UpdateReason updateReason)
         {
-        synchronized (theLock)
+        // Wait for any in-progress worker task to complete before we run this again to avoid clobbering in-use stuff
+        synchronized (updateLock) { synchronized (theLock)
             {
             boolean result = false;
 
@@ -763,8 +781,6 @@ public class FastTelemetry implements Telemetry, TelemetryInternal
                     action.run();
                     }
 
-                // BEGIN MAIN MODIFIED
-
                 // Reset the object that carries our telemetry data
                 transmitter.clearData();
 
@@ -775,17 +791,19 @@ public class FastTelemetry implements Telemetry, TelemetryInternal
                     linesCopyBuffer.add(lineable);
                     }
 
-                taskQueue.offer(() -> {
-                    this.saveToTransmitter(recompose, transmitter, linesCopyBuffer); // Slow!
-
-                    // Transmit if there's anything to transmit
-                    if (transmitter.hasData())
+                taskQueue.offer(() ->
+                    {
+                    synchronized (updateLock)
                         {
-                        OpModeManagerImpl.updateTelemetryNow(this.opMode, transmitter); // Slow!
-                        }
-                });
+                        this.saveToTransmitter(recompose, transmitter, linesCopyBuffer); // Slow!
 
-                // END MAIN MODIFIED
+                        // Transmit if there's anything to transmit
+                        if (transmitter.hasData())
+                            {
+                            OpModeManagerImpl.updateTelemetryNow(this.opMode, transmitter); // Slow!
+                            }
+                        }
+                    });
 
                 // We've definitely got nothing lingering to transmit
                 this.log.markClean();
@@ -813,7 +831,7 @@ public class FastTelemetry implements Telemetry, TelemetryInternal
 
             return result;
             }
-        }
+        }}
 
     protected void saveToTransmitter(boolean recompose, TelemetryMessage transmitter, ArrayList<Lineable> lines)
         {
@@ -825,8 +843,8 @@ public class FastTelemetry implements Telemetry, TelemetryInternal
         // a subsequent user update().
         if (recompose)
             {
-            this.composedLines = new ArrayList<String>();
-            for (Lineable lineable : lines) // MODIFIED - Uses the passed-in `lines` so the main `lines` can be cleared/modified while this does its thing in a thread
+            this.composedLines.clear();
+            for (Lineable lineable : lines) // Uses the passed-in `lines` so the main `lines` can be cleared/modified while this does its thing in a thread
                 {
                 this.composedLines.add(lineable.getComposed(recompose));
                 }
@@ -930,11 +948,13 @@ public class FastTelemetry implements Telemetry, TelemetryInternal
             }
         }
 
-    @Override public Item addData(String caption, String format, Object... args)
+    @SuppressWarnings("rawtypes")
+	@Override public Item addData(String caption, String format, Object... args)
         {
         return this.lines.addItemAfter(null, caption, new Value(format, args));
         }
-    @Override public Item addData(String caption, Object value)
+    @SuppressWarnings("rawtypes")
+	@Override public Item addData(String caption, Object value)
         {
         return this.lines.addItemAfter(null, caption, new Value(value));
         }

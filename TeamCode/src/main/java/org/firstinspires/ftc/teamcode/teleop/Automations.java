@@ -53,7 +53,6 @@ public class Automations {
 	private boolean intakeTimedEjecting;
 	private boolean shooterEnabled;
 	private boolean ignoreVelocity;
-	private boolean transferAll = true;
 	private boolean useVision = true;
 
 	public enum StorageState {
@@ -147,11 +146,11 @@ public class Automations {
 		} else if (storageState == StorageState.INTAKING) {
 			if (storage.intakeUpdate()) {
 				vibrateControllers();
-				intake.enableReversed(true);
 				intake.raiseIntake();
-				intakeEnabled = false;
-				intakeTimedEjecting = true;
-				ejectTimer.reset();
+				intakeEnable(false);
+				// intake.enableReversed(true);
+				// intakeTimedEjecting = true;
+				// ejectTimer.reset();
 				storageState = StorageState.WAITING;
 			}
 		} else if (storageState == StorageState.TURNING_TRANSFER && !storage.isMotorBusy()) {
@@ -273,6 +272,14 @@ public class Automations {
 		stateTimer.reset();
 		storageState = StorageState.TURNING_TRANSFER;
 		return turnDirection;
+	}
+
+	public Storage.TurnDirection prepareArtifactSequence(Artifact.Colour[] sequence) {
+		return prepareArtifactSequence(sequence, true);
+	}
+
+	public Storage.TurnDirection prepareArtifactSequence(Artifact.Colour[] sequence, boolean exactSequence) {
+		return storage.turnToArtifactSequence(sequence, exactSequence);
 	}
 
 	// Returns true if already prepared and has been shot
@@ -430,10 +437,6 @@ public class Automations {
 
 	public boolean getIntakeEjecting() {
 		return intakeEjecting;
-	}
-
-	public boolean getRapidFire() {
-		return transferAll;
 	}
 
 	public void setIgnoreVelocity(boolean ignoreVelocity) {

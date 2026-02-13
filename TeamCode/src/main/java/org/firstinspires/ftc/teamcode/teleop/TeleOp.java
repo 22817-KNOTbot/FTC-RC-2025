@@ -5,11 +5,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.field.Style;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.knotbot.practiceapp.RobotEvent;
 import com.bylazar.gamepad.PanelsGamepad;
-import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
@@ -20,6 +18,7 @@ import org.firstinspires.ftc.teamcode.util.BlueAlliance;
 import org.firstinspires.ftc.teamcode.util.Drawing;
 import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.GamepadManager;
+import org.firstinspires.ftc.teamcode.util.HtmlUtil;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -32,7 +31,6 @@ import java.util.List;
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp")
 public class TeleOp extends LinearOpMode {
 	public static boolean DEBUG = true;
-	public static boolean pedroLocalizer = true; // Roadrunner if false
 
 	private GamepadManager gamepadManager;
 	private ElapsedTime loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -43,7 +41,6 @@ public class TeleOp extends LinearOpMode {
 	public void runOpMode() {
 		boolean manualTurretMode = false;
 		boolean manualShooterMode = false;
-		boolean manualVisionOverrideTurret = false;
 
 		gamepadManager = new GamepadManager(gamepad1, gamepad2,
 				PanelsGamepad.INSTANCE.getFirstManager()::asCombinedFTCGamepad,
@@ -57,6 +54,7 @@ public class TeleOp extends LinearOpMode {
 		telemetryManager.setFtcTelemetry(telemetry);
 		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
+		telemetryManager.setHtmlMode(true);
 
 		if (gamepad1.right_bumper)
 			DEBUG = true;
@@ -135,6 +133,10 @@ public class TeleOp extends LinearOpMode {
 			gamepad1.copy(gamepadManager.getGamepad1());
 			gamepad2.copy(gamepadManager.getGamepad2());
 
+			/*
+			* Driver 1
+			*/
+
 			if (gamepad1.left_trigger > 0.9) {
 				mecanumDrive.move(-gamepad1.left_stick_y / 4, gamepad1.left_stick_x / 4, gamepad1.right_stick_x / 4);
 			} else {
@@ -156,20 +158,8 @@ public class TeleOp extends LinearOpMode {
 				automationHandler.intakeEjectStop();
 			}
 
-			if (gamepad1.xWasPressed()) {
-				boolean newRapidFireState = !automationHandler.getRapidFire();
-				automationHandler.vibrateControllersBlips(newRapidFireState ? 2 : 1);
-			}
-			if (!automationHandler.getRapidFire()) {
-				if (gamepad1.bWasPressed()) {
-					automationHandler.prepareOrShootArtifact(Artifact.Colour.PURPLE);
-				} else if (gamepad1.yWasPressed()) {
-					automationHandler.prepareOrShootArtifact(Artifact.Colour.GREEN);
-				}
-			} else {
-				if (gamepad1.yWasPressed() || gamepad1.bWasPressed()) {
-					automationHandler.prepareOrShootAnyArtifact();
-				}
+			if (gamepad1.bWasPressed()) {
+				automationHandler.shootActiveArtifact(true);
 			}
 
 			automationHandler.updatePose(mecanumDrive.getPose());
@@ -184,59 +174,64 @@ public class TeleOp extends LinearOpMode {
 			}
 
 			/*
-			 * Driver 2 overrides
+			 * Driver 2
 			 */
 
+			if (gamepad2.yWasPressed()) {
+				automationHandler.prepareArtifactSequence(Artifact.Pattern.GPP.getPattern(), false);
+			}
+			if (gamepad2.bWasPressed()) {
+				automationHandler.prepareArtifactSequence(Artifact.Pattern.PGP.getPattern(), false);
+			}
 			if (gamepad2.aWasPressed()) {
-				automationHandler.intakeToggle();
+				automationHandler.prepareArtifactSequence(Artifact.Pattern.PPG.getPattern(), false);
 			}
-			if (gamepad2.xWasPressed()) {
-				automationHandler.shootActiveArtifact(true);
-			}
+
 			if (gamepad2.rightBumperWasPressed()) {
 				automationHandler.storageTurnCW();
 			} else if (gamepad2.leftBumperWasPressed()) {
 				automationHandler.storageTurnCCW();
 			}
-			if (gamepad2.dpadUpWasPressed()) {
-				DEBUG = !DEBUG;
-			}
 			if (gamepad2.leftStickButtonWasPressed()) {
 				automationHandler.clearStorageMemory();
 			}
 
-			if (gamepad2.dpadDownWasPressed()) {
-				manualTurretMode = !manualTurretMode;
+			if (gamepad2.dpadUpWasPressed()) {
+				DEBUG = !DEBUG;
 			}
-			if (manualTurretMode && !manualVisionOverrideTurret) {
-				automationHandler.rotateTurret(gamepad2.left_stick_x);
-				automationHandler.pitchTurret(gamepad2.right_stick_y);
-			} else {
-				if (!manualTurretMode || automationHandler.getVisionAlignmentKnown()) {
-					automationHandler.updateTurret();
-				}
-			}
-			if (gamepad2.yWasPressed()) {
+			if (gamepad2.dpadLeftWasPressed()) {
 				manualShooterMode = !manualShooterMode;
 			}
 			if (manualShooterMode) {
-				if (gamepad2.bWasPressed()) {
+				if (gamepad2.xWasPressed()) {
 					automationHandler.setShooterVelocity(Shooter.defaultVelocity);
 					automationHandler.setShooterEnabled(!automationHandler.getShooterEnabled());
 				}
 			} else {
 				automationHandler.updateShooter();
 			}
+			if (gamepad2.dpadRightWasPressed()) {
+				manualTurretMode = !manualTurretMode;
+			}
+			if (manualTurretMode) {
+				automationHandler.rotateTurret(gamepad2.left_stick_x);
+				automationHandler.pitchTurret(gamepad2.right_stick_y);
+			} else {
+				automationHandler.updateTurret();
+			}
+
 			if (gamepad2.left_trigger > 0.9) {
 				automationHandler.setIgnoreVelocity(true);
 			} else {
 				automationHandler.setIgnoreVelocity(false);
 			}
-			telemetryManager.addData("Alliance", automationHandler.getAlliance().getColourString());
-			telemetryManager.addData("Pattern", automationHandler.getPattern());
+
+			String colour = automationHandler.getAlliance().getColourString();
+			telemetryManager.addData("Alliance", HtmlUtil.colourText(colour, colour));
 			telemetryManager.addData("Time", getRuntime());
-			telemetryManager.addData("Rapid Fire", automationHandler.getRapidFire());
-			telemetryManager.addData("Storage", automationHandler.getArtifactsStored());
+			for (String line : buildStorageTelemetryDisplay(automationHandler.getArtifactsStored())) {
+				telemetryManager.addLine(line);
+			}
 			telemetryManager.addData("Storage State", automationHandler.getStorageState());
 			telemetryManager.addData("Storage Intake State", automationHandler.getIntakeState());
 			telemetryManager.addData("Storage Transfer State", automationHandler.getTransferState());
@@ -244,16 +239,16 @@ public class TeleOp extends LinearOpMode {
 			telemetryManager.addData("Shooter Desired Velocity", automationHandler.getShooterDesiredVelocity());
 
 			if (!automationHandler.colourSensorsResponding()) {
-				telemetryManager.addLine("********************");
-				telemetryManager.addLine("WARNING: COLOUR SENSOR");
-				telemetryManager.addLine("IS NOT RESPONDING");
-				telemetryManager.addLine("********************");
+				telemetryManager.addLine(HtmlUtil.colourText("********************", "red"));
+				telemetryManager.addLine(HtmlUtil.colourText("WARNING: COLOUR SENSOR(S)", "red"));
+				telemetryManager.addLine(HtmlUtil.colourText("NOT RESPONDING", "red"));
+				telemetryManager.addLine(HtmlUtil.colourText("********************", "red"));
 			}
 			if (manualTurretMode) {
-				telemetryManager.addLine("##### MANUAL TURRET MODE #####");
+				telemetryManager.addLine(HtmlUtil.colourText("##### MANUAL TURRET MODE #####", "yellow"));
 			}
 			if (manualShooterMode) {
-				telemetryManager.addLine("##### MANUAL SHOOTER MODE #####");
+				telemetryManager.addLine(HtmlUtil.colourText("##### MANUAL SHOOTER MODE #####", "orange"));
 			}
 			telemetryManager.addLine(String.format("Loop time: %.2fms - %.0fhz", loopTime.time(), 1000 / loopTime.time()));
 			loopTime.reset();
@@ -283,5 +278,64 @@ public class TeleOp extends LinearOpMode {
 		automationHandler.end();
 
 		RobotEvent.runEnd();
+	}
+
+	private String[] buildStorageTelemetryDisplay(List<Artifact.Colour> colours) {
+		String[] lines = new String[4];
+
+		String activeString = "";
+		if (colours.get(0) == null) {
+			activeString = "  ";
+		} else {
+			switch (colours.get(0)) {
+				case PURPLE:
+					activeString = HtmlUtil.colourText("PP", "purple");
+					break;
+				case GREEN:
+					activeString = HtmlUtil.colourText("GG", "green");
+					break;
+				default:
+					activeString = "  ";
+					break;
+			}
+		}
+
+		String backLeftString = "";
+		if (colours.get(1) == null) {
+			backLeftString = "  ";
+		} else {
+			switch (colours.get(1)) {
+				case PURPLE:
+					backLeftString = HtmlUtil.colourText("PP", "purple");
+					break;
+				case GREEN:
+					backLeftString = HtmlUtil.colourText("GG", "green");
+					break;
+				default:
+					backLeftString = "  ";
+					break;
+			}
+		}
+
+		String backRightString = "";
+		if (colours.get(2) == null) {
+			backRightString = "  ";
+		} else {
+			switch (colours.get(2)) {
+				case PURPLE:
+					backRightString = HtmlUtil.colourText("PP", "purple");
+					break;
+				case GREEN:
+					backRightString = HtmlUtil.colourText("GG", "green");
+					break;
+				default:
+					backRightString = "  ";
+					break;
+			}
+		}
+
+		lines[0] = lines[1] = HtmlUtil.monospaceText("\t\t" + activeString + "\t\t");
+		lines[2] = lines[3] = HtmlUtil.monospaceText(backLeftString + "\t\t" + backRightString);
+		return lines;
 	}
 }

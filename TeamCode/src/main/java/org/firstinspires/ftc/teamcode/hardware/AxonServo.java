@@ -21,7 +21,7 @@ public class AxonServo implements Servo {
 
 	private double targetPosition = 0;
 	private double targetMidPosition = 0;
-	private double lastPosition = 0;
+	private Double lastPosition = null;
 	private long lastSetTime = 0;
 	private int direction = 0;
 	private boolean waitingPosition = false;
@@ -42,6 +42,9 @@ public class AxonServo implements Servo {
 
 	@Override
 	public void setPosition(double position) {
+		if (lastPosition == null) {
+			lastPosition = position;
+		}
 		if (targetPosition == position) return;
 		targetPosition = position;
 		double target = 0;

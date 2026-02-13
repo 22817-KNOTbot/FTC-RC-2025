@@ -39,6 +39,7 @@ light: 0.28 = red; 0.45 = green; 0.6
 0 - shooter hood
 1 - right intake
 2 - light
+3 - left intake
 ## I2C
 ### Control Hub
 2 - pinpoint

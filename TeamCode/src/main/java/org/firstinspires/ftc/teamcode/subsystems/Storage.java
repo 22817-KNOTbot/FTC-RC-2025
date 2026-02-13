@@ -99,6 +99,7 @@ public class Storage {
 	}
 
 	public void abort() {
+		storageMotor.setPower(0);
 		transferState = TransferState.IDLE;
 		transferInit = false;
 	}
@@ -235,9 +236,9 @@ public class Storage {
 	}
 
 	public void storageFullTurnCCW() {
-		storageMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-		storageMotor.setPower(-transferMotorCCWPower);
-		// storageMotor.setTargetPosition(currentTargetSlotPosition - 6*positionInterval);
+		// storageMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		storageMotor.setPower(transferMotorCCWPower);
+		storageMotor.setTargetPosition(currentTargetSlotPosition - 6*positionInterval);
 		currentTargetSlotPosition = storageMotor.getTargetPosition();
 	}
 
@@ -412,7 +413,8 @@ public class Storage {
 				break;
 			case TURNING:
 				// if (Math.abs(storageMotor.getCurrentPosition() - storageMotor.getTargetPosition()) < 1) {
-				if (timer.time() > transferTime) {
+				// if (timer.time() > transferTime) {
+				if (!isMotorBusy()) {
 					timer.reset();
 					transferFinish();
 					transferState = TransferState.RESET;

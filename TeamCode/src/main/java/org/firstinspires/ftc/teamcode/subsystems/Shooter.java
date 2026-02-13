@@ -21,7 +21,7 @@ public class Shooter {
 	public static double velocityConstant = -150;
 	public static double velocityTolerance = 50;
 	public static double shootingAreaTolerance = 12.7279220614;
-	public static double defaultVelocity = 2200;
+	public static double defaultVelocity = 1680;
 	public static double PIDF_P = 0.03;
 	public static double PIDF_I = 0;
 	public static double PIDF_D = 0;

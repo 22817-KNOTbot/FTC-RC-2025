@@ -11,8 +11,10 @@ import com.acmerobotics.dashboard.config.Config;
 @Config
 public class Intake {
 	public static float power = 1f;
-	public static double intakeUpPosition = 0;
-	public static double intakeDownPosition = 0;
+	public static double intakeLeftUpPosition = 0;
+	public static double intakeLeftDownPosition = 0.3;
+	public static double intakeRightUpPosition = 0;
+	public static double intakeRightDownPosition = 0.3;
 
 	private DcMotor intakeMotor;
 	private Servo intakeLeftServo;
@@ -48,12 +50,12 @@ public class Intake {
 	}
 
 	public void lowerIntake() {
-		// intakeLeftServo.setPosition(intakeDownPosition);
-		// intakeRightServo.setPosition(intakeDownPosition);
+		// intakeLeftServo.setPosition(intakeLeftDownPosition);
+		// intakeRightServo.setPosition(intakeRightDownPosition);
 	}
 
 	public void raiseIntake() {
-		// intakeLeftServo.setPosition(intakeUpPosition);
-		// intakeRightServo.setPosition(intakeUpPosition);
+		// intakeLeftServo.setPosition(intakeLeftUpPosition);
+		// intakeRightServo.setPosition(intakeRightUpPosition);
 	}
 }
