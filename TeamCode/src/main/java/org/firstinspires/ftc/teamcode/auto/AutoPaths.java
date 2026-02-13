@@ -26,7 +26,7 @@ public class AutoPaths {
 		public static PathChain getMiddleApproach(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
-							new BezierLine(startingPose, new Pose(96.000, 56.000)))
+							new BezierLine(startingPose, new Pose(96.000, 60.000)))
 					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
 					.build();
 		}
