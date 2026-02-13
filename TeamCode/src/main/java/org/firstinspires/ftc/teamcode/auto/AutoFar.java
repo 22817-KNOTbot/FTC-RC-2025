@@ -47,9 +47,18 @@ public class AutoFar extends LinearOpMode {
 		boolean configuring = true;
 		int selectedIndex = 0;
 		int configuringLevel = 0;
+		boolean intakeBottom = true;
 		while (configuring) {
+
+			startingState = autoManager.getStartingStates()[0];
+
 			if (isStopRequested())
 				return;
+
+			if (isStarted() && configuringLevel == 1) {
+				configuring = false;
+				
+			}
 
 			String[] options;
 			switch (configuringLevel) {
@@ -58,8 +67,10 @@ public class AutoFar extends LinearOpMode {
 							.map(Alliance::getColourString).toArray(String[]::new);
 					break;
 				case 1:
-					options = Stream.of(autoManager.getStartingStates())
-							.map(AutoState::getNameString).toArray(String[]::new);
+					options = new String[] {
+						"Intake Bottom",
+						"Intake Loading Zone"
+					};
 					break;
 				default:
 					// This should never happen. Simply ending the OpMode is safest if it somehow does
@@ -75,7 +86,7 @@ public class AutoFar extends LinearOpMode {
 					alliance = ALLIANCES[selectedIndex];
 					autoManager = new AutoManager(alliance);
 				} else if (configuringLevel == 1) {
-					startingState = autoManager.getStartingStates()[selectedIndex];
+					intakeBottom = (selectedIndex == 0) ? true : false;
 					configuring = false;
 				} else {
 					// This should never happen. Simply ending the OpMode is safest if it somehow does
@@ -103,51 +114,24 @@ public class AutoFar extends LinearOpMode {
 
 		}
 
-		configuring = true;
-		selectedIndex = 0;
 		AutoState currentState = startingState;
 		List<AutoAction> autoActions = new ArrayList<>();
 
-		while (configuring) {
-			if (isStopRequested())
-				return;
+		int[] autoActionsIndex = new int[] {
+			0, //shootFar 
+			1, //shootUnsorted
+			(intakeBottom) ? 0 : 3, //intakeBottomApproach, intakeLoadingZoneApproach 
+			0, //IntakePrepared
+		};
 
-			AutoAction[] actionOptions = currentState.getAutoActions();
-
-			if (gamepad1.dpadDownWasPressed() || gamepad2.dpadDownWasPressed()) {
-				selectedIndex = Math.min(selectedIndex + 1, actionOptions.length - 1);
-			} else if (gamepad1.dpadUpWasPressed() || gamepad2.dpadUpWasPressed()) {
-				selectedIndex = Math.max(selectedIndex - 1, 0);
-			} else if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
-				autoActions.add(actionOptions[selectedIndex]);
-				currentState = actionOptions[selectedIndex].getResultingState();
-				if (currentState == null) {
-					configuring = false;
-					break;
-				}
-				actionOptions = currentState.getAutoActions();
-				selectedIndex = 0;
-			} else if (gamepad1.bWasPressed() || gamepad2.bWasPressed()) {
-				autoActions.remove(autoActions.size() - 1);
-				currentState = autoActions.get(autoActions.size() - 1).getResultingState();
-				actionOptions = currentState.getAutoActions();
-				selectedIndex = 0;
+		for (int i = 0; i < 5; i++) {
+			for (int x = 0; x < 4; x++) {
+				autoActions.add(currentState.getAutoActions()[autoActionsIndex[x]]);
+				currentState = currentState.getAutoActions()[autoActionsIndex[x]].getResultingState();
 			}
-
-			String[] breadcrumbsList = autoActions.stream()
-					.map(AutoAction::getNameString).toArray(String[]::new);
-			String breadcrumbsString = String.join(" > ", breadcrumbsList);
-			telemetryManager.addLine(breadcrumbsString);
-
-			telemetryManager.addLine();
-			telemetryManager.addLine("====================");
-			telemetryManager.addLine();
-
-			for (int i = 0; i < actionOptions.length; i++) {
-				telemetryManager.addLine((selectedIndex == i ? "> " : "") + actionOptions[i].getNameString());
-			}
-			telemetryManager.update();
+			intakeBottom = false;
 		}
+
 
 		autoManager.initialize(hardwareMap, startingState, autoActions);
 
