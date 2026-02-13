@@ -2,6 +2,21 @@ package org.firstinspires.ftc.teamcode.auto;
 
 import java.util.concurrent.Callable;
 
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoActionCommand;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoState;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.EndAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakePreparedAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakeState;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.OpenGateAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PostIntakeCommand;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeCommand;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeTopAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootCloseAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootFarAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootSortedAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootState;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootUnsortedAction;
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
 import org.firstinspires.ftc.teamcode.subsystems.Storage;
@@ -81,9 +96,11 @@ public class AutoComponents {
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
 					new ShootCloseAction(),
-					new PrepareIntakeBottomAction(),
 					new PrepareIntakeMiddleAction(),
+					new PrepareCycleAction(),
+					new PrepareCycleAction(),
 					new PrepareIntakeTopAction(),
+					new PrepareIntakeBottomAction(),
 					// new PrepareIntakeLoadingZoneAction(),
 					new LeaveUpAction(),
 					new EndAction()
@@ -108,6 +125,19 @@ public class AutoComponents {
 		}
 	}
 
+	public class PrepareCycleIntakeState extends AutoState {
+		public String getNameString() {
+			return "Prepare Intake";
+		}
+
+		public AutoAction[] getAutoActions() {
+			return new AutoAction[] {
+					new PreparedCycleIntakeState(),
+					new EndAction()
+			};
+		}
+	}
+
 	public class IntakeState extends AutoState {
 		public String getNameString() {
 			return "Intake";
@@ -118,6 +148,20 @@ public class AutoComponents {
 					new ShootCloseAction(),
 					new ShootFarAction(),
 					new OpenGateAction(),
+					new EndAction()
+			};
+		}
+	}
+
+	public class CycleIntakeState extends AutoState {
+		public String getNameString() {
+			return "Intake";
+		}
+
+		public AutoAction[] getAutoActions() {
+			return new AutoAction[] {
+					new ShootCloseAction(),
+					new ShootFarAction(),
 					new EndAction()
 			};
 		}
@@ -235,9 +279,9 @@ public class AutoComponents {
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
-				return AutoPaths.Red.getExitUpShootingZone(follower, startingPose);
+				return AutoPaths.Red.getLeave(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
-				return AutoPaths.Blue.getExitUpShootingZone(follower, startingPose);
+				return AutoPaths.Blue.getLeave(follower, startingPose);
 			}
 			return null;
 		}
@@ -284,6 +328,29 @@ public class AutoComponents {
 				return AutoPaths.Red.getMiddleApproach(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
 				return AutoPaths.Blue.getMiddleApproach(follower, startingPose);
+			}
+			return null;
+		}
+	}
+
+	public class PrepareCycleAction extends AutoAction {
+		public String getNameString() {
+			return "Prepare Cycle Action";
+		}
+
+		public AutoActionCommand getActionCommand() {
+			return new PrepareIntakeCommand();
+		}
+
+		public AutoState getResultingState() {
+			return new PrepareCycleIntakeState();
+		}
+
+		public PathChain getPathChain(Follower follower, Pose startingPose) {
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getCyclePushGate(follower, startingPose);
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getCyclePushGate(follower, startingPose);
 			}
 			return null;
 		}
@@ -377,6 +444,47 @@ public class AutoComponents {
 		}
 	}
 
+	public class PreparedCycleIntakeState extends AutoAction {
+		public String getNameString() {
+			return "Intake Prepared Set";
+		}
+
+		public AutoActionCommand getActionCommand() {
+			return new AutoActionCommand() {
+				private boolean initialized = false;
+				private ElapsedTime timer = new ElapsedTime();
+
+				public boolean run(Follower follower, Automations automationHandler) {
+					if (!initialized) {
+						follower.setMaxPower(0.25);
+						automationHandler.intakeEnableActions(true);
+						timer.reset();
+					}
+
+					if (!follower.isBusy() || (timer.time() > 1.5 && follower.getVelocity().getMagnitude() < 0.2)) {
+						follower.setMaxPower(1);
+						return true;
+					}
+
+					return false;
+				}
+			};
+		}
+
+		public AutoState getResultingState() {
+			return new CycleIntakeState();
+		}
+
+		public PathChain getPathChain(Follower follower, Pose startingPose) {
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getIntakePreparedSet(follower, startingPose);
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getIntakePreparedSet(follower, startingPose);
+			}
+			return null;
+		}
+	}
+
 	public class ShootFarAction extends AutoAction {
 		public String getNameString() {
 			return "Shoot Far";
@@ -418,6 +526,29 @@ public class AutoComponents {
 				return AutoPaths.Red.getUpLaunch(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
 				return AutoPaths.Blue.getUpLaunch(follower, startingPose);
+			}
+			return null;
+		}
+	}
+
+	public class CycleShootCloseAction extends AutoAction {
+		public String getNameString() {
+			return "Shoot Close";
+		}
+
+		public AutoActionCommand getActionCommand() {
+			return new PostIntakeCommand();
+		}
+
+		public AutoState getResultingState() {
+			return new ShootState();
+		}
+
+		public PathChain getPathChain(Follower follower, Pose startingPose) {
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getCycleReturn(follower, startingPose);
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getCycleReturn(follower, startingPose);
 			}
 			return null;
 		}

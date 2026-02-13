@@ -91,7 +91,7 @@ public class AutoPaths {
         			.build();
 		}
 
-		public static PathChain getReturn(Follower follower, Pose startingPose) {
+		public static PathChain getUpLaunch(Follower follower, Pose startingPose) {
 			if (startingPose.getY() < 80) {
 				return follower.pathBuilder()
 						.addPath(
@@ -187,14 +187,6 @@ public class AutoPaths {
 					.build();
 		}
 
-		public static PathChain getUpLaunch(Follower follower, Pose startingPose) {
-			return follower.pathBuilder()
-					.addPath(
-							new BezierLine(startingPose, new Pose(84.000, 84.000)))
-					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
-					.build();
-		}
-
 		public static PathChain getExitLowShootingZone(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
@@ -231,6 +223,18 @@ public class AutoPaths {
 
 		public static PathChain getIntakePreparedSet(Follower follower, Pose startingPose) {
 			return mirrorPathChain(Red.getIntakePreparedSet(follower, startingPose.mirror()), follower);
+		}
+
+		public static PathChain getLeave(Follower follower, Pose startingPose) {
+			return mirrorPathChain(Red.getLeave(follower, startingPose.mirror()), follower);
+		}
+
+		public static PathChain getCyclePushGate(Follower follower, Pose startingPose) {
+			return mirrorPathChain(Red.getCyclePushGate(follower, startingPose.mirror()), follower);
+		}
+
+		public static PathChain getCycleReturn(Follower follower, Pose startingPose) {
+			return mirrorPathChain(Red.getCycleReturn(follower, startingPose.mirror()), follower);
 		}
 
 		// public static PathChain getLoadingZoneIntake(Follower follower) {
