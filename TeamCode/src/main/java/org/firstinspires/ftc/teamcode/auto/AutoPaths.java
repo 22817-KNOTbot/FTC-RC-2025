@@ -60,16 +60,22 @@ public class AutoPaths {
 					.build();
 		}
 
-		public static PathChain getCycleIntakePushGate(Follower follower, Pose startingPose) {
+		public static PathChain getCyclePushGate(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
         					new BezierCurve(
 							startingPose,
 							new Pose(90.000, 69.000),
-							new Pose(120.000, 80.000),
-							new Pose(135.000, 56.000),
-							new Pose(135.000, 60.000)))
+							new Pose(128.000, 69.000)))
 					.setLinearHeadingInterpolation(Math.toRadians(340), Math.toRadians(0))
+					.build();
+		}
+
+		public static PathChain getCycleIntake(Follower follower, Pose startingPose) {
+			return follower.pathBuilder()
+					.addPath(
+							new BezierLine(startingPose, new Pose(131.000, 60.000)))
+					.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(50))
 					.build();
 		}
 
