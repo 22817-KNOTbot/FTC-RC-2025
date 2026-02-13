@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 @Config
 @Configurable
 @Autonomous
-public class Auto extends LinearOpMode {
+public class AutoFar extends LinearOpMode {
 	private Alliance alliance;
 	private StartAutoState startingState;
 
