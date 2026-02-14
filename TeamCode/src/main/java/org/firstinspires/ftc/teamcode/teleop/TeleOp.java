@@ -35,7 +35,6 @@ import java.util.List;
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp", group = "$TeleOp")
 public class TeleOp extends LinearOpMode {
 	public static boolean DEBUG = true;
-	public static Pose fakePose = new Pose(72, 72, 0);
 
 	private GamepadManager gamepadManager;
 	private ElapsedTime loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -266,7 +265,7 @@ public class TeleOp extends LinearOpMode {
 				telemetryManager.addData("Pose y", currentPose.getY());
 				telemetryManager.addData("Pose heading", Math.toDegrees(currentPose.getHeading()));
 
-				Pose ftcPose = fakePose.getAsCoordinateSystem(InvertedFTCCoordinates.INSTANCE);
+				Pose ftcPose = currentPose.getAsCoordinateSystem(InvertedFTCCoordinates.INSTANCE);
 				telemetryManager.addData("FTC Pose x", ftcPose.getX());
 				telemetryManager.addData("FTC Pose y", ftcPose.getY());
 				telemetryManager.addData("FTC Pose heading (deg)", Math.toDegrees(ftcPose.getHeading()));
