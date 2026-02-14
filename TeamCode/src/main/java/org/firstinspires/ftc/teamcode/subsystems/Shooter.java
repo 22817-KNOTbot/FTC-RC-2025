@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.util.InterpolatedLUT;
 @Configurable
 @Config
 public class Shooter {
-	public static double velocityConstant = -150;
+	public static double velocityConstant = 0;
 	public static double velocityTolerance = 50;
 	public static double shootingAreaTolerance = 12.7279220614;
 	public static double defaultVelocity = 1680;
@@ -63,18 +63,24 @@ public class Shooter {
 		 * Original data can be found in Notes.md
 		 */
 		velocityLUT.add(
-			velocityLUT.new Entry(199.6838915, 1300d),
-			velocityLUT.new Entry(210.7986527, 1460d),
-			velocityLUT.new Entry(217.0768591, 1520d),
-			velocityLUT.new Entry(225.357833, 1620d),
-			velocityLUT.new Entry(237.0700391, 1680d),
-			velocityLUT.new Entry(234.8927397, 1680d),
-			velocityLUT.new Entry(241.2216985, 1790d),
-			velocityLUT.new Entry(252.3611122, 1800d),
-			velocityLUT.new Entry(264.9817953, 1960d),
-			velocityLUT.new Entry(268.4887215, 1980d),
-			velocityLUT.new Entry(275.1588117, 2060d),
-			velocityLUT.new Entry(283.6739618, 2200d)
+			velocityLUT.new Entry(237.070039065, 1740d),
+			velocityLUT.new Entry(225.357833024, 1640d),
+			velocityLUT.new Entry(217.076859128, 1520d),
+			velocityLUT.new Entry(61.5535989797, 1520d),
+			velocityLUT.new Entry(241.221698506, 1800d),
+			velocityLUT.new Entry(234.892739735, 1760d)
+			// velocityLUT.new Entry(199.6838915, 1300d),
+			// velocityLUT.new Entry(210.7986527, 1460d),
+			// velocityLUT.new Entry(217.0768591, 1520d),
+			// velocityLUT.new Entry(225.357833, 1620d),
+			// velocityLUT.new Entry(237.0700391, 1680d),
+			// velocityLUT.new Entry(234.8927397, 1680d),
+			// velocityLUT.new Entry(241.2216985, 1790d),
+			// velocityLUT.new Entry(252.3611122, 1800d),
+			// velocityLUT.new Entry(264.9817953, 1960d),
+			// velocityLUT.new Entry(268.4887215, 1980d),
+			// velocityLUT.new Entry(275.1588117, 2060d),
+			// velocityLUT.new Entry(283.6739618, 2200d)
 		);
 
 		hoodAngleLUT.add(
@@ -152,7 +158,7 @@ public class Shooter {
 		double newV0 = Math.sqrt((GRAVITY * Math.pow(newHorizontalDistance, 2))
 				/ (2 * Math.pow(Math.cos(newAngle), 2) * (newHorizontalDistance * Math.tan(newAngle) - verticalDistance)));
 
-		desiredVelocity = convertProjectileToShooterVelocity(newV0);
+		desiredVelocity = convertProjectileToShooterVelocity(newV0) + velocityConstant;
 		setPitchAngle(Math.toDegrees(newAngle));
 	}
 

@@ -22,7 +22,7 @@ public class Turret {
 	public static double rotation_increment = 0.02;
 	public static double rotation_per_deg = 0.25/90;
 	public static double vision_offset = 0;
-	public static double servo_threshold = 0.005;
+	public static double servo_threshold = 0.001;
 
 	public static double Kp = 0.0008;
 	public static double Ki = 0.000001;
@@ -34,8 +34,7 @@ public class Turret {
 	private static double rotation = BASE_ROTATION;
 
 	public Turret(HardwareMap hardwareMap) {
-		turretYawServo1 = new AxonServo(hardwareMap.get(Servo.class, "turretYawServo1"),
-			hardwareMap.get(AnalogInput.class, "turretAnalog1"));
+		turretYawServo1 = new AxonServo(hardwareMap.get(Servo.class, "turretYawServo1"));
 		turretYawServo2 = new AxonServo(hardwareMap.get(Servo.class, "turretYawServo2"));
 		turretYawServo1.setDirection(Servo.Direction.FORWARD);
 		turretYawServo2.setDirection(Servo.Direction.FORWARD);

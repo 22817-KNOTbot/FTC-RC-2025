@@ -5,6 +5,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
@@ -17,6 +18,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 @Configurable
 public class Limelight {
 	public static int PIPELINE = 1;
+	public static int maxFps = 30;
 
 	private Limelight3A limelight;
 	private Integer targetAprilTagId;
@@ -28,12 +30,20 @@ public class Limelight {
 	}
 
 	public Limelight(HardwareMap hardwareMap, Integer targetAprilTagId) {
+		this(hardwareMap, targetAprilTagId, false);
+	}
+
+	public Limelight(HardwareMap hardwareMap, Integer targetAprilTagId, boolean debug) {
 		limelight = hardwareMap.get(Limelight3A.class, "Ethernet Device");
 		limelight.setPollRateHz(100);
 		limelight.pipelineSwitch(PIPELINE);
 		limelight.start();
 
 		this.targetAprilTagId = targetAprilTagId;
+
+		if (debug) {
+			FtcDashboard.getInstance().startCameraStream(limelight, maxFps);
+		}
 	}
 
 	public class AlignmentDirection {

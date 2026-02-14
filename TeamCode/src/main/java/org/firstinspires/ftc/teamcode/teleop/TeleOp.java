@@ -8,6 +8,10 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.knotbot.practiceapp.RobotEvent;
 import com.bylazar.gamepad.PanelsGamepad;
+import com.pedropathing.ftc.FTCCoordinates;
+import com.pedropathing.ftc.InvertedFTCCoordinates;
+import com.pedropathing.ftc.PoseConverter;
+import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
@@ -28,9 +32,10 @@ import java.util.List;
 
 @Configurable
 @Config
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp")
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp", group = "$TeleOp")
 public class TeleOp extends LinearOpMode {
 	public static boolean DEBUG = true;
+	public static Pose fakePose = new Pose(72, 72, 0);
 
 	private GamepadManager gamepadManager;
 	private ElapsedTime loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -50,8 +55,8 @@ public class TeleOp extends LinearOpMode {
 		gamepad2 = gamepadManager.getGamepad2();
 
 		TelemetryManager telemetryManager = new TelemetryManager();
-		// telemetryManager.setFtcFastTelemetry(this);
-		telemetryManager.setFtcTelemetry(telemetry);
+		telemetryManager.setFtcFastTelemetry(this);
+		// telemetryManager.setFtcTelemetry(telemetry);
 		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 		telemetryManager.setHtmlMode(true);
@@ -81,7 +86,8 @@ public class TeleOp extends LinearOpMode {
 			hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 		}
 
-		automationHandler = new Automations(hardwareMap, alliance, false, DEBUG);
+		// TODO: Change to not reset encoder when running auto
+		automationHandler = new Automations(hardwareMap, alliance, true, DEBUG);
 		automationHandler.setGamepads(gamepad1, gamepad2);
 		mecanumDrive = new MecanumDrive(hardwareMap);
 
@@ -230,20 +236,19 @@ public class TeleOp extends LinearOpMode {
 			telemetryManager.addData("Alliance", HtmlUtil.colourText(colour, colour));
 			telemetryManager.addData("Time", getRuntime());
 			for (String line : buildStorageTelemetryDisplay(automationHandler.getArtifactsStored())) {
-				telemetryManager.addLine(line);
+				telemetryManager.addData("", line);
 			}
 			telemetryManager.addData("Storage State", automationHandler.getStorageState());
 			telemetryManager.addData("Storage Intake State", automationHandler.getIntakeState());
 			telemetryManager.addData("Storage Transfer State", automationHandler.getTransferState());
-			telemetryManager.addData("Shooter Velocity", automationHandler.getShooterVelocity());
-			telemetryManager.addData("Shooter Desired Velocity", automationHandler.getShooterDesiredVelocity());
 
-			if (!automationHandler.colourSensorsResponding()) {
+			if (!automationHandler.colourSensorsRespondingLazy()) {
 				telemetryManager.addLine(HtmlUtil.colourText("********************", "red"));
 				telemetryManager.addLine(HtmlUtil.colourText("WARNING: COLOUR SENSOR(S)", "red"));
 				telemetryManager.addLine(HtmlUtil.colourText("NOT RESPONDING", "red"));
 				telemetryManager.addLine(HtmlUtil.colourText("********************", "red"));
 			}
+
 			if (manualTurretMode) {
 				telemetryManager.addLine(HtmlUtil.colourText("##### MANUAL TURRET MODE #####", "yellow"));
 			}
@@ -257,20 +262,27 @@ public class TeleOp extends LinearOpMode {
 				Pose currentPose = mecanumDrive.getPose();
 				// Pose holdPose = mecanumDrive.getHoldPose();
 
-				telemetryManager.addData("Position X", currentPose.getX());
-				telemetryManager.addData("Position Y", currentPose.getY());
-				telemetryManager.addData("Heading", Math.toDegrees(currentPose.getHeading()));
+				telemetryManager.addData("Pose x", currentPose.getX());
+				telemetryManager.addData("Pose y", currentPose.getY());
+				telemetryManager.addData("Pose heading", Math.toDegrees(currentPose.getHeading()));
+
+				Pose ftcPose = fakePose.getAsCoordinateSystem(InvertedFTCCoordinates.INSTANCE);
+				telemetryManager.addData("FTC Pose x", ftcPose.getX());
+				telemetryManager.addData("FTC Pose y", ftcPose.getY());
+				telemetryManager.addData("FTC Pose heading (deg)", Math.toDegrees(ftcPose.getHeading()));
 
 				// telemetryManager.addData("Hold Position X", holdPose.getX());
 				// telemetryManager.addData("Hold Position Y", holdPose.getY());
 
-				telemetryManager.addData("Auto driving", mecanumDrive.isAutoDrive());
+				// telemetryManager.addData("Auto driving", mecanumDrive.isAutoDrive());
 				// telemetryManager.addData("Auto drive target", mecanumDrive.getAutoDriveTarget());
+				telemetryManager.addData("Shooter Velocity", automationHandler.getShooterVelocity());
+				telemetryManager.addData("Shooter Desired Velocity", automationHandler.getShooterDesiredVelocity());
+	
 				automationHandler.showTelemetry(telemetryManager);
 
 				Drawing.drawRobot(currentPose, telemetryManager.getDashboardCanvas());
 				Drawing.sendPacket();
-
 			}
 			telemetryManager.update();
 		}
@@ -289,7 +301,7 @@ public class TeleOp extends LinearOpMode {
 		} else {
 			switch (colours.get(0)) {
 				case PURPLE:
-					activeString = HtmlUtil.colourText("PP", "purple");
+					activeString = HtmlUtil.colourText("PP", "#cc00ff");
 					break;
 				case GREEN:
 					activeString = HtmlUtil.colourText("GG", "green");
@@ -306,7 +318,7 @@ public class TeleOp extends LinearOpMode {
 		} else {
 			switch (colours.get(1)) {
 				case PURPLE:
-					backLeftString = HtmlUtil.colourText("PP", "purple");
+					backLeftString = HtmlUtil.colourText("PP", "#cc00ff");
 					break;
 				case GREEN:
 					backLeftString = HtmlUtil.colourText("GG", "green");
@@ -323,7 +335,7 @@ public class TeleOp extends LinearOpMode {
 		} else {
 			switch (colours.get(2)) {
 				case PURPLE:
-					backRightString = HtmlUtil.colourText("PP", "purple");
+					backRightString = HtmlUtil.colourText("PP", "#cc00ff");
 					break;
 				case GREEN:
 					backRightString = HtmlUtil.colourText("GG", "green");
@@ -334,8 +346,8 @@ public class TeleOp extends LinearOpMode {
 			}
 		}
 
-		lines[0] = lines[1] = HtmlUtil.monospaceText("\t\t" + activeString + "\t\t");
-		lines[2] = lines[3] = HtmlUtil.monospaceText(backLeftString + "\t\t" + backRightString);
+		lines[0] = lines[1] = HtmlUtil.monospaceText("&nbsp&nbsp" + activeString + "&nbsp&nbsp");
+		lines[2] = lines[3] = HtmlUtil.monospaceText(backLeftString + "&nbsp&nbsp" + backRightString);
 		return lines;
 	}
 }

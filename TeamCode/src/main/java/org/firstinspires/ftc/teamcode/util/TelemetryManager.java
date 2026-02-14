@@ -69,9 +69,9 @@ public class TelemetryManager {
 
 	public void addData(String caption, Object value) {
 		String htmlString = caption;
-		if (htmlMode) {
-			caption = Html.fromHtml(caption, Html.FROM_HTML_MODE_COMPACT).toString();
-		}
+		// if (htmlMode) {
+		// 	caption = Html.fromHtml(caption, Html.FROM_HTML_MODE_COMPACT).toString();
+		// }
 		if (value == null) {
 			value = "null";
 		}
@@ -79,7 +79,7 @@ public class TelemetryManager {
 			ftcTelemetry.addData(htmlString, value);
 		}
 		if (dashboardInstance != null) {
-			dashboardPacket.put(caption, value);
+			dashboardPacket.put(htmlString, value);
 		}
 		if (panelsTelemetry != null) {
 			panelsTelemetry.addData(caption, value);
@@ -92,14 +92,14 @@ public class TelemetryManager {
 
 	public void addLine(String lineCaption) {
 		String htmlString = lineCaption;
-		if (htmlMode) {
-			lineCaption = Html.fromHtml(lineCaption, Html.FROM_HTML_MODE_COMPACT).toString();
-		}
+		// if (htmlMode) {
+		// 	lineCaption = Html.fromHtml(lineCaption, Html.FROM_HTML_MODE_COMPACT).toString();
+		// }
 		if (ftcTelemetry != null) {
 			ftcTelemetry.addLine(htmlString);
 		}
 		if (dashboardInstance != null) {
-			dashboardPacket.addLine(lineCaption);
+			dashboardPacket.addLine(htmlString);
 		}
 		if (panelsTelemetry != null) {
 			panelsTelemetry.addLine(lineCaption);

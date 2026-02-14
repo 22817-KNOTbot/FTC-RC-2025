@@ -73,7 +73,7 @@ public class Automations {
 	}
 
 	public Automations(HardwareMap hardwareMap, Alliance alliance, boolean resetEncoders) {
-		this(hardwareMap, alliance, false, false);
+		this(hardwareMap, alliance, resetEncoders, false);
 	}
 
 	public Automations(HardwareMap hardwareMap, Alliance alliance, boolean resetEncoders, boolean DEBUG) {
@@ -88,7 +88,7 @@ public class Automations {
 		turret = new Turret(hardwareMap);
 		shooter = new Shooter(hardwareMap);
 
-		limelight = new Limelight(hardwareMap, alliance.getGoalAprilTagId());
+		limelight = new Limelight(hardwareMap, alliance.getGoalAprilTagId(), DEBUG);
 
 		brakes = new Brakes(hardwareMap);
 		light = new Light(hardwareMap);
@@ -111,7 +111,6 @@ public class Automations {
 		telemetry.addData("Shooter Desired Velocity", shooter.desiredVelocity);
 		telemetry.addData("Distance", pose.distanceFrom(alliance.getGoalPose()));
 		telemetry.addData("Intake timed ejecting", intakeTimedEjecting);
-		telemetry.addData("Turret analog angle", turret.getRotation());
 		telemetry.addData("Turret target", Turret.getTargetRotation());
 		telemetry.addData("Turret calculated angle", Turret.getTargetRotation() / Turret.rotation_per_deg);
 		telemetry.addData("Using vision", useVision);
@@ -130,7 +129,6 @@ public class Automations {
 	// Code that should be run on start but not during init
 	public void start() {
 		// setShooterEnabled(true);
-		storage.storageMotorEnable(true);
 		storage.start();
 	}
 
@@ -146,7 +144,6 @@ public class Automations {
 		} else if (storageState == StorageState.INTAKING) {
 			if (storage.intakeUpdate()) {
 				vibrateControllers();
-				intake.raiseIntake();
 				intakeEnable(false);
 				// intake.enableReversed(true);
 				// intakeTimedEjecting = true;
@@ -215,7 +212,7 @@ public class Automations {
 	public void updateShooter() {
 		if (inShootingArea()) {
 			setShooterEnabled(true);
-			shooter.updateShooterTarget(pose, alliance.getGoalShooterPose());
+			shooter.updateShooterTarget(pose, alliance.getGoalShooterPose(), velocity);
 		} else {
 			setShooterEnabled(false);
 		}
@@ -356,6 +353,10 @@ public class Automations {
 
 	public boolean colourSensorsResponding() {
 		return storage.colourSensorsResponding();
+	}
+
+	public boolean colourSensorsRespondingLazy() {
+		return storage.colourSensorsRespondingLazy();
 	}
 
 	public void setTurretRotationDegrees(double positionDegrees) {

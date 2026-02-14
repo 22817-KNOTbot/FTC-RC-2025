@@ -6,6 +6,9 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import android.util.Log;
+
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
 
 import com.bylazar.configurables.annotations.Configurable;
@@ -24,12 +27,12 @@ import com.acmerobotics.dashboard.config.Config;
 @Config
 public class Storage {
 	public static double distance_threshold_mm = 30;
-	public static int positionInterval = 178;
+	public static int positionInterval = 475;
 	public static double transferTime = 1.5;
 	public static double storageMotorPower = 0.3;
 	public static double storageTolerance = 20;
-	public static double transferMotorCWPower = 0.5;
-	public static double transferMotorCCWPower = 1;
+	public static double transferMotorCWPower = 0.7;
+	public static double transferMotorCCWPower = 0.7;
 	
 	private static int numOfArtifacts = 0;
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
@@ -385,6 +388,7 @@ public class Storage {
 	public boolean transferStart(boolean force) {
 		if (getActiveArtifact() != null || force) {
 			clearStorageMemory();
+			storageMotor.setPower(transferMotorCWPower);
 			storageMotor.setTargetPosition(currentTargetSlotPosition + (int) (positionInterval * 0.375));
 			transferState = TransferState.BACK_TURNING;
 			return true;
@@ -439,8 +443,10 @@ public class Storage {
 			positionPercentage += 1;
 		}
 		currentTargetSlotPosition = Math.floorDiv(storageMotor.getCurrentPosition(), (3*positionInterval)) * (3*positionInterval);
+		Log.d("Storage", "Current: " + storageMotor.getCurrentPosition() + "; Floored: " + currentTargetSlotPosition + "; Percentage:" + positionPercentage);
 		if (positionPercentage <= ((float) 1 / 3)) {
 			storageMotor.setTargetPosition(Math.floorDiv(storageMotor.getCurrentPosition(), (3*positionInterval)) * (3*positionInterval));
+			Log.d("Storage", "Floored");
 			return;
 		} else if (positionPercentage <= ((float) 2 / 3)) {
 			storageDoubleTurnCW();
@@ -597,12 +603,21 @@ public class Storage {
 		return (colourSensorActiveResponding() && colourSensorBackLeftResponding() && colourSensorBackRightResponding());
 	}
 
+	// Check colour sensors without calling the I2C device which is slow
+	public boolean colourSensorsRespondingLazy() {
+		return (
+			(cachedColoursActive == null || cachedColoursActive.red != 0 ||  cachedColoursActive.blue != 0 || cachedColoursActive.green != 0)
+			&& (cachedColoursBackLeft == null || cachedColoursBackLeft.red != 0 ||  cachedColoursBackLeft.blue != 0 || cachedColoursBackLeft.green != 0)
+			&& (cachedColoursBackRight == null || cachedColoursBackRight.red != 0 ||  cachedColoursBackRight.blue != 0 || cachedColoursBackRight.green != 0)
+		);
+	}
+
 	public void showTelemetry(TelemetryManager telemetry) {
 		// telemetry.addData("Storage", artifactStored);
-		telemetry.addData("Artifact Loaded", isArtifactLoaded());
-		telemetry.addData("Active Artifact Colour", getActiveArtifactColour());
-		telemetry.addData("BackLeft Artifact Colour", getBackLeftArtifactColour());
-		telemetry.addData("BackRight Artifact Colour", getBackRightArtifactColour());
+		// telemetry.addData("Artifact Loaded", isArtifactLoaded());
+		// telemetry.addData("Active Artifact Colour", getActiveArtifactColour());
+		// telemetry.addData("BackLeft Artifact Colour", getBackLeftArtifactColour());
+		// telemetry.addData("BackRight Artifact Colour", getBackRightArtifactColour());
 		// telemetry.addData("Spindexer Power", storageMotor.getPower());
 		telemetry.addData("Spindexer Position", storageMotor.getCurrentPosition());
 		telemetry.addData("Spindexer Target", storageMotor.getTargetPosition());

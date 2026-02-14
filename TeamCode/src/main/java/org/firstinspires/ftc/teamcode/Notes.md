@@ -33,13 +33,12 @@ light: 0.28 = red; 0.45 = green; 0.6
 1 - turret 2\
 2 - brake 1\
 3 - brake 2\
-4 - empty\
+4 - left intake\
 5 - empty
 ### Expansion Hub
-0 - shooter hood
-1 - right intake
+0 - shooter hood\
+1 - right intake\
 2 - light
-3 - left intake
 ## I2C
 ### Control Hub
 2 - pinpoint
@@ -54,7 +53,16 @@ light: 0.28 = red; 0.45 = green; 0.6
 Goal angle = -37 deg
 Vertical distance = 37.075 in
 
-Shooter velo	Position (pedro)	Hood angle	
+Shooter velo	Position (pedro)	Hood angle
+1740			(72, 72)			55.9859280971
+1640			(72, 96)			58.1620203829
+1520			(72, 120)			58.1620203829
+1520			(96, 96)			61.5535989797
+1800			(48, 96)			55.3041306569
+1760			(48, 120)			56.3607799157
+
+
+## Old
 2200			(48, 7.25)			50.1320449848
 2060			(72, 7.25)			50.964763747
 1960			(72, 24)			52.0752668451
