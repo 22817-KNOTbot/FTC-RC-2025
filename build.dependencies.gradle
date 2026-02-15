@@ -40,5 +40,7 @@ dependencies {
 	// }
 
 	implementation "com.bylazar.sloth:fullpanels:0.2.4+1.0.12"
+
+	implementation("gay.zharel.fateweaver:ftc:0.3.3")
 }
 

@@ -8,6 +8,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import android.text.Html;
+import gay.zharel.fateweaver.flight.FlightRecorder;
 
 /*
  * Class to manage the use of telemetry for FTC, Dashboard, and Panels
@@ -19,6 +20,7 @@ public class TelemetryManager {
 
 	private TelemetryPacket dashboardPacket;
 
+	private boolean loggingEnabled = false;
 	private boolean htmlMode = false;
 
 	public void setFtcTelemetry(Telemetry ftcTelemetry) {
@@ -46,6 +48,10 @@ public class TelemetryManager {
 
 	public void setPanelsTelemetry (com.bylazar.telemetry.TelemetryManager panelsTelemetry) {
 		this.panelsTelemetry = panelsTelemetry;
+	}
+
+	public void setLoggingEnabled(boolean logsEnabled) {
+		this.loggingEnabled = logsEnabled;
 	}
 
 	public void setHtmlMode(boolean htmlMode) {
@@ -84,6 +90,9 @@ public class TelemetryManager {
 		if (panelsTelemetry != null) {
 			panelsTelemetry.addData(caption, value);
 		}
+		if (loggingEnabled) {
+			FlightRecorder.INSTANCE.addData(caption, value);
+		}
 	}
 
 	public void addLine() {
@@ -104,6 +113,9 @@ public class TelemetryManager {
 		if (panelsTelemetry != null) {
 			panelsTelemetry.addLine(lineCaption);
 		}
+		if (loggingEnabled) {
+			FlightRecorder.INSTANCE.addLine(lineCaption);
+		}
 	}
 
 	public void update() {
@@ -116,6 +128,9 @@ public class TelemetryManager {
 		}
 		if (panelsTelemetry != null) {
 			panelsTelemetry.update();
+		}
+		if (loggingEnabled) {
+			FlightRecorder.INSTANCE.update();
 		}
 	}
 

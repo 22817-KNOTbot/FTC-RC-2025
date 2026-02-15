@@ -22,6 +22,10 @@ buildscript {
     }
 }
 
+plugins {
+	id "com.peterabeles.gversion" version "1.10"
+}
+
 // Include common definitions from above.
 apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
@@ -42,4 +46,13 @@ android {
 
 dependencies {
     implementation project(':FtcRobotController')
+}
+
+project.preBuild.dependsOn(createVersionFile)
+gversion {
+	srcDir       = "src/main/java/"
+	classPackage = "org.firstinspires.ftc.teamcode"
+	className    = "BuildConstants"
+	dateFormat   = "yyyy-MM-dd HH:mm:ss z"
+	timeZone     = "PST"
 }

@@ -4,16 +4,22 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import android.util.Log;
+import gay.zharel.fateweaver.flight.FlightLogChannel;
+import gay.zharel.fateweaver.flight.FlightRecorder;
+import gay.zharel.fateweaver.schemas.CustomStructSchema;
+import gay.zharel.fateweaver.schemas.DoubleSchema;
+import gay.zharel.fateweaver.schemas.FateSchema;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.knotbot.practiceapp.RobotEvent;
 import com.bylazar.gamepad.PanelsGamepad;
-import com.pedropathing.ftc.FTCCoordinates;
 import com.pedropathing.ftc.InvertedFTCCoordinates;
-import com.pedropathing.ftc.PoseConverter;
-import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 
+import org.firstinspires.ftc.teamcode.BuildConstants;
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
@@ -24,20 +30,25 @@ import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.GamepadManager;
 import org.firstinspires.ftc.teamcode.util.HtmlUtil;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
+import org.firstinspires.ftc.teamcode.util.FateWeaver.CustomSchemas;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.FtcDashboard;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 
 @Configurable
 @Config
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp", group = "$TeleOp")
 public class TeleOp extends LinearOpMode {
 	public static boolean DEBUG = true;
+	public static boolean LOGGING_ENABLED = true;
 
 	private GamepadManager gamepadManager;
-	private ElapsedTime loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+	private ElapsedTime loopTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 	private Automations automationHandler;
 	private MecanumDrive mecanumDrive;
 
@@ -58,6 +69,7 @@ public class TeleOp extends LinearOpMode {
 		// telemetryManager.setFtcTelemetry(telemetry);
 		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
+		telemetryManager.setLoggingEnabled(false);
 		telemetryManager.setHtmlMode(true);
 
 		if (gamepad1.right_bumper)
@@ -90,6 +102,29 @@ public class TeleOp extends LinearOpMode {
 		automationHandler.setGamepads(gamepad1, gamepad2);
 		mecanumDrive = new MecanumDrive(hardwareMap);
 
+		FlightLogChannel<Double> runTimeChannel = FlightRecorder.createChannel("RunTime", Double.class);
+		FlightLogChannel<Double> loopTimesChannel = FlightRecorder.createChannel("LoopTime", Double.class);
+		FlightLogChannel<String> gamepad1Channel = FlightRecorder.createChannel("Gamepad/1", String.class);
+		FlightLogChannel<String> gamepad2Channel = FlightRecorder.createChannel("Gamepad/2", String.class);
+		FlightLogChannel<Double> poseXChannel = FlightRecorder.createChannel("Pose/x", Double.class);
+		FlightLogChannel<Double> poseYChannel = FlightRecorder.createChannel("Pose/y", Double.class);
+		FlightLogChannel<Double> poseHeadingChannel = FlightRecorder.createChannel("Pose/heading", Double.class);
+		FlightLogChannel<Double> velocityXChannel = FlightRecorder.createChannel("Velocity/x", Double.class);
+		FlightLogChannel<Double> velocityYChannel = FlightRecorder.createChannel("Velocity/y", Double.class);
+		FlightLogChannel<Double> velocityMagnitudeChannel = FlightRecorder.createChannel("Velocity/magnitude", Double.class);
+		FlightLogChannel<Double> velocityThetaChannel = FlightRecorder.createChannel("Velocity/theta", Double.class);
+		
+		if (LOGGING_ENABLED) {
+			String dateString = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
+			FlightRecorder.write("/Metadata/Date", dateString);
+			FlightRecorder.write("/Metadata/OpMode", this.getClass().getSimpleName());
+			FlightRecorder.write("/Metadata/GitSHA", BuildConstants.GIT_SHA);
+			FlightRecorder.write("/Metadata/GitBranch", BuildConstants.GIT_BRANCH);
+			FlightRecorder.write("/Metadata/GitDirty", String.valueOf(BuildConstants.DIRTY));
+			FlightRecorder.write("/Metadata/BuildDate", BuildConstants.BUILD_DATE);
+			FlightRecorder.write("/Info/Alliance", alliance.getColourString());
+		}
+
 		while (opModeInInit()) {
 			gamepadManager.updateGamepads();
 			gamepad1 = gamepadManager.getGamepad1();
@@ -108,23 +143,23 @@ public class TeleOp extends LinearOpMode {
 		}
 		
 		Object poseObject = blackboard.getOrDefault("pose", null);
-		Pose pose = automationHandler.getAlliance().getResetPose();
+		Pose startPose = automationHandler.getAlliance().getResetPose();
 		if (poseObject == null) {
-			pose = automationHandler.getAlliance().getResetPose();
+			startPose = automationHandler.getAlliance().getResetPose();
 		} else {
 			try {
-				pose = (Pose) poseObject;
+				startPose = (Pose) poseObject;
 			} catch (ClassCastException err) {}
 		}
-		mecanumDrive.setStartingPose(pose);
-		mecanumDrive.setPose(pose);
+		mecanumDrive.setStartingPose(startPose);
+		mecanumDrive.setPose(startPose);
 
 		mecanumDrive.initialize();
 		mecanumDrive.setHeadingOffset(automationHandler.getAlliance().getHeadingOffset());
 		mecanumDrive.setAutoDriveTarget(automationHandler.getAlliance().getBasePose());
 		mecanumDrive.setResetPose(automationHandler.getAlliance().getResetPose());
 		automationHandler.start();
-		loopTime.reset();
+		loopTimer.reset();
 
 		RobotEvent.startTeleop();
 
@@ -167,8 +202,10 @@ public class TeleOp extends LinearOpMode {
 				automationHandler.shootActiveArtifact(true);
 			}
 
-			automationHandler.updatePose(mecanumDrive.getPose());
-			automationHandler.updateVelocity(mecanumDrive.getVelocity());
+			Pose pose = mecanumDrive.getPose();
+			Vector velocity = mecanumDrive.getVelocity();
+			automationHandler.updatePose(pose);
+			automationHandler.updateVelocity(velocity);
 			automationHandler.automationLoop();
 
 			if (gamepad1.back || gamepad2.back) {
@@ -254,18 +291,18 @@ public class TeleOp extends LinearOpMode {
 			if (manualShooterMode) {
 				telemetryManager.addLine(HtmlUtil.colourText("##### MANUAL SHOOTER MODE #####", "orange"));
 			}
-			telemetryManager.addLine(String.format("Loop time: %.2fms - %.0fhz", loopTime.time(), 1000 / loopTime.time()));
-			loopTime.reset();
+			double loopTime = loopTimer.time();
+			telemetryManager.addLine(String.format("Loop time: %.2fms - %.0fhz", loopTime, 1000 / loopTime));
+			loopTimer.reset();
 
 			if (DEBUG) {
-				Pose currentPose = mecanumDrive.getPose();
 				// Pose holdPose = mecanumDrive.getHoldPose();
 
-				telemetryManager.addData("Pose x", currentPose.getX());
-				telemetryManager.addData("Pose y", currentPose.getY());
-				telemetryManager.addData("Pose heading", Math.toDegrees(currentPose.getHeading()));
+				telemetryManager.addData("Pose x", pose.getX());
+				telemetryManager.addData("Pose y", pose.getY());
+				telemetryManager.addData("Pose heading", Math.toDegrees(pose.getHeading()));
 
-				Pose ftcPose = currentPose.getAsCoordinateSystem(InvertedFTCCoordinates.INSTANCE);
+				Pose ftcPose = pose.getAsCoordinateSystem(InvertedFTCCoordinates.INSTANCE);
 				telemetryManager.addData("FTC Pose x", ftcPose.getX());
 				telemetryManager.addData("FTC Pose y", ftcPose.getY());
 				telemetryManager.addData("FTC Pose heading (deg)", Math.toDegrees(ftcPose.getHeading()));
@@ -280,10 +317,24 @@ public class TeleOp extends LinearOpMode {
 	
 				automationHandler.showTelemetry(telemetryManager);
 
-				Drawing.drawRobot(currentPose, telemetryManager.getDashboardCanvas());
+				Drawing.drawRobot(pose, telemetryManager.getDashboardCanvas());
 				Drawing.sendPacket();
 			}
 			telemetryManager.update();
+
+			if (LOGGING_ENABLED) {
+				runTimeChannel.put(getRuntime());
+				loopTimesChannel.put(loopTime);
+				gamepad1Channel.put(gamepad1.toString());
+				gamepad2Channel.put(gamepad2.toString());
+				poseXChannel.put(pose.getX());
+				poseYChannel.put(pose.getY());
+				poseHeadingChannel.put(pose.getHeading());
+				velocityXChannel.put(velocity.getXComponent());
+				velocityYChannel.put(velocity.getYComponent());
+				velocityMagnitudeChannel.put(velocity.getMagnitude());
+				velocityThetaChannel.put(velocity.getTheta());
+			}
 		}
 
 		automationHandler.end();
