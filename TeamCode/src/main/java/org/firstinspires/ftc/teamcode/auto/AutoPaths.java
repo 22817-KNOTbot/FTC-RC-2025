@@ -61,7 +61,7 @@ public class AutoPaths {
 		public static PathChain getLoadingZoneApproach(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 				.addPath(
-					new BezierLine(startingPose, new Pose(130.000, 11.000)))
+					new BezierLine(startingPose, new Pose(113.000, 11.000)))
 				.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
 				.build();
 		}

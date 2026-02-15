@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 @Configurable
 @Autonomous
 public class AutoFar extends LinearOpMode {
+	public static int cycles = 5;
 	private Alliance alliance;
 	private StartAutoState startingState;
 
@@ -56,8 +57,7 @@ public class AutoFar extends LinearOpMode {
 				return;
 
 			if (isStarted() && configuringLevel == 1) {
-				configuring = false;
-				
+				configuring = false;	
 			}
 
 			String[] options;
@@ -117,21 +117,33 @@ public class AutoFar extends LinearOpMode {
 		AutoState currentState = startingState;
 		List<AutoAction> autoActions = new ArrayList<>();
 
-		int[] autoActionsIndex = new int[] {
+		int[] autoActionsBottomIndexes = new int[] {
 			0, //shootFar 
 			1, //shootUnsorted
-			(intakeBottom) ? 0 : 3, //intakeBottomApproach, intakeLoadingZoneApproach 
+			0, //intakeBottomApproach
 			0, //IntakePrepared
 		};
 
-		for (int i = 0; i < 5; i++) {
+		int[] autoActionsLoadingIndexes = new int[] {
+			0, //shootFar 
+			1, //shootUnsorted
+			3, //intakeLoadingZoneApproach 
+			0, //IntakePrepared
+		};
+
+		for (int i = 0; i < cycles; i++) {
 			for (int x = 0; x < 4; x++) {
-				autoActions.add(currentState.getAutoActions()[autoActionsIndex[x]]);
-				currentState = currentState.getAutoActions()[autoActionsIndex[x]].getResultingState();
+				AutoAction currentAction;
+				if (intakeBottom) {
+					currentAction = currentState.getAutoActions()[autoActionsBottomIndexes[x]];
+				} else {
+					currentAction = currentState.getAutoActions()[autoActionsLoadingIndexes[x]];
+				}
+				autoActions.add(currentAction);
+				currentState = currentAction.getResultingState();
 			}
 			intakeBottom = false;
 		}
-
 
 		autoManager.initialize(hardwareMap, startingState, autoActions);
 

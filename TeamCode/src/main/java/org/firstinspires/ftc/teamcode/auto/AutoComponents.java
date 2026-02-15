@@ -319,7 +319,8 @@ public class AutoComponents {
 
 		public AutoActionCommand getActionCommand() {
 			return (follower, automationHandler) -> {
-			return !follower.isBusy();};
+				return !follower.isBusy();
+			};
 		}
 
 		public AutoState getResultingState() {
@@ -327,11 +328,11 @@ public class AutoComponents {
 		}
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
-		if (alliance instanceof RedAlliance) {
-			return AutoPaths.Red.getLoadingZoneApproach(follower, startingPose);
-		} else if (alliance instanceof BlueAlliance) {
-			return AutoPaths.Blue.getLoadingZoneApproach(follower, startingPose);
-		}
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getLoadingZoneApproach(follower, startingPose);
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getLoadingZoneApproach(follower, startingPose);
+			}
 			return null;
 		}
 	}
@@ -504,8 +505,36 @@ public class AutoComponents {
 		}
 
 		public AutoActionCommand getActionCommand() {
-			return (follower, automationHandler) -> {
-				return !follower.isBusy();
+			return new AutoActionCommand() {
+				private boolean initialized = false;
+				private ElapsedTime shootingTimer = new ElapsedTime();
+				private boolean shootingTimerSet = false;
+
+				public boolean run(Follower follower, Automations automationHandler) {
+					if (follower.isBusy())
+						return false;
+					if (!initialized) {
+						automationHandler.setIgnoreVelocity(false);
+						automationHandler.shootActiveArtifact(true);
+
+						initialized = true;
+					}
+
+					if (automationHandler.getStorageState() == Automations.StorageState.WAITING) {
+						return true;
+					} else if (automationHandler.getTransferState() == Storage.TransferState.WAITING_VELOCITY) {
+						if (!shootingTimerSet) {
+							shootingTimer.reset();
+							shootingTimerSet = true;
+						}
+					}
+
+					if (shootingTimerSet && shootingTimer.time() > 5) {
+						automationHandler.setIgnoreVelocity(true);
+					}
+
+					return false;
+				}
 			};
 		}
 
