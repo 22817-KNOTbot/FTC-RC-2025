@@ -1,9 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
-import org.firstinspires.ftc.teamcode.roadrunner.RoadRunnerToPedroLocalizer;
-import org.firstinspires.ftc.teamcode.roadrunner.ThreeDeadWheelLocalizer;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.control.FilteredPIDFCoefficients;
@@ -69,14 +66,6 @@ public class Constants {
 				.pathConstraints(pathConstraints)
 				.mecanumDrivetrain(driveConstants)
 				.pinpointLocalizer(localizerConstants)
-				.build();
-	}
-
-	public static Follower createFollowerRoadRunner(HardwareMap hardwareMap) {
-		return new FollowerBuilder(followerConstants, hardwareMap)
-				.pathConstraints(pathConstraints)
-				.mecanumDrivetrain(driveConstants)
-				.setLocalizer(new RoadRunnerToPedroLocalizer(hardwareMap, MecanumDrive.PARAMS, ThreeDeadWheelLocalizer.PARAMS))
 				.build();
 	}
 }

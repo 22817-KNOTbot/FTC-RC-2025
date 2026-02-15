@@ -30,14 +30,14 @@ dependencies {
 
 	implementation 'com.github.22817-KNOTbot:ftc-practice-app:v0.1.0'
 
-	implementation("com.acmerobotics.roadrunner:ftc:0.1.25") {
-		exclude group: "com.acmerobotics.dashboard", module: "dashboard"
-		exclude group: "com.acmerobotics.dashboard", module: "core"
-	}
-	implementation("com.acmerobotics.roadrunner:core:1.0.1")
-	implementation("com.acmerobotics.roadrunner:actions:1.0.1") {
-		exclude group: "com.acmerobotics.dashboard", module: "core"
-	}
+	// implementation("com.acmerobotics.roadrunner:ftc:0.1.25") {
+	// 	exclude group: "com.acmerobotics.dashboard", module: "dashboard"
+	// 	exclude group: "com.acmerobotics.dashboard", module: "core"
+	// }
+	// implementation("com.acmerobotics.roadrunner:core:1.0.1")
+	// implementation("com.acmerobotics.roadrunner:actions:1.0.1") {
+	// 	exclude group: "com.acmerobotics.dashboard", module: "core"
+	// }
 
 	implementation "com.bylazar.sloth:fullpanels:0.2.4+1.0.12"
 }

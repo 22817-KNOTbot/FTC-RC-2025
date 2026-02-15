@@ -21,7 +21,6 @@ public class MecanumDrive {
 	private Pose autoDriveTarget;
 
 	public MecanumDrive(HardwareMap hardwareMap) {
-		// follower = Constants.createFollowerRoadRunner(hardwareMap);
 		follower = Constants.createFollower(hardwareMap);
 		follower.setStartingPose(new Pose());
 	}
