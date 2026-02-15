@@ -5,7 +5,6 @@ import com.acmerobotics.dashboard.config.Config;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
-import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -16,8 +15,6 @@ import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoState;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.StartAutoState;
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -50,9 +47,6 @@ public class AutoFar extends LinearOpMode {
 		int configuringLevel = 0;
 		boolean intakeBottom = true;
 		while (configuring) {
-
-			startingState = autoManager.getStartingStates()[0];
-
 			if (isStopRequested())
 				return;
 
@@ -85,6 +79,7 @@ public class AutoFar extends LinearOpMode {
 				if (configuringLevel == 0) {
 					alliance = ALLIANCES[selectedIndex];
 					autoManager = new AutoManager(alliance);
+					startingState = autoManager.getStartingStates()[0];
 				} else if (configuringLevel == 1) {
 					intakeBottom = (selectedIndex == 0) ? true : false;
 					configuring = false;
@@ -114,31 +109,43 @@ public class AutoFar extends LinearOpMode {
 
 		}
 
-		AutoState currentState = startingState;
-		List<AutoAction> autoActions = new ArrayList<>();
+		boolean firstCycle = true;
+		int firstCycleIndex = 0;
 
 		int[] autoActionsBottomIndexes = new int[] {
-			0, //shootFar 
+			1, //shootFar 
 			1, //shootUnsorted
 			0, //intakeBottomApproach
 			0, //IntakePrepared
 		};
 
 		int[] autoActionsLoadingIndexes = new int[] {
-			0, //shootFar 
+			1, //shootFar 
 			1, //shootUnsorted
 			3, //intakeLoadingZoneApproach 
 			0, //IntakePrepared
 		};
 
+		AutoState currentState = startingState;
+		List<AutoAction> autoActions = new ArrayList<>();
+
 		for (int i = 0; i < cycles; i++) {
 			for (int x = 0; x < 4; x++) {
 				AutoAction currentAction;
+				int index = x;
 				if (intakeBottom) {
-					currentAction = currentState.getAutoActions()[autoActionsBottomIndexes[x]];
+					index = autoActionsBottomIndexes[index];
 				} else {
-					currentAction = currentState.getAutoActions()[autoActionsLoadingIndexes[x]];
+					index = autoActionsLoadingIndexes[index];
 				}
+
+				if (firstCycle) {
+					index = firstCycleIndex;
+					firstCycle = false;
+				}
+
+				currentAction = currentState.getAutoActions()[index];
+
 				autoActions.add(currentAction);
 				currentState = currentAction.getResultingState();
 			}
