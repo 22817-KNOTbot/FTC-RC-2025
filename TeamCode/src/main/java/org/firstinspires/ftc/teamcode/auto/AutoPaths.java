@@ -26,7 +26,7 @@ public class AutoPaths {
 		public static PathChain getMiddleApproach(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
-							new BezierLine(startingPose, new Pose(96.000, 56.000)))
+							new BezierLine(startingPose, new Pose(96.000, 60.000)))
 					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
 					.build();
 		}
@@ -58,17 +58,13 @@ public class AutoPaths {
 					.build();
 		}
 
-		// public static PathChain getLoadingZoneIntake(Follower follower) {
-		// return follower.pathBuilder()
-		// .addPath(
-		// new BezierCurve(
-		// new Pose(84.000, 84.000),
-		// new Pose(120.000, 84.000),
-		// new Pose(135.000, 69.000),
-		// new Pose(135.000, 11.000)))
-		// .setTangentHeadingInterpolation()
-		// .build();
-		// }
+		public static PathChain getLoadingZoneApproach(Follower follower, Pose startingPose) {
+			return follower.pathBuilder()
+				.addPath(
+					new BezierLine(startingPose, new Pose(113.000, 11.000)))
+				.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
+				.build();
+		}
 
 		// public static PathChain getLoadingZoneLaunch(Follower follower) {
 		// return follower.pathBuilder()
@@ -152,9 +148,9 @@ public class AutoPaths {
 			return mirrorPathChain(Red.getIntakePreparedSet(follower, startingPose.mirror()), follower);
 		}
 
-		// public static PathChain getLoadingZoneIntake(Follower follower) {
-		// return mirrorPathChain(Red.getLoadingZoneIntake(follower), follower);
-		// }
+		public static PathChain getLoadingZoneApproach(Follower follower, Pose startingPose) {
+			return mirrorPathChain(Red.getLoadingZoneApproach(follower, startingPose.mirror()), follower);
+		}
 
 		// public static PathChain getLoadingZoneLaunch(Follower follower) {
 		// return mirrorPathChain(Red.getLoadingZoneLaunch(follower), follower);
