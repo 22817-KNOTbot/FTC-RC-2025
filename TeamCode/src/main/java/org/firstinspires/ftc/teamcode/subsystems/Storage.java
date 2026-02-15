@@ -170,10 +170,15 @@ public class Storage {
 	 */
 
 	public boolean intakeUpdate() {
-		updateStorageArtifacts();
-		if (storageFull()) {
-			timer.reset();
-			return true;
+		if (!isMotorBusy()) {
+			updateStorageArtifacts();
+
+			if (storageFull()) {
+				timer.reset();
+				return true;
+			} else if (getBackRightArtifact() != null && getBackLeftArtifact() == null && getActiveArtifact() == null) {
+				storageTurnCW();
+			}
 		}
 		return false;
 	}
