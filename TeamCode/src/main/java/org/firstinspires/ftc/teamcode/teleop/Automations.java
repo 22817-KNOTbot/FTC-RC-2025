@@ -2,16 +2,11 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
-import java.util.List;
-
-import org.firstinspires.ftc.teamcode.scoring.Artifact;
-import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
 import org.firstinspires.ftc.teamcode.subsystems.Brakes;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Light;
-import org.firstinspires.ftc.teamcode.subsystems.Storage;
+import org.firstinspires.ftc.teamcode.subsystems.Transfer;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.vision.Limelight;
@@ -24,15 +19,11 @@ import com.pedropathing.math.Vector;
 import com.pedropathing.geometry.Pose;
 
 public class Automations {
-	private HardwareMap hardwareMap;
 	private Alliance alliance;
 	private boolean DEBUG;
-	private StorageState storageState;
-	private ElapsedTime stateTimer;
-	private ElapsedTime ejectTimer;
 
 	private Intake intake;
-	private Storage storage;
+	private Transfer transfer;
 	private Turret turret;
 	private Shooter shooter;
 	private Limelight limelight;
@@ -47,19 +38,16 @@ public class Automations {
 
 	private Pid turretPid;
 
-	private Artifact.Pattern pattern;
-	private boolean intakeEnabled;
-	private boolean intakeEjecting;
-	private boolean intakeTimedEjecting;
-	private boolean shooterEnabled;
+	private State state = State.IDLE;
 	private boolean ignoreVelocity;
+	private boolean intakeEjecting;
 	private boolean useVision = true;
 
-	public enum StorageState {
-		WAITING,
+	public enum State {
+		IDLE,
 		INTAKING,
-		TURNING_TRANSFER,
-		TRANSFERRING
+		WAITING_TO_SHOOT,
+		SHOOTING,
 	}
 
 	public enum ShootingZone {
@@ -77,14 +65,10 @@ public class Automations {
 	}
 
 	public Automations(HardwareMap hardwareMap, Alliance alliance, boolean resetEncoders, boolean DEBUG) {
-		this.hardwareMap = hardwareMap;
 		this.alliance = alliance;
 		this.DEBUG = DEBUG;
-		this.storageState = StorageState.WAITING;
-		this.stateTimer = new ElapsedTime();
-		this.ejectTimer = new ElapsedTime();
 		intake = new Intake(hardwareMap);
-		storage = new Storage(hardwareMap, resetEncoders);
+		transfer = new Transfer(hardwareMap);
 		turret = new Turret(hardwareMap);
 		shooter = new Shooter(hardwareMap);
 
@@ -110,66 +94,63 @@ public class Automations {
 		telemetry.addData("In shooting zone", inShootingArea());
 		telemetry.addData("Shooter Desired Velocity", shooter.desiredVelocity);
 		telemetry.addData("Distance", pose.distanceFrom(alliance.getGoalPose()));
-		telemetry.addData("Intake timed ejecting", intakeTimedEjecting);
 		telemetry.addData("Turret target", Turret.getTargetRotation());
 		telemetry.addData("Turret calculated angle", Turret.getTargetRotation() / Turret.rotation_per_deg);
 		telemetry.addData("Using vision", useVision);
 		telemetry.addData("Vision Alignment Direction", limelight.getAlignmentDirection());
-		storage.showTelemetry(telemetry);
-		// vision.showTelemetry(telemetry);
+		telemetry.addData("Intake loaded", intake.getLoaded());
+		telemetry.addData("Transfer loaded", transfer.getLoaded());
 	}
 
 	public void abort() {
-		storageState = StorageState.WAITING;
-		intakeTimedEjecting = false;
 		intake.enable(false);
-		storage.abort();
+		transfer.enable(false);
+		state = State.IDLE;
 	}
 
 	// Code that should be run on start but not during init
 	public void start() {
-		// setShooterEnabled(true);
-		storage.start();
+		// For future use
 	}
 
 	// Should be called every loop. Handles various things
 	// that need to be called repeatedly
 	public void automationLoop() {
-		updateMotifPattern();
-
 		shooter.updateVelocityPid();
 		turret.update();
-		if (storageState == StorageState.WAITING && intakeEnabled) {
-			storageState = StorageState.INTAKING;
-		} else if (storageState == StorageState.INTAKING) {
-			if (storage.intakeUpdate()) {
-				vibrateControllers();
-				intakeEnable(false);
-				// intake.enableReversed(true);
-				// intakeTimedEjecting = true;
-				// ejectTimer.reset();
-				storageState = StorageState.WAITING;
-			}
-		} else if (storageState == StorageState.TURNING_TRANSFER && !storage.isMotorBusy()) {
-			shootActiveArtifact();
-			stateTimer.reset();
-		} else if (storageState == StorageState.TRANSFERRING) {
-			// Pause transfer updates while waiting to reach velocity
-			storage.transferUpdate((isShooterAtVelocity() || ignoreVelocity));
-			if (storage.getTransferState() == Storage.TransferState.RESET) {
-				intake.enable(false);
-				storageState = StorageState.WAITING;
-			}
-		}
 
-		if (intakeTimedEjecting && ejectTimer.time() > 0.5) {
-			intakeEnable(false);
-			intakeTimedEjecting = false;
+		switch (state) {
+			case IDLE:
+				break;
+			case INTAKING:
+				if (intake.intakeUpdate()) {
+					vibrateControllers();
+					intakeEnable(false);
+				}
+				break;
+			case WAITING_TO_SHOOT:
+				if (shooter.atDesiredVelocity() || ignoreVelocity) {
+					intake.enable(true);
+					transfer.enable(true);
+					shooter.enable(true);
+					state = State.SHOOTING;
+				}
+				break;
+			case SHOOTING:
+				transfer.transferUpdate();
+				if (transfer.isFinishedTransferring()) {
+					intake.enable(DEBUG);
+					transfer.enable(false);
+					shooter.enable(false);
+					state = State.IDLE;
+				}
+				break;
 		}
 	}
 
 	// Should only be called once as the opmode ends
 	public void end() {
+		// For future use
 	}
 
 	// Should be called to update the turret
@@ -210,14 +191,14 @@ public class Automations {
 
 	// Should be called to update the shooter velocity
 	public void updateShooter() {
-		// if (inShootingArea()) {
+		if (inShootingArea()) {
 			setShooterEnabled(true);
-			// shooter.updateShooterTarget(pose, alliance.getGoalShooterPose(), velocity);
+			shooter.updateShooterTarget(pose, alliance.getGoalShooterPose(), velocity);
 			shooter.desiredVelocity = Shooter.defaultVelocity;
 			shooter.setPitchAngle(Shooter.defaultAngle);
-		// } else {
-		// 	setShooterEnabled(false);
-		// }
+		} else {
+			setShooterEnabled(false);
+		}
 	}
 
 	// Should be called every loop. Pose is used to estimate
@@ -230,130 +211,44 @@ public class Automations {
 		this.velocity = velocity;
 	}
 
-	public void updateMotifPattern() {
-		limelight.updateMotifPattern();
-		pattern = limelight.getLastMotifPattern();
-	}
-
+	/**
+	 * Enables or disables the intake depending on the paramter.
+	 * Note that this changes the state to INTAKING or IDLE and should
+	 * not be used if this is not desired.
+	 * @param enable Whether to enable the or disable the intake
+	 */
 	public void intakeEnable(boolean enable) {
 		intake.enable(enable);
-		intakeEnabled = enable;
-		intakeEjecting = false;
-		intakeTimedEjecting = false;
+		if (enable) {
+			state = State.INTAKING;
+		} else {
+			state = State.IDLE;
+		}
 	}
 
 	public void intakeToggle() {
-		intakeEnable(!intakeEnabled);
-	}
-
-	public void intakeEnableActions(boolean enable) {
-		intakeEnable(enable);
+		intakeEnable(!intake.isEnabled());
 	}
 
 	public void intakeEject() {
 		intake.enableReversed(true);
-		intakeEnabled = false;
 		intakeEjecting = true;
-		intakeTimedEjecting = false;
 	}
 
 	public void intakeEjectStop() {
-		intakeEnable(false);
-	}
-
-	public Storage.TurnDirection prepareArtifact(Artifact.Colour colour) {
-		Storage.TurnDirection turnDirection = storage.turnToArtifact(colour);
-		stateTimer.reset();
-		storageState = StorageState.TURNING_TRANSFER;
-		return turnDirection;
-	}
-
-	public Storage.TurnDirection prepareArtifactSequence(Artifact.Colour[] sequence) {
-		return prepareArtifactSequence(sequence, true);
-	}
-
-	public Storage.TurnDirection prepareArtifactSequence(Artifact.Colour[] sequence, boolean exactSequence) {
-		return storage.turnToArtifactSequence(sequence, exactSequence);
-	}
-
-	// Returns true if already prepared and has been shot
-	public boolean prepareOrShootArtifact(Artifact.Colour colour) {
-		Storage.TurnDirection turnDirection = storage.turnToArtifact(colour, true);
-		if (turnDirection == Storage.TurnDirection.AVAILABLE) {
-			shootActiveArtifact();
-			return true;
-		} else if (turnDirection == Storage.TurnDirection.NONE) {
-			vibrateControllers();
-		} else {
-			stateTimer.reset();
-			storageState = StorageState.TURNING_TRANSFER;
-		}
-		return false;
-	}
-
-	public Storage.TurnDirection prepareOrShootArtifactSequence(Artifact.Colour[] sequence) {
-		Storage.TurnDirection turnDirection = storage.turnToArtifactSequence(sequence);
-		if (turnDirection == Storage.TurnDirection.AVAILABLE) {
-			shootActiveArtifact();
-		} else if (turnDirection == Storage.TurnDirection.NONE) {
-			vibrateControllers();
-		} else {
-			stateTimer.reset();
-			storageState = StorageState.TURNING_TRANSFER;
-		}
-		return turnDirection;
-	}
-
-	public boolean prepareOrShootAnyArtifact() {
-		Storage.TurnDirection turnDirection = storage.turnToAnyArtifact();
-		if (turnDirection == Storage.TurnDirection.AVAILABLE) {
-			shootActiveArtifact();
-			return true;
-		} else if (turnDirection == Storage.TurnDirection.NONE) {
-			vibrateControllers();
-		} else {
-			stateTimer.reset();
-			storageState = StorageState.TURNING_TRANSFER;
-		}
-		return false;
-	}
-
-	public void storageTurnCW() {
-		storage.storageTurnCW();
-	}
-
-	public void storageTurnCCW() {
-		storage.storageTurnCCW();
+		intake.enable(false);
 	}
 
 	public void shootActiveArtifact(boolean force) {
+		if (!force && !transfer.getLoaded()) 
+			return;
+
 		shooter.enable(true);
-		storage.transferStart(force);
-		storageState = StorageState.TRANSFERRING;
+		state = State.WAITING_TO_SHOOT;
 	}
 
 	public void shootActiveArtifact() {
 		shootActiveArtifact(false);
-	}
-
-	public boolean colourSensorActiveResponding() {
-		return storage.colourSensorActiveResponding();
-	}
-
-	public boolean colourSensorBackLeftResponding() {
-		return storage.colourSensorBackLeftResponding();
-	}
-
-	public boolean colourSensorBackRightResponding() {
-		return storage.colourSensorBackRightResponding();
-	}
-
-	public boolean colourSensorsResponding() {
-		return storage.colourSensorsResponding();
-	}
-
-	public boolean colourSensorsRespondingLazy() {
-		return storage.colourSensorsRespondingLazy();
 	}
 
 	public void setTurretRotationDegrees(double positionDegrees) {
@@ -372,10 +267,6 @@ public class Automations {
 		shooter.pitchTurret(vector);
 	}
 
-	public void clearStorageMemory() {
-		storage.clearStorageMemory();
-	}
-
 	public void engageBrakes(boolean engage) {
 		if (engage) {
 			light.setRed();
@@ -389,36 +280,16 @@ public class Automations {
 	 * Getter methods
 	 */
 
+	public State getState() {
+		return state;
+	}
+
 	public Alliance getAlliance() {
 		return alliance;
 	}
 
-	public Artifact.Pattern getPattern() {
-		return pattern;
-	}
-
-	public List<Colour> getArtifactsStored() {
-		return storage.getArtifactsStored();
-	}
-
-	public void setArtifactsStored(Colour[] colours) {
-		Storage.setArtifactsStored(colours);
-	}
-
-	public StorageState getStorageState() {
-		return storageState;
-	}
-
-	public Storage.IntakeState getIntakeState() {
-		return storage.getIntakeState();
-	}
-
-	public Storage.TransferState getTransferState() {
-		return storage.getTransferState();
-	}
-
 	public boolean getShooterEnabled() {
-		return shooterEnabled;
+		return shooter.isEnabled();
 	}
 
 	public double getShooterVelocity() {
@@ -428,11 +299,7 @@ public class Automations {
 	public double getShooterDesiredVelocity() {
 		return shooter.desiredVelocity;
 	}
-
-	public Artifact.Pattern getArtifactPattern() {
-		return pattern;
-	}
-
+	
 	public boolean getIntakeEjecting() {
 		return intakeEjecting;
 	}
@@ -465,8 +332,8 @@ public class Automations {
 		if ((futurePose.getY() - 72) + Shooter.shootingAreaTolerance >= Math.abs(futurePose.getX() - 72) ||
 				(pose.getY() - 72) + Shooter.shootingAreaTolerance >= Math.abs(pose.getX() - 72)) {
 			return ShootingZone.UPPER;
-		} else if ((futurePose.getY() + (Math.abs(futurePose.getX() - 72)) <= 24 + Shooter.shootingAreaTolerance) ||
-				(pose.getY() + (Math.abs(pose.getX() - 72)) <= 24 + Shooter.shootingAreaTolerance)) {
+		} else if ((futurePose.getY() + (Math.abs(futurePose.getX() - 72)) <= 24 + Shooter.shootingAreaTolerance && futurePose.getY() >= 0) ||
+				(pose.getY() + (Math.abs(pose.getX() - 72)) <= 24 + Shooter.shootingAreaTolerance && pose.getY() >= 0)) {
 			return ShootingZone.LOWER;
 		} else {
 			return ShootingZone.NONE;
@@ -475,15 +342,10 @@ public class Automations {
 
 	public void setShooterEnabled(boolean enabled) {
 		shooter.enable(enabled);
-		shooterEnabled = enabled;
 	}
 
 	public void setShooterVelocity(double velocity) {
 		shooter.desiredVelocity = velocity;
-	}
-
-	public boolean isShooterAtVelocity() {
-		return Math.abs(shooter.getVelocity() - shooter.desiredVelocity) < Shooter.velocityTolerance;
 	}
 
 	public void vibrateControllers() {

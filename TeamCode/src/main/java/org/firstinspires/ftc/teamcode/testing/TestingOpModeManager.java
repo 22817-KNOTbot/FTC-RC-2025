@@ -55,7 +55,6 @@ public final class TestingOpModeManager {
 			ServoTwoTesting.class,
 			ShooterTesting.class,
 			ShooterVelocityTesting.class,
-			StorageArtifactsColours.class,
 			TransferTesting.class,
 			TurretTesting.class,
 			UtilityCameraFrameCapture.class

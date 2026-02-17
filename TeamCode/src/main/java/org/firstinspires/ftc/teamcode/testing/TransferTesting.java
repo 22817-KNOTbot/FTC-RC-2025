@@ -9,8 +9,9 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact;
-import org.firstinspires.ftc.teamcode.subsystems.Storage;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
+import org.firstinspires.ftc.teamcode.subsystems.Transfer;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 @Configurable
@@ -19,13 +20,10 @@ import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 public class TransferTesting extends LinearOpMode {
 	public static double DESIRED_VELOCITY = 0;
 
-	public static int ARTIFACT_PATTERN = 0;
-
 	public static boolean START = false;
-	public static boolean IGNORE_VELOCITY;
+	public static boolean IGNORE_VELOCITY = false;
 
-
-	private Artifact.Colour[] pattern;
+	private boolean shooting = false;
 
 	@Override
 	public void runOpMode() {
@@ -34,43 +32,36 @@ public class TransferTesting extends LinearOpMode {
 		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 
-		Storage storage = new Storage(hardwareMap, true);
+		Intake intake = new Intake(hardwareMap);
+		Transfer transfer = new Transfer(hardwareMap);
 		Shooter shooter = new Shooter(hardwareMap);
-
-		shooter.enable(true);
-
+		
 		waitForStart();
 
+		shooter.enable(true);
+		
 		while (opModeIsActive()) {
-			// storageMotor.setPIDCoefficients(DcMotor.RunMode.RUN_TO_POSITION,
-			// 		new PIDCoefficients(SPINDEXER_PID_P, SPINDEXER_PID_I, SPINDEXER_PID_D));
-
 			shooter.updateVelocityPid();
 			shooter.desiredVelocity = DESIRED_VELOCITY;
 
-			storage.updateStorageArtifacts();
-			storage.transferUpdate(IGNORE_VELOCITY || shooter.atDesiredVelocity());
+			if (shooting) {
+				transfer.transferUpdate();
+				if (transfer.isFinishedTransferring()) {
+					intake.enable(false);
+					transfer.enable(false);
+					shooting = false;
+				}
+			}
 
 			if (START){
-				// switch (ARTIFACT_PATTERN) {
-				// 	case 0:
-				// 		pattern = Artifact.Pattern.GPP.getPattern();
-				// 		break;
-				// 	case 1:
-				// 		pattern = Artifact.Pattern.PGP.getPattern();
-				// 		break;
-				// 	case 2:
-				// 		pattern = Artifact.Pattern.PPG.getPattern();
-				// 		break;
-				// }
-				// storage.turnToArtifactSequence(pattern);
-				storage.transferStart(true);
+				intake.enable(true);
+				transfer.enable(true);
+				shooting = true;
 				START = false;
 			}
 
 			telemetryManager.addData("Start", START);
-			telemetryManager.addData("Transfer State", storage.getTransferState());
-			telemetryManager.addData("Motor busy", storage.isMotorBusy());
+			telemetryManager.addData("Shooting", shooting);
 			telemetryManager.update();
 		}
 	}

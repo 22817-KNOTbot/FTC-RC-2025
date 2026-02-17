@@ -127,6 +127,10 @@ public class Shooter {
 		this.enabled = enabled;
 	}
 
+	public boolean isEnabled() {
+		return enabled;
+	}
+
 	public void setPower(double pow) {
 		pow = Range.clip(pow, -1, 1);
 		shooterMotorLeft.setPower(pow);

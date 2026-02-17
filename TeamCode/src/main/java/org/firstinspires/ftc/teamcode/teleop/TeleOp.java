@@ -8,13 +8,9 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.knotbot.practiceapp.RobotEvent;
 import com.bylazar.gamepad.PanelsGamepad;
-import com.pedropathing.ftc.FTCCoordinates;
 import com.pedropathing.ftc.InvertedFTCCoordinates;
-import com.pedropathing.ftc.PoseConverter;
-import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 
-import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.util.Alliance;
@@ -182,25 +178,6 @@ public class TeleOp extends LinearOpMode {
 			 * Driver 2
 			 */
 
-			// if (gamepad2.yWasPressed()) {
-			// 	automationHandler.prepareArtifactSequence(Artifact.Pattern.GPP.getPattern(), false);
-			// }
-			// if (gamepad2.bWasPressed()) {
-			// 	automationHandler.prepareArtifactSequence(Artifact.Pattern.PGP.getPattern(), false);
-			// }
-			// if (gamepad2.aWasPressed()) {
-			// 	automationHandler.prepareArtifactSequence(Artifact.Pattern.PPG.getPattern(), false);
-			// }
-
-			if (gamepad2.rightBumperWasPressed()) {
-				automationHandler.storageTurnCW();
-			} else if (gamepad2.leftBumperWasPressed()) {
-				automationHandler.storageTurnCCW();
-			}
-			if (gamepad2.leftStickButtonWasPressed()) {
-				automationHandler.clearStorageMemory();
-			}
-
 			if (gamepad2.dpadUpWasPressed()) {
 				DEBUG = !DEBUG;
 			}
@@ -220,7 +197,7 @@ public class TeleOp extends LinearOpMode {
 			}
 			if (manualTurretMode) {
 				automationHandler.rotateTurret(gamepad2.left_stick_x);
-				// automationHandler.pitchTurret(gamepad2.right_stick_y);
+				automationHandler.pitchTurret(gamepad2.right_stick_y);
 			} else {
 				automationHandler.updateTurret();
 			}
@@ -234,19 +211,7 @@ public class TeleOp extends LinearOpMode {
 			String colour = automationHandler.getAlliance().getColourString();
 			telemetryManager.addData("Alliance", HtmlUtil.colourText(colour, colour));
 			telemetryManager.addData("Time", getRuntime());
-			for (String line : buildStorageTelemetryDisplay(automationHandler.getArtifactsStored())) {
-				telemetryManager.addData("", line);
-			}
-			telemetryManager.addData("Storage State", automationHandler.getStorageState());
-			telemetryManager.addData("Storage Intake State", automationHandler.getIntakeState());
-			telemetryManager.addData("Storage Transfer State", automationHandler.getTransferState());
-
-			if (!automationHandler.colourSensorsRespondingLazy()) {
-				telemetryManager.addLine(HtmlUtil.colourText("********************", "red"));
-				telemetryManager.addLine(HtmlUtil.colourText("WARNING: COLOUR SENSOR(S)", "red"));
-				telemetryManager.addLine(HtmlUtil.colourText("NOT RESPONDING", "red"));
-				telemetryManager.addLine(HtmlUtil.colourText("********************", "red"));
-			}
+			telemetryManager.addData("State", automationHandler.getState());
 
 			if (manualTurretMode) {
 				telemetryManager.addLine(HtmlUtil.colourText("##### MANUAL TURRET MODE #####", "yellow"));
@@ -289,64 +254,5 @@ public class TeleOp extends LinearOpMode {
 		automationHandler.end();
 
 		RobotEvent.runEnd();
-	}
-
-	private String[] buildStorageTelemetryDisplay(List<Artifact.Colour> colours) {
-		String[] lines = new String[4];
-
-		String activeString = "";
-		if (colours.get(0) == null) {
-			activeString = "  ";
-		} else {
-			switch (colours.get(0)) {
-				case PURPLE:
-					activeString = HtmlUtil.colourText("PP", "#cc00ff");
-					break;
-				case GREEN:
-					activeString = HtmlUtil.colourText("GG", "green");
-					break;
-				default:
-					activeString = "  ";
-					break;
-			}
-		}
-
-		String backLeftString = "";
-		if (colours.get(1) == null) {
-			backLeftString = "  ";
-		} else {
-			switch (colours.get(1)) {
-				case PURPLE:
-					backLeftString = HtmlUtil.colourText("PP", "#cc00ff");
-					break;
-				case GREEN:
-					backLeftString = HtmlUtil.colourText("GG", "green");
-					break;
-				default:
-					backLeftString = "  ";
-					break;
-			}
-		}
-
-		String backRightString = "";
-		if (colours.get(2) == null) {
-			backRightString = "  ";
-		} else {
-			switch (colours.get(2)) {
-				case PURPLE:
-					backRightString = HtmlUtil.colourText("PP", "#cc00ff");
-					break;
-				case GREEN:
-					backRightString = HtmlUtil.colourText("GG", "green");
-					break;
-				default:
-					backRightString = "  ";
-					break;
-			}
-		}
-
-		lines[0] = lines[1] = HtmlUtil.monospaceText("&nbsp&nbsp" + activeString + "&nbsp&nbsp");
-		lines[2] = lines[3] = HtmlUtil.monospaceText(backLeftString + "&nbsp&nbsp" + backRightString);
-		return lines;
 	}
 }
