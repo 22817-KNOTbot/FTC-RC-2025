@@ -138,10 +138,7 @@ public class AutoManager {
 	public void showTelemetry(TelemetryManager telemetryManager) {
 		telemetryManager.addData("State", currentState);
 		telemetryManager.addData("Current action", autoActions.get(currentState).getNameString());
-		telemetryManager.addData("Storage", automationHandler.getArtifactsStored());
-		telemetryManager.addData("Storage State", automationHandler.getStorageState());
-		telemetryManager.addData("Storage Intake State", automationHandler.getIntakeState());
-		telemetryManager.addData("Storage Transfer State", automationHandler.getTransferState());
+		telemetryManager.addData("Automations state", automationHandler.getState());
 
 		Drawing.drawRobot(follower.getPose(), telemetryManager.getDashboardCanvas());
 		Drawing.sendPacket();

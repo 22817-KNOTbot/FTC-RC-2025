@@ -40,7 +40,7 @@ public class Auto extends LinearOpMode {
 	@Override
 	public void runOpMode() {
 		telemetryManager = new TelemetryManager();
-		telemetryManager.setFtcTelemetry(telemetry);
+		telemetryManager.setFtcFastTelemetry(this);
 		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 

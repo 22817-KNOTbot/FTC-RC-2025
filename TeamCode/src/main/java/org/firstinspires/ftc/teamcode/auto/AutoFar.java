@@ -38,7 +38,7 @@ public class AutoFar extends LinearOpMode {
 	@Override
 	public void runOpMode() {
 		telemetryManager = new TelemetryManager();
-		telemetryManager.setFtcTelemetry(telemetry);
+		telemetryManager.setFtcFastTelemetry(this);
 		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 
@@ -114,14 +114,14 @@ public class AutoFar extends LinearOpMode {
 
 		int[] autoActionsBottomIndexes = new int[] {
 			1, //shootFar 
-			1, //shootUnsorted
+			0, //shootUnsorted
 			0, //intakeBottomApproach
 			0, //IntakePrepared
 		};
 
 		int[] autoActionsLoadingIndexes = new int[] {
 			1, //shootFar 
-			1, //shootUnsorted
+			0, //shootUnsorted
 			3, //intakeLoadingZoneApproach 
 			0, //IntakePrepared
 		};

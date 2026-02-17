@@ -1,10 +1,5 @@
 package org.firstinspires.ftc.teamcode.auto;
 
-import java.util.concurrent.Callable;
-
-import org.firstinspires.ftc.teamcode.scoring.Artifact;
-import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
-import org.firstinspires.ftc.teamcode.subsystems.Storage;
 import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.util.BlueAlliance;
@@ -144,7 +139,6 @@ public class AutoComponents {
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-					new ShootSortedAction(),
 					new ShootUnsortedAction(),
 					new EndAction()
 			};
@@ -350,7 +344,7 @@ public class AutoComponents {
 				public boolean run(Follower follower, Automations automationHandler) {
 					if (!initialized) {
 						follower.setMaxPower(0.25);
-						automationHandler.intakeEnableActions(true);
+						automationHandler.intakeEnable(true);
 						timer.reset();
 					}
 
@@ -447,58 +441,6 @@ public class AutoComponents {
 		}
 	}
 
-	public class ShootSortedAction extends AutoAction {
-		public String getNameString() {
-			return "Shoot Sorted";
-		}
-
-		public AutoActionCommand getActionCommand() {
-			return new AutoActionCommand() {
-				private boolean initialized = false;
-				private ElapsedTime shootingTimer = new ElapsedTime();
-				private boolean shootingTimerSet = false;
-
-				public boolean run(Follower follower, Automations automationHandler) {
-					if (follower.isBusy())
-						return false;
-					if (!initialized) {
-						automationHandler.setIgnoreVelocity(false);
-						Pattern pattern = automationHandler.getArtifactPattern();
-						if (pattern == null || pattern.getPattern() == null || automationHandler
-								.prepareOrShootArtifactSequence(pattern.getPattern()) == Storage.TurnDirection.NONE) {
-							automationHandler.shootActiveArtifact(true);
-						}
-
-						initialized = true;
-					}
-
-					if (automationHandler.getStorageState() == Automations.StorageState.WAITING) {
-						return true;
-					} else if (automationHandler.getTransferState() == Storage.TransferState.WAITING_VELOCITY) {
-						if (!shootingTimerSet) {
-							shootingTimer.reset();
-							shootingTimerSet = true;
-						}
-					}
-
-					if (shootingTimerSet && shootingTimer.time() > 5) {
-						automationHandler.setIgnoreVelocity(true);
-					}
-
-					return false;
-				}
-			};
-		}
-
-		public AutoState getResultingState() {
-			return new ShootFinishState();
-		}
-
-		public PathChain getPathChain(Follower follower, Pose startingPose) {
-			return null;
-		}
-	}
-
 	public class ShootUnsortedAction extends AutoAction {
 		public String getNameString() {
 			return "Shoot Unsorted";
@@ -520,9 +462,9 @@ public class AutoComponents {
 						initialized = true;
 					}
 
-					if (automationHandler.getStorageState() == Automations.StorageState.WAITING) {
+					if (automationHandler.getState() == Automations.State.IDLE) {
 						return true;
-					} else if (automationHandler.getTransferState() == Storage.TransferState.WAITING_VELOCITY) {
+					} else if (automationHandler.getState() == Automations.State.WAITING_TO_SHOOT) {
 						if (!shootingTimerSet) {
 							shootingTimer.reset();
 							shootingTimerSet = true;
@@ -562,7 +504,7 @@ public class AutoComponents {
 			if (follower.getPathCompletion() >= 0.9) {
 				automationHandler.intakeEnable(false);
 			}
-			return !follower.isBusy() && automationHandler.getStorageState() == Automations.StorageState.WAITING;
+			return !follower.isBusy();
 		}
 	}
 }
