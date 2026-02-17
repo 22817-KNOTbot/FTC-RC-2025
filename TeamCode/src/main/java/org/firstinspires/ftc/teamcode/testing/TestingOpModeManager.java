@@ -41,6 +41,7 @@ public final class TestingOpModeManager {
 			ColourLoopTesting.class,
 			HubLedTesting.class,
 			IntakeTesting.class,
+			LaserDistanceTesting.class,
 			LightStrobing.class,
 			LimelightPoseTesting.class,
 			ManualIndividualControl.class,

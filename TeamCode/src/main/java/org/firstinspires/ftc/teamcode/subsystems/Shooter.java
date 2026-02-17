@@ -22,7 +22,8 @@ public class Shooter {
 	public static double velocityTolerance = 50;
 	public static double shootingAreaTolerance = 12.7279220614;
 	public static double defaultVelocity = 1680;
-	public static double PIDF_P = 0.03;
+	public static double defaultAngle = 55.9859280971;
+	public static double PIDF_P = 0.07;
 	public static double PIDF_I = 0;
 	public static double PIDF_D = 0;
 	public static double PIDF_F = 0.0004;
@@ -68,7 +69,13 @@ public class Shooter {
 			velocityLUT.new Entry(217.076859128, 1520d),
 			velocityLUT.new Entry(61.5535989797, 1520d),
 			velocityLUT.new Entry(241.221698506, 1800d),
-			velocityLUT.new Entry(234.892739735, 1760d)
+			velocityLUT.new Entry(234.892739735, 1760d),
+			velocityLUT.new Entry(264.98179534, 2060d),
+			velocityLUT.new Entry(274.09449383, 2160d),
+			velocityLUT.new Entry(267.331973714, 2100d),
+			velocityLUT.new Entry(282.71322082, 2360d)
+
+
 			// velocityLUT.new Entry(199.6838915, 1300d),
 			// velocityLUT.new Entry(210.7986527, 1460d),
 			// velocityLUT.new Entry(217.0768591, 1520d),

@@ -182,15 +182,15 @@ public class TeleOp extends LinearOpMode {
 			 * Driver 2
 			 */
 
-			if (gamepad2.yWasPressed()) {
-				automationHandler.prepareArtifactSequence(Artifact.Pattern.GPP.getPattern(), false);
-			}
-			if (gamepad2.bWasPressed()) {
-				automationHandler.prepareArtifactSequence(Artifact.Pattern.PGP.getPattern(), false);
-			}
-			if (gamepad2.aWasPressed()) {
-				automationHandler.prepareArtifactSequence(Artifact.Pattern.PPG.getPattern(), false);
-			}
+			// if (gamepad2.yWasPressed()) {
+			// 	automationHandler.prepareArtifactSequence(Artifact.Pattern.GPP.getPattern(), false);
+			// }
+			// if (gamepad2.bWasPressed()) {
+			// 	automationHandler.prepareArtifactSequence(Artifact.Pattern.PGP.getPattern(), false);
+			// }
+			// if (gamepad2.aWasPressed()) {
+			// 	automationHandler.prepareArtifactSequence(Artifact.Pattern.PPG.getPattern(), false);
+			// }
 
 			if (gamepad2.rightBumperWasPressed()) {
 				automationHandler.storageTurnCW();
@@ -220,7 +220,7 @@ public class TeleOp extends LinearOpMode {
 			}
 			if (manualTurretMode) {
 				automationHandler.rotateTurret(gamepad2.left_stick_x);
-				automationHandler.pitchTurret(gamepad2.right_stick_y);
+				// automationHandler.pitchTurret(gamepad2.right_stick_y);
 			} else {
 				automationHandler.updateTurret();
 			}

@@ -9,8 +9,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import android.util.Log;
 
-import com.qualcomm.robotcore.hardware.PIDCoefficients;
-
 import com.bylazar.configurables.annotations.Configurable;
 
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Colour;
@@ -27,12 +25,13 @@ import com.acmerobotics.dashboard.config.Config;
 @Config
 public class Storage {
 	public static double distance_threshold_mm = 30;
-	public static int positionInterval = 475;
+	public static int positionInterval = 129;
 	public static double transferTime = 1.5;
 	public static double storageMotorPower = 0.3;
 	public static double storageTolerance = 20;
-	public static double transferMotorCWPower = 0.7;
-	public static double transferMotorCCWPower = 0.7;
+	public static double transferMotorCWPower = 0.85;
+	public static double transferMotorCCWPower = 0.85;
+	public static double pCoefficient = 7.5;
 	
 	private static int numOfArtifacts = 0;
 	private static ArrayList<Colour> artifactStored = new ArrayList<Colour>(Arrays.asList(null, null, null));
@@ -93,7 +92,8 @@ public class Storage {
 		}
 
 		storageMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		storageMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);		
+		storageMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);	
+		storageMotor.setPositionPIDFCoefficients(pCoefficient);	
 
 		timer = new ElapsedTime();
 	}
@@ -176,8 +176,6 @@ public class Storage {
 			if (storageFull()) {
 				timer.reset();
 				return true;
-			} else if (getBackRightArtifact() != null && getBackLeftArtifact() == null && getActiveArtifact() == null) {
-				storageTurnCW();
 			}
 		}
 		return false;
@@ -393,9 +391,9 @@ public class Storage {
 	public boolean transferStart(boolean force) {
 		if (getActiveArtifact() != null || force) {
 			clearStorageMemory();
-			storageMotor.setPower(transferMotorCWPower);
-			storageMotor.setTargetPosition(currentTargetSlotPosition + (int) (positionInterval * 0.375));
-			transferState = TransferState.BACK_TURNING;
+			// storageMotor.setPower(transferMotorCWPower);
+			// storageMotor.setTargetPosition(currentTargetSlotPosition + (int) (positionInterval * 0.375));
+			transferState = TransferState.WAITING_VELOCITY;
 			return true;
 		} else {
 			return false;
@@ -414,7 +412,7 @@ public class Storage {
 				}
 				break;
 			case WAITING_VELOCITY:
-				if (start && !isMotorBusy()){
+				if (start){
 					storageFullTurnCCW();
 					timer.reset();
 					transferState = TransferState.TURNING;
@@ -454,10 +452,12 @@ public class Storage {
 			Log.d("Storage", "Floored");
 			return;
 		} else if (positionPercentage <= ((float) 2 / 3)) {
-			storageDoubleTurnCW();
+			// storageDoubleTurnCW();
+			storageTurnCCW();
 			return;
 		} else {
-			storageTurnCW();
+			// storageTurnCW();
+			storageDoubleTurnCCW();
 			return;
 		}
 	}

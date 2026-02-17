@@ -32,11 +32,6 @@ public class IntakeTesting extends LinearOpMode {
 		while (opModeIsActive()) {
 			if (power == null) {
 				intake.enable(enabled);
-				if (enabled) {
-					intake.lowerIntake();
-				} else {
-					intake.raiseIntake();
-				}
 			} else {
 				intake.setPower(power);
 			}

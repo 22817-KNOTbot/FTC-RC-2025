@@ -210,12 +210,14 @@ public class Automations {
 
 	// Should be called to update the shooter velocity
 	public void updateShooter() {
-		if (inShootingArea()) {
+		// if (inShootingArea()) {
 			setShooterEnabled(true);
-			shooter.updateShooterTarget(pose, alliance.getGoalShooterPose(), velocity);
-		} else {
-			setShooterEnabled(false);
-		}
+			// shooter.updateShooterTarget(pose, alliance.getGoalShooterPose(), velocity);
+			shooter.desiredVelocity = Shooter.defaultVelocity;
+			shooter.setPitchAngle(Shooter.defaultAngle);
+		// } else {
+		// 	setShooterEnabled(false);
+		// }
 	}
 
 	// Should be called every loop. Pose is used to estimate
@@ -235,11 +237,6 @@ public class Automations {
 
 	public void intakeEnable(boolean enable) {
 		intake.enable(enable);
-		if (enable) {
-			intake.lowerIntake();
-		} else {
-			intake.raiseIntake();
-		}
 		intakeEnabled = enable;
 		intakeEjecting = false;
 		intakeTimedEjecting = false;
