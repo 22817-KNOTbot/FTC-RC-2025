@@ -61,20 +61,25 @@ public class AutoPaths {
 			return follower.pathBuilder()
 					.addPath(
         					new BezierCurve(
-							startingPose,
-							new Pose(90.000, 69.000),
-							new Pose(128.000, 69.000)))
-					.setLinearHeadingInterpolation(Math.toRadians(340), Math.toRadians(0))
-					.build();
-		}
-
-		public static PathChain getCycleIntake(Follower follower, Pose startingPose) {
-			return follower.pathBuilder()
+									startingPose,
+									new Pose(90.000, 69.000),
+									new Pose(128.000, 69.000)
+							))
+					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
 					.addPath(
-							new BezierLine(startingPose, new Pose(131.000, 60.000)))
+						new BezierLine(startingPose, new Pose(131.000, 60.000))
+					)
 					.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(50))
 					.build();
 		}
+
+		//public static PathChain getCycleIntake(Follower follower, Pose startingPose) {
+		//	return follower.pathBuilder()
+		//			.addPath(
+		//					new BezierLine(startingPose, new Pose(131.000, 60.000)))
+		//			.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(50))
+		//			.build();
+		//}
 
 		//public static PathChain getCycleReturn(Follower follower, Pose startingPose) {
 		//	return follower.pathBuilder()

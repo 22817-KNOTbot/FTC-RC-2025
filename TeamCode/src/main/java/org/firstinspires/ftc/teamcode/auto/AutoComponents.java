@@ -112,7 +112,7 @@ public class AutoComponents {
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-					new PreparedCycleIntakeState(),
+					new PreparedCycleIntakeAction(),
 					new EndAction()
 			};
 		}
@@ -424,7 +424,7 @@ public class AutoComponents {
 		}
 	}
 
-	public class PreparedCycleIntakeState extends AutoAction {
+	public class PreparedCycleIntakeAction extends AutoAction {
 		public String getNameString() {
 			return "Intake Prepared Set";
 		}
@@ -441,7 +441,7 @@ public class AutoComponents {
 						timer.reset();
 					}
 
-					if (!follower.isBusy() || (timer.time() > 1.5 && follower.getVelocity().getMagnitude() < 0.2)) {
+					if (!follower.isBusy() || (timer.time() > 2.5 && follower.getVelocity().getMagnitude() < 0.2)) {
 						follower.setMaxPower(1);
 						return true;
 					}
