@@ -3,12 +3,9 @@ package org.firstinspires.ftc.teamcode.auto;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.firstinspires.ftc.teamcode.auto.AutoPaths.Red;
-
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.paths.Path;
@@ -79,34 +76,34 @@ public class AutoPaths {
 					.build();
 		}
 
-		public static PathChain getCycleReturn(Follower follower, Pose startingPose) {
-			return follower.pathBuilder()
-					.addPath(
-							new BezierCurve(
-							startingPose,
-							new Pose(95.000, 64.000),
-							new Pose(84.000, 84.000)))
-					.setLinearHeadingInterpolation(Math.toRadians(354), Math.toRadians(0))
-					.setReversed()
-        			.build();
-		}
+		//public static PathChain getCycleReturn(Follower follower, Pose startingPose) {
+		//	return follower.pathBuilder()
+		//			.addPath(
+		//					new BezierCurve(
+		//					startingPose,
+		//					new Pose(95.000, 64.000),
+		//					new Pose(84.000, 84.000)))
+		//			.setLinearHeadingInterpolation(Math.toRadians(354), Math.toRadians(0))
+		//			.setReversed()
+        //			.build();
+		//}
 
 		public static PathChain getUpLaunch(Follower follower, Pose startingPose) {
-			if (startingPose.getY() < 80) {
-				return follower.pathBuilder()
-						.addPath(
-								new BezierLine(startingPose, new Pose(84.000, 84.000)))
-						.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(340))
-						.setReversed()
-						.build();
-			} else {
-				return follower.pathBuilder()
-						.addPath(
-								new BezierLine(startingPose, new Pose(84.000, 84.000)))
-						.setTangentHeadingInterpolation()
-						.setReversed()
-						.build();
-			}
+			//if (startingPose.getY() < 80) {
+			//	return follower.pathBuilder()
+			//			.addPath(
+			//					new BezierLine(startingPose, new Pose(84.000, 84.000)))
+			//			.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(340))
+			//			.setReversed()
+			//			.build();
+			//} else {
+			return follower.pathBuilder()
+					.addPath(
+							new BezierLine(startingPose, new Pose(84.000, 84.000)))
+					.setTangentHeadingInterpolation()
+					.setReversed()
+					.build();
+			//}
 		}
 
 		public static PathChain getFirstLaunch(Follower follower, Pose startingPose) {
@@ -233,9 +230,9 @@ public class AutoPaths {
 			return mirrorPathChain(Red.getCyclePushGate(follower, startingPose.mirror()), follower);
 		}
 
-		public static PathChain getCycleReturn(Follower follower, Pose startingPose) {
-			return mirrorPathChain(Red.getCycleReturn(follower, startingPose.mirror()), follower);
-		}
+		//public static PathChain getCycleReturn(Follower follower, Pose startingPose) {
+		//	return mirrorPathChain(Red.getCycleReturn(follower, startingPose.mirror()), follower);
+		//}
 
 		// public static PathChain getLoadingZoneIntake(Follower follower) {
 		// return mirrorPathChain(Red.getLoadingZoneIntake(follower), follower);

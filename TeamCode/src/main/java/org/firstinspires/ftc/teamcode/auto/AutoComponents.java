@@ -1,23 +1,5 @@
 package org.firstinspires.ftc.teamcode.auto;
 
-import java.util.concurrent.Callable;
-
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoActionCommand;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoState;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.EndAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakePreparedAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakeState;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.OpenGateAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.PostIntakeCommand;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeCommand;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeTopAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootCloseAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootFarAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootSortedAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootState;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootUnsortedAction;
-import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
 import org.firstinspires.ftc.teamcode.subsystems.Storage;
 import org.firstinspires.ftc.teamcode.teleop.Automations;
@@ -98,10 +80,8 @@ public class AutoComponents {
 					new ShootCloseAction(),
 					new PrepareIntakeMiddleAction(),
 					new PrepareCycleAction(),
-					new PrepareCycleAction(),
 					new PrepareIntakeTopAction(),
 					new PrepareIntakeBottomAction(),
-					// new PrepareIntakeLoadingZoneAction(),
 					new LeaveUpAction(),
 					new EndAction()
 			};
@@ -546,9 +526,9 @@ public class AutoComponents {
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
-				return AutoPaths.Red.getCycleReturn(follower, startingPose);
+				return AutoPaths.Red.getUpLaunch(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
-				return AutoPaths.Blue.getCycleReturn(follower, startingPose);
+				return AutoPaths.Blue.getUpLaunch(follower, startingPose);
 			}
 			return null;
 		}

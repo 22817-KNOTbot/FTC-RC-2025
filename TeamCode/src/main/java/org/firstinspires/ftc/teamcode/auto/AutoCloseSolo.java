@@ -5,7 +5,6 @@ import com.acmerobotics.dashboard.config.Config;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
-import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -16,7 +15,6 @@ import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoState;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.StartAutoState;
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,6 +91,9 @@ public class AutoCloseSolo extends LinearOpMode {
 
 		for (int i = 0; i < actionOptions.length; i++) {
 			autoActions.add(actionOptions[i]);
+			if (i == 2) {
+				autoActions.add(actionOptions[2]);
+			}
 			currentState = actionOptions[i].getResultingState();
 			if (currentState == null) {
 				break;
