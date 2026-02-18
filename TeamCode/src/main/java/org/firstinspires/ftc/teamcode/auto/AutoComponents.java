@@ -76,10 +76,10 @@ public class AutoComponents {
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
 					new ShootCloseAction(),
-					new PrepareIntakeBottomAction(),
 					new PrepareIntakeMiddleAction(),
+					new PrepareGateIntakeAction(),
 					new PrepareIntakeTopAction(),
-					// new PrepareIntakeLoadingZoneAction(),
+					new PrepareIntakeBottomAction(),
 					new LeaveUpAction(),
 					new EndAction()
 			};
@@ -103,6 +103,19 @@ public class AutoComponents {
 		}
 	}
 
+	public class PrepareGateIntakeState extends AutoState {
+		public String getNameString() {
+			return "Prepare Intake";
+		}
+
+		public AutoAction[] getAutoActions() {
+			return new AutoAction[] {
+					new PreparedGateIntakeAction(),
+					new EndAction()
+			};
+		}
+	}
+
 	public class IntakeState extends AutoState {
 		public String getNameString() {
 			return "Intake";
@@ -113,6 +126,20 @@ public class AutoComponents {
 					new ShootCloseAction(),
 					new ShootFarAction(),
 					new OpenGateAction(),
+					new EndAction()
+			};
+		}
+	}
+
+	public class GateIntakeState extends AutoState {
+		public String getNameString() {
+			return "Intake";
+		}
+
+		public AutoAction[] getAutoActions() {
+			return new AutoAction[] {
+					new ShootCloseAction(),
+					new ShootFarAction(),
 					new EndAction()
 			};
 		}
@@ -152,9 +179,10 @@ public class AutoComponents {
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-					new PrepareIntakeBottomAction(),
+				new PrepareIntakeTopAction(),
 					new PrepareIntakeMiddleAction(),
-					new PrepareIntakeTopAction(),
+					new PrepareGateIntakeAction(),
+					new PrepareIntakeBottomAction(),
 					new PrepareIntakeLoadingZoneAction(),
 					new LeaveLowAction(),
 					new LeaveUpAction(),
@@ -229,9 +257,9 @@ public class AutoComponents {
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
-				return AutoPaths.Red.getExitUpShootingZone(follower, startingPose);
+				return AutoPaths.Red.getExitUpperShootingZone(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
-				return AutoPaths.Blue.getExitUpShootingZone(follower, startingPose);
+				return AutoPaths.Blue.getExitLowShootingZone(follower, startingPose);
 			}
 			return null;
 		}
@@ -278,6 +306,29 @@ public class AutoComponents {
 				return AutoPaths.Red.getMiddleApproach(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
 				return AutoPaths.Blue.getMiddleApproach(follower, startingPose);
+			}
+			return null;
+		}
+	}
+
+	public class PrepareGateIntakeAction extends AutoAction {
+		public String getNameString() {
+			return "Prepare Gate Intake Action";
+		}
+
+		public AutoActionCommand getActionCommand() {
+			return new PrepareIntakeCommand();
+		}
+
+		public AutoState getResultingState() {
+			return new PrepareGateIntakeState();
+		}
+
+		public PathChain getPathChain(Follower follower, Pose startingPose) {
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getGateIntake(follower, startingPose);
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getGateIntake(follower, startingPose);
 			}
 			return null;
 		}
@@ -360,6 +411,47 @@ public class AutoComponents {
 
 		public AutoState getResultingState() {
 			return new IntakeState();
+		}
+
+		public PathChain getPathChain(Follower follower, Pose startingPose) {
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getIntakePreparedSet(follower, startingPose);
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getIntakePreparedSet(follower, startingPose);
+			}
+			return null;
+		}
+	}
+
+	public class PreparedGateIntakeAction extends AutoAction {
+		public String getNameString() {
+			return "Prepared Gate Intake";
+		}
+
+		public AutoActionCommand getActionCommand() {
+			return new AutoActionCommand() {
+				private boolean initialized = false;
+				private ElapsedTime timer = new ElapsedTime();
+
+				public boolean run(Follower follower, Automations automationHandler) {
+					if (!initialized) {
+						follower.setMaxPower(0.25);
+						automationHandler.intakeEnable(true);
+						timer.reset();
+					}
+
+					if (!follower.isBusy() || (timer.time() > 2.5 && follower.getVelocity().getMagnitude() < 0.2)) {
+						follower.setMaxPower(1);
+						return true;
+					}
+
+					return false;
+				}
+			};
+		}
+
+		public AutoState getResultingState() {
+			return new GateIntakeState();
 		}
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {

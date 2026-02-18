@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 @Config
 @Configurable
 @Autonomous
-public class Auto extends LinearOpMode {
+public class AutoCloseSolo extends LinearOpMode {
 	private Alliance alliance;
 	private StartAutoState startingState;
 
@@ -38,53 +38,32 @@ public class Auto extends LinearOpMode {
 	@Override
 	public void runOpMode() {
 		telemetryManager = new TelemetryManager();
-		telemetryManager.setFtcFastTelemetry(this);
+		telemetryManager.setFtcTelemetry(telemetry);
 		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 
+		startingState = autoManager.getStartingStates()[1];
+
 		boolean configuring = true;
 		int selectedIndex = 0;
-		int configuringLevel = 0;
 		while (configuring) {
 			if (isStopRequested())
 				return;
 
 			String[] options;
-			switch (configuringLevel) {
-				case 0:
-					options = Stream.of(ALLIANCES)
-							.map(Alliance::getColourString).toArray(String[]::new);
-					break;
-				case 1:
-					options = Stream.of(autoManager.getStartingStates())
-							.map(AutoState::getNameString).toArray(String[]::new);
-					break;
-				default:
-					// This should never happen. Simply ending the OpMode is safest if it somehow does
-					return;
-			}
+			options = Stream.of(ALLIANCES)
+					.map(Alliance::getColourString).toArray(String[]::new);
 
 			if (gamepad1.dpadDownWasPressed() || gamepad2.dpadDownWasPressed()) {
 				selectedIndex = Math.min(selectedIndex + 1, ALLIANCES.length - 1);
 			} else if (gamepad1.dpadUpWasPressed() || gamepad2.dpadUpWasPressed()) {
 				selectedIndex = Math.max(selectedIndex - 1, 0);
 			} else if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
-				if (configuringLevel == 0) {
-					alliance = ALLIANCES[selectedIndex];
-					autoManager = new AutoManager(alliance);
-				} else if (configuringLevel == 1) {
-					startingState = autoManager.getStartingStates()[selectedIndex];
-					configuring = false;
-				} else {
-					// This should never happen. Simply ending the OpMode is safest if it somehow does
-					return; 
-				}
-
-				configuringLevel++;
+				alliance = ALLIANCES[selectedIndex];
+				autoManager = new AutoManager(alliance);
 				selectedIndex = 0;
-				continue;
-			} else if (gamepad1.bWasPressed() || gamepad2.bWasPressed()) {
-				configuringLevel = 0;
+				configuring = false;
+				break;
 			}
 
 			telemetryManager.addData("Alliance", alliance != null ? alliance.getColourString() : "None");
@@ -101,50 +80,25 @@ public class Auto extends LinearOpMode {
 
 		}
 
-		configuring = true;
 		selectedIndex = 0;
 		AutoState currentState = startingState;
 		List<AutoAction> autoActions = new ArrayList<>();
 
-		while (configuring) {
-			if (isStopRequested())
-				return;
+		if (isStopRequested())
+			return;
 
-			AutoAction[] actionOptions = currentState.getAutoActions();
+		AutoAction[] actionOptions = currentState.getAutoActions();
 
-			if (gamepad1.dpadDownWasPressed() || gamepad2.dpadDownWasPressed()) {
-				selectedIndex = Math.min(selectedIndex + 1, actionOptions.length - 1);
-			} else if (gamepad1.dpadUpWasPressed() || gamepad2.dpadUpWasPressed()) {
-				selectedIndex = Math.max(selectedIndex - 1, 0);
-			} else if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
-				autoActions.add(actionOptions[selectedIndex]);
-				currentState = actionOptions[selectedIndex].getResultingState();
-				if (currentState == null) {
-					configuring = false;
-					break;
-				}
-				actionOptions = currentState.getAutoActions();
-				selectedIndex = 0;
-			} else if (gamepad1.bWasPressed() || gamepad2.bWasPressed()) {
-				autoActions.remove(autoActions.size() - 1);
-				currentState = autoActions.get(autoActions.size() - 1).getResultingState();
-				actionOptions = currentState.getAutoActions();
-				selectedIndex = 0;
+		for (int i = 0; i < actionOptions.length; i++) {
+			autoActions.add(actionOptions[i]);
+			if (i == 2) {
+				autoActions.add(actionOptions[2]);
 			}
-
-			String[] breadcrumbsList = autoActions.stream()
-					.map(AutoAction::getNameString).toArray(String[]::new);
-			String breadcrumbsString = String.join(" > ", breadcrumbsList);
-			telemetryManager.addLine(breadcrumbsString);
-
-			telemetryManager.addLine();
-			telemetryManager.addLine("====================");
-			telemetryManager.addLine();
-
-			for (int i = 0; i < actionOptions.length; i++) {
-				telemetryManager.addLine((selectedIndex == i ? "> " : "") + actionOptions[i].getNameString());
+			currentState = actionOptions[i].getResultingState();
+			if (currentState == null) {
+				break;
 			}
-			telemetryManager.update();
+			actionOptions = currentState.getAutoActions();
 		}
 
 		autoManager.initialize(hardwareMap, startingState, autoActions);

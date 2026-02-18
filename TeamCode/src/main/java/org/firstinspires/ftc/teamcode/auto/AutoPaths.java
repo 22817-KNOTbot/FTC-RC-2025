@@ -6,7 +6,6 @@ import java.util.List;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.paths.Path;
@@ -15,41 +14,41 @@ import com.pedropathing.paths.PathChain;
 
 public class AutoPaths {
 	public static class Red {
+		// Close Paths
 		public static PathChain getBottomApproach(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
-							new BezierLine(startingPose, new Pose(96.000, 36.000)))
-					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
-					.build();
+							new BezierCurve(startingPose,
+            						new Pose(90.000, 35.000),
+            						new Pose(100.000, 35.000)))
+					.setConstantHeadingInterpolation(Math.toRadians(0))
+        			.build();
 		}
 
 		public static PathChain getMiddleApproach(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
-							new BezierLine(startingPose, new Pose(96.000, 60.000)))
+							new BezierLine(startingPose, new Pose(100.000, 58.000)))
 					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
-					.build();
-		}
-
-		public static PathChain getPushGate(Follower follower, Pose startingPose) {
-			return follower.pathBuilder()
-					.addPath(
-							new BezierCurve(
-									startingPose,
-									new Pose(96.000, 56.000),
-									new Pose(129.000, 69.000)))
-					.setConstantHeadingInterpolation(Math.toRadians(0))
 					.build();
 		}
 
 		public static PathChain getTopApproach(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
-							new BezierLine(startingPose, new Pose(96.000, 84.000)))
+							new BezierLine(startingPose, new Pose(100.000, 84.000)))
 					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
 					.build();
 		}
-
+		
+		public static PathChain getIntake(Follower follower, Pose startingPose) {
+			return follower.pathBuilder()
+					.addPath(
+							new BezierLine(startingPose, startingPose.withX(startingPose.getX() + 25)))
+					.setConstantHeadingInterpolation(Math.toRadians(0))
+					.build();
+		}
+			
 		public static PathChain getIntakePreparedSet(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
@@ -66,13 +65,51 @@ public class AutoPaths {
 				.build();
 		}
 
-		// public static PathChain getLoadingZoneLaunch(Follower follower) {
-		// return follower.pathBuilder()
-		// .addPath(
-		// new BezierLine(new Pose(135.000, 11.000), new Pose(96.000, 14.000)))
-		// .setLinearHeadingInterpolation(Math.toRadians(270), Math.toRadians(0))
-		// .build();
-		// }
+		public static PathChain getGateIntake(Follower follower, Pose startingPose) {
+			return follower.pathBuilder()
+					.addPath(
+        					new BezierCurve(
+									startingPose,
+									new Pose(90.000, 69.000),
+									new Pose(128.000, 69.000)
+							))
+					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
+					.addPath(
+						new BezierLine(startingPose, new Pose(131.000, 60.000))
+					)
+					.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(50))
+					.build();
+		}
+
+		public static PathChain getUpLaunch(Follower follower, Pose startingPose) {
+			return follower.pathBuilder()
+					.addPath(
+							new BezierLine(startingPose, new Pose(84.000, 84.000)))
+					.setTangentHeadingInterpolation()
+					.setReversed()
+					.build();
+		}
+
+		public static PathChain getExitUpperShootingZone(Follower follower, Pose startingPose) {
+			return follower.pathBuilder()
+					.addPath(
+							new BezierLine(startingPose, new Pose(84.000, 105.000)))
+					.setConstantHeadingInterpolation(Math.toRadians(340))
+					.build();
+		}
+
+		// Other Paths
+
+		public static PathChain getPushGate(Follower follower, Pose startingPose) {
+			return follower.pathBuilder()
+					.addPath(
+							new BezierCurve(
+									startingPose,
+									new Pose(96.000, 56.000),
+									new Pose(129.000, 69.000)))
+					.setConstantHeadingInterpolation(Math.toRadians(0))
+					.build();
+		}
 
 		public static PathChain getLowLaunch(Follower follower, Pose startingPose) {
 			if (startingPose.getY() >= 40) {
@@ -98,14 +135,6 @@ public class AutoPaths {
 							new BezierCurve(startingPose,
 									startingPose.withX(96),
 									new Pose(96.000, 11.000)))
-					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
-					.build();
-		}
-
-		public static PathChain getUpLaunch(Follower follower, Pose startingPose) {
-			return follower.pathBuilder()
-					.addPath(
-							new BezierLine(startingPose, new Pose(84.000, 84.000)))
 					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
 					.build();
 		}
@@ -152,9 +181,14 @@ public class AutoPaths {
 			return mirrorPathChain(Red.getLoadingZoneApproach(follower, startingPose.mirror()), follower);
 		}
 
-		// public static PathChain getLoadingZoneLaunch(Follower follower) {
-		// return mirrorPathChain(Red.getLoadingZoneLaunch(follower), follower);
-		// }
+		public static PathChain getExitUpperShootingZone(Follower follower, Pose startingPose) {
+			return mirrorPathChain(Red.getExitUpperShootingZone(follower, startingPose.mirror()), follower);
+		}
+
+		public static PathChain getGateIntake(Follower follower, Pose startingPose) {
+			return mirrorPathChain(Red.getGateIntake(follower, startingPose.mirror()), follower);
+		}
+
 
 		public static PathChain getLowLaunch(Follower follower, Pose startingPose) {
 			return mirrorPathChain(Red.getLowLaunch(follower, startingPose.mirror()), follower);
