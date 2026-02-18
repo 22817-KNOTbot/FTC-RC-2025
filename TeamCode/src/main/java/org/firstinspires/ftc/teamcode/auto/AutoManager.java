@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoActionCommand;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoState;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.StartAutoState;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.teleop.Automations;
@@ -68,6 +69,23 @@ public class AutoManager {
 				components.new StartLowState(),
 				components.new StartUpState(),
 		};
+	}
+
+	public static List<AutoAction> getAutoActionsByClasses(AutoState startingState, List<Class<? extends AutoAction>> classes) {
+		List<AutoAction> autoActions = new ArrayList<>();
+		AutoState currentState = startingState;
+		for (Class<? extends AutoAction> clazz : classes) {
+			for (AutoAction autoAction : currentState.getAutoActions()) {
+				if (clazz.isInstance(autoAction)) {
+					autoActions.add(autoAction);
+					currentState = autoAction.getResultingState();
+					break;
+				}
+			}
+			throw new IllegalArgumentException(
+					"No auto action of class " + clazz.getSimpleName() + " found in state " + currentState.getNameString());
+		}
+		return autoActions;
 	}
 
 	public void start() {

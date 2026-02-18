@@ -13,7 +13,12 @@ import org.firstinspires.ftc.teamcode.util.BlueAlliance;
 import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoState;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakePreparedAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.LeaveLowAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeBottomAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeLoadingZoneAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootFarAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootUnsortedAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.StartAutoState;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +28,26 @@ import java.util.stream.Stream;
 @Configurable
 @Autonomous
 public class AutoFar extends LinearOpMode {
+	public static final List<Class<? extends AutoAction>> AUTO_START_ACTIONS = List.of(
+		ShootFarAction.class,
+		ShootUnsortedAction.class
+	);
+	public static final List<Class<? extends AutoAction>> AUTO_BOTTOM_SET_ACTIONS = List.of(
+		PrepareIntakeBottomAction.class,
+		IntakePreparedAction.class,
+		ShootFarAction.class,
+		ShootUnsortedAction.class
+	);
+	public static final List<Class<? extends AutoAction>> AUTO_CYCLED_ACTIONS = List.of(
+		PrepareIntakeLoadingZoneAction.class,
+		IntakePreparedAction.class,
+		ShootFarAction.class,
+		ShootUnsortedAction.class
+	);
+	public static final List<Class<? extends AutoAction>> AUTO_END_ACTIONS = List.of(
+		LeaveLowAction.class
+	);
+
 	public static int cycles = 5;
 	private Alliance alliance;
 	private StartAutoState startingState;
@@ -109,48 +134,19 @@ public class AutoFar extends LinearOpMode {
 
 		}
 
-		boolean firstCycle = true;
-		int firstCycleIndex = 0;
-
-		int[] autoActionsBottomIndexes = new int[] {
-			1, //shootFar 
-			0, //shootUnsorted
-			0, //intakeBottomApproach
-			0, //IntakePrepared
-		};
-
-		int[] autoActionsLoadingIndexes = new int[] {
-			1, //shootFar 
-			0, //shootUnsorted
-			3, //intakeLoadingZoneApproach 
-			0, //IntakePrepared
-		};
-
-		AutoState currentState = startingState;
-		List<AutoAction> autoActions = new ArrayList<>();
-
-		for (int i = 0; i < cycles; i++) {
-			for (int x = 0; x < 4; x++) {
-				AutoAction currentAction;
-				int index = x;
-				if (intakeBottom) {
-					index = autoActionsBottomIndexes[index];
-				} else {
-					index = autoActionsLoadingIndexes[index];
-				}
-
-				if (firstCycle) {
-					index = firstCycleIndex;
-					firstCycle = false;
-				}
-
-				currentAction = currentState.getAutoActions()[index];
-
-				autoActions.add(currentAction);
-				currentState = currentAction.getResultingState();
-			}
-			intakeBottom = false;
+		List<Class<? extends AutoAction>> desiredAutoActions = new ArrayList<>();
+		desiredAutoActions.addAll(AUTO_START_ACTIONS);
+		if (intakeBottom) {
+			desiredAutoActions.addAll(AUTO_BOTTOM_SET_ACTIONS);
+		} else {
+			desiredAutoActions.addAll(AUTO_CYCLED_ACTIONS);
 		}
+		for (int i = 0; i < cycles - 1; i++) {
+			desiredAutoActions.addAll(AUTO_CYCLED_ACTIONS);
+		}
+		desiredAutoActions.addAll(AUTO_END_ACTIONS);
+
+		List<AutoAction> autoActions = AutoManager.getAutoActionsByClasses(startingState, desiredAutoActions);
 
 		autoManager.initialize(hardwareMap, startingState, autoActions);
 
