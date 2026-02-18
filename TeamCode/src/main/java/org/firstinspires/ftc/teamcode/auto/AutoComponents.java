@@ -179,7 +179,7 @@ public class AutoComponents {
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-				new PrepareIntakeTopAction(),
+					new PrepareIntakeTopAction(),
 					new PrepareIntakeMiddleAction(),
 					new PrepareGateIntakeAction(),
 					new PrepareIntakeBottomAction(),

@@ -13,7 +13,15 @@ import org.firstinspires.ftc.teamcode.util.BlueAlliance;
 import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoState;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakePreparedAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.LeaveUpAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareGateIntakeAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeBottomAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeMiddleAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeTopAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PreparedGateIntakeAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootCloseAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootUnsortedAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.StartAutoState;
 
 import java.util.ArrayList;
@@ -24,6 +32,32 @@ import java.util.stream.Stream;
 @Configurable
 @Autonomous
 public class AutoCloseSolo extends LinearOpMode {
+	public static final List<Class<? extends AutoAction>> AUTO_ACTIONS = List.of(
+		ShootCloseAction.class,
+		ShootUnsortedAction.class,
+
+		PrepareIntakeMiddleAction.class,
+		IntakePreparedAction.class,
+		ShootCloseAction.class,
+		ShootUnsortedAction.class,
+
+		PrepareGateIntakeAction.class,
+		PreparedGateIntakeAction.class,
+		ShootCloseAction.class,
+		ShootUnsortedAction.class,
+
+		PrepareIntakeTopAction.class,
+		IntakePreparedAction.class,
+		ShootCloseAction.class,
+		ShootUnsortedAction.class,
+
+		PrepareIntakeBottomAction.class,
+		IntakePreparedAction.class,
+		ShootCloseAction.class,
+		ShootUnsortedAction.class,
+
+		LeaveUpAction.class
+	);
 	private Alliance alliance;
 	private StartAutoState startingState;
 
@@ -80,26 +114,8 @@ public class AutoCloseSolo extends LinearOpMode {
 
 		}
 
-		selectedIndex = 0;
-		AutoState currentState = startingState;
-		List<AutoAction> autoActions = new ArrayList<>();
-
-		if (isStopRequested())
-			return;
-
-		AutoAction[] actionOptions = currentState.getAutoActions();
-
-		for (int i = 0; i < actionOptions.length; i++) {
-			autoActions.add(actionOptions[i]);
-			if (i == 2) {
-				autoActions.add(actionOptions[2]);
-			}
-			currentState = actionOptions[i].getResultingState();
-			if (currentState == null) {
-				break;
-			}
-			actionOptions = currentState.getAutoActions();
-		}
+		List<Class<? extends AutoAction>> desiredAutoActions = new ArrayList<>(AUTO_ACTIONS);
+		List<AutoAction> autoActions = AutoManager.getAutoActionsByClasses(startingState, desiredAutoActions);
 
 		autoManager.initialize(hardwareMap, startingState, autoActions);
 
