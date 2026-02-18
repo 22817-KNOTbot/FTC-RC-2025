@@ -82,16 +82,7 @@ public class AutoPaths {
 					.build();
 		}
 
-		public static PathChain getFirstLaunch(Follower follower, Pose startingPose) {
-			return follower.pathBuilder()
-					.addPath(
-							new BezierLine(startingPose, new Pose(84.000, 84.000)))
-					.setConstantHeadingInterpolation(Math.toRadians(35))
-					.setReversed()
-					.build();
-		}
-
-		public static PathChain getLeave(Follower follower, Pose startingPose) {
+		public static PathChain getExitUpperShootingZone(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
 							new BezierLine(startingPose, new Pose(84.000, 105.000)))
@@ -178,8 +169,8 @@ public class AutoPaths {
 			return mirrorPathChain(Red.getIntakePreparedSet(follower, startingPose.mirror()), follower);
 		}
 
-		public static PathChain getLeave(Follower follower, Pose startingPose) {
-			return mirrorPathChain(Red.getLeave(follower, startingPose.mirror()), follower);
+		public static PathChain getExitUpperShootingZone(Follower follower, Pose startingPose) {
+			return mirrorPathChain(Red.getExitUpperShootingZone(follower, startingPose.mirror()), follower);
 		}
 
 		public static PathChain getGateIntake(Follower follower, Pose startingPose) {

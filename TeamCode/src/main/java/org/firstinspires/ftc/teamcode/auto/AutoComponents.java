@@ -133,7 +133,7 @@ public class AutoComponents {
 		}
 	}
 
-	public class GateIntakeIntakeState extends AutoState {
+	public class GateIntakeState extends AutoState {
 		public String getNameString() {
 			return "Intake";
 		}
@@ -258,9 +258,9 @@ public class AutoComponents {
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
-				return AutoPaths.Red.getLeave(follower, startingPose);
+				return AutoPaths.Red.getExitUpperShootingZone(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
-				return AutoPaths.Blue.getLeave(follower, startingPose);
+				return AutoPaths.Blue.getExitLowShootingZone(follower, startingPose);
 			}
 			return null;
 		}
@@ -314,7 +314,7 @@ public class AutoComponents {
 
 	public class PrepareGateIntakeAction extends AutoAction {
 		public String getNameString() {
-			return "Prepare GateIntake Action";
+			return "Prepare Gate Intake Action";
 		}
 
 		public AutoActionCommand getActionCommand() {
@@ -451,7 +451,7 @@ public class AutoComponents {
 		}
 
 		public AutoState getResultingState() {
-			return new GateIntakeIntakeState();
+			return new GateIntakeState();
 		}
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
