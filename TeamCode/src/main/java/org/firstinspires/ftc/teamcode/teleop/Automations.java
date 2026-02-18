@@ -41,6 +41,7 @@ public class Automations {
 	private State state = State.IDLE;
 	private boolean ignoreVelocity;
 	private boolean intakeEjecting;
+	private boolean intakeLastLoaded;
 	private boolean useVision = true;
 
 	public enum State {
@@ -126,6 +127,11 @@ public class Automations {
 				if (intake.intakeUpdate()) {
 					vibrateControllers();
 					intakeEnable(false);
+					intake.intakeReset();
+					intakeLastLoaded = true;
+					state = State.IDLE;
+				} else {
+					intakeLastLoaded = false;
 				}
 				break;
 			case WAITING_TO_SHOOT:
@@ -139,12 +145,22 @@ public class Automations {
 			case SHOOTING:
 				transfer.transferUpdate();
 				if (transfer.isFinishedTransferring()) {
-					intake.enable(DEBUG);
-					transfer.enable(false);
-					shooter.enable(false);
-					state = State.IDLE;
+					vibrateControllers();
+					intakeLastLoaded = false;
 				}
 				break;
+		}
+
+		if (brakes.isBrakesEngaged()) {
+			light.setRed();
+		} else if (transfer.getLoaded()) {
+			if (intakeLastLoaded) {
+				light.setBlue();
+			} else {
+				light.setGreen();
+			}
+		} else {
+			light.setGreen();
 		}
 	}
 
@@ -239,18 +255,16 @@ public class Automations {
 		intake.enable(false);
 	}
 
-	public void shootActiveArtifact(boolean force) {
-		if (!force && !transfer.getLoaded()) 
-			return;
-
-		shooter.enable(true);
-		state = State.WAITING_TO_SHOOT;
+	public void setShooting(boolean shooting) {
+		if (shooting) {
+			state = State.WAITING_TO_SHOOT;
+		} else {
+			intake.enable(false);
+			transfer.enable(false);
+			shooter.enable(false);
+			state = State.IDLE;
+		}
 	}
-
-	public void shootActiveArtifact() {
-		shootActiveArtifact(false);
-	}
-
 	public void setTurretRotationDegrees(double positionDegrees) {
 		turret.setRotation(Turret.BASE_ROTATION + Turret.rotation_per_deg * positionDegrees);
 	}
@@ -268,11 +282,6 @@ public class Automations {
 	}
 
 	public void engageBrakes(boolean engage) {
-		if (engage) {
-			light.setRed();
-		} else {
-			light.setOff();
-		}
 		brakes.engageBrakes(engage);
 	}
 
@@ -282,6 +291,10 @@ public class Automations {
 
 	public State getState() {
 		return state;
+	}
+
+	public boolean isFinishedShooting() {
+		return state == State.SHOOTING && transfer.isFinishedTransferring();
 	}
 
 	public Alliance getAlliance() {

@@ -26,13 +26,13 @@ light: 0.28 = red; 0.45 = green; 0.6
 0 - Front right\
 1 - Back right\
 2 - Intake\
-3 - Spindexer
+3 - Transfer
 ## Servos
 ### Control Hub
 0 - turret 1\
 1 - turret 2\
-2 - brake 1\
-3 - brake 2\
+2 - brake right\
+3 - brake left\
 4 - left intake\
 5 - empty
 ### Expansion Hub
@@ -43,9 +43,6 @@ light: 0.28 = red; 0.45 = green; 0.6
 ### Control Hub
 2 - pinpoint
 3 - colour sensor
-### Expansion Hub
-1 - colour sensor\
-2 - colour sensor
 ## Analog
 0/1 - turret axon
 
@@ -53,16 +50,20 @@ light: 0.28 = red; 0.45 = green; 0.6
 Goal angle = -37 deg
 Vertical distance = 37.075 in
 
-Shooter velo	Position (pedro)	Hood angle
-1740			(72, 72)			55.9859280971
-1640			(72, 96)			58.1620203829
-1520			(72, 120)			58.1620203829
-1520			(96, 96)			61.5535989797
-1800			(48, 96)			55.3041306569
-1760			(48, 120)			56.3607799157
-
+Shooter velo	Position (pedro)
+1780			(48, 96)
+1640			(72, 96)
+1760			(72, 72)
+1540			(96, 96)
+1400			(96, 120)
+1540			(72, 120)
+1780			(48, 120)
+2180			(72, 24)
+2120			(96, 9)
+2400			(48, 9)
 
 ## Old
+Shooter velo	Position (pedro)	Hood angle
 2200			(48, 7.25)			50.1320449848
 2060			(72, 7.25)			50.964763747
 1960			(72, 24)			52.0752668451
@@ -75,3 +76,10 @@ Shooter velo	Position (pedro)	Hood angle
 1680			(48, 120)			56.3607799157
 1520			(72, 120)			59.9787192428
 1300			(96, 120)			64.905012999
+
+1740			(72, 72)			55.9859280971
+1640			(72, 96)			58.1620203829
+1520			(72, 120)			58.1620203829
+1520			(96, 96)			61.5535989797
+1800			(48, 96)			55.3041306569
+1760			(48, 120)			56.3607799157

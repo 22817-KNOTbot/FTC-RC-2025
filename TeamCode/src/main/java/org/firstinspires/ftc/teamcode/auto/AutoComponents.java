@@ -457,18 +457,19 @@ public class AutoComponents {
 						return false;
 					if (!initialized) {
 						automationHandler.setIgnoreVelocity(false);
-						automationHandler.shootActiveArtifact(true);
+						automationHandler.setShooting(true);
 
 						initialized = true;
 					}
 
-					if (automationHandler.getState() == Automations.State.IDLE) {
-						return true;
-					} else if (automationHandler.getState() == Automations.State.WAITING_TO_SHOOT) {
+					if (automationHandler.getState() == Automations.State.WAITING_TO_SHOOT) {
 						if (!shootingTimerSet) {
 							shootingTimer.reset();
 							shootingTimerSet = true;
 						}
+					} else if (automationHandler.isFinishedShooting()) {
+						automationHandler.setShooting(false);
+						return true;
 					}
 
 					if (shootingTimerSet && shootingTimer.time() > 5) {

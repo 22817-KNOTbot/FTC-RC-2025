@@ -5,7 +5,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class Light {
 	public static double RED = 0.28;
-	public static double GREEN = 0.45;
+	public static double GREEN = 0.5;
+	public static double BLUE = 0.6;
 
 	private Servo light;
 
@@ -19,6 +20,10 @@ public class Light {
 
 	public void setGreen() {
 		light.setPosition(GREEN);
+	}
+
+	public void setBlue() {
+		light.setPosition(BLUE);
 	}
 
 	public void setOff() {

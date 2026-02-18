@@ -24,9 +24,9 @@ public class Turret {
 	public static double vision_offset = 0;
 	public static double servo_threshold = 0.001;
 
-	public static double Kp = 0.0008;
-	public static double Ki = 0.000001;
-	public static double Kd = 0.00005;
+	public static double Kp = 0.00023;
+	public static double Ki = 0.0000013;
+	public static double Kd = 0.000012;
 
 	private AxonServo turretYawServo1;
 	private AxonServo turretYawServo2;

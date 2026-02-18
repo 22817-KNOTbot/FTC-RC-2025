@@ -12,7 +12,7 @@ import com.acmerobotics.dashboard.config.Config;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
-import org.firstinspires.ftc.teamcode.util.ControlTheory.Pidf;
+import org.firstinspires.ftc.teamcode.util.ControlTheory.Pidf2;
 import org.firstinspires.ftc.teamcode.util.InterpolatedLUT;
 
 @Configurable
@@ -23,10 +23,11 @@ public class Shooter {
 	public static double shootingAreaTolerance = 12.7279220614;
 	public static double defaultVelocity = 1680;
 	public static double defaultAngle = 55.9859280971;
-	public static double PIDF_P = 0.07;
+	public static double PIDF_P = 1;
 	public static double PIDF_I = 0;
 	public static double PIDF_D = 0;
-	public static double PIDF_F = 0.0004;
+	public static double PIDF_F = 0.00036;
+	public static double PIDF_FS = 0.06;
 	public static boolean PIDF_update = false;
 
 	public static double min_pitch = 0.15;
@@ -41,7 +42,7 @@ public class Shooter {
 
 	public double desiredVelocity = 0;
 
-	private Pidf pidfController;
+	private Pidf2 pidfController;
 	private boolean enabled;
 	private double power;
 
@@ -64,30 +65,16 @@ public class Shooter {
 		 * Original data can be found in Notes.md
 		 */
 		velocityLUT.add(
-			velocityLUT.new Entry(237.070039065, 1740d),
-			velocityLUT.new Entry(225.357833024, 1640d),
-			velocityLUT.new Entry(217.076859128, 1520d),
-			velocityLUT.new Entry(61.5535989797, 1520d),
-			velocityLUT.new Entry(241.221698506, 1800d),
-			velocityLUT.new Entry(234.892739735, 1760d),
-			velocityLUT.new Entry(264.98179534, 2060d),
-			velocityLUT.new Entry(274.09449383, 2160d),
-			velocityLUT.new Entry(267.331973714, 2100d),
-			velocityLUT.new Entry(282.71322082, 2360d)
-
-
-			// velocityLUT.new Entry(199.6838915, 1300d),
-			// velocityLUT.new Entry(210.7986527, 1460d),
-			// velocityLUT.new Entry(217.0768591, 1520d),
-			// velocityLUT.new Entry(225.357833, 1620d),
-			// velocityLUT.new Entry(237.0700391, 1680d),
-			// velocityLUT.new Entry(234.8927397, 1680d),
-			// velocityLUT.new Entry(241.2216985, 1790d),
-			// velocityLUT.new Entry(252.3611122, 1800d),
-			// velocityLUT.new Entry(264.9817953, 1960d),
-			// velocityLUT.new Entry(268.4887215, 1980d),
-			// velocityLUT.new Entry(275.1588117, 2060d),
-			// velocityLUT.new Entry(283.6739618, 2200d)
+			velocityLUT.new Entry(243.024446622, 1780d),
+			velocityLUT.new Entry(225.859298351, 1640d),
+			velocityLUT.new Entry(238.511825369, 1760d),
+			velocityLUT.new Entry(210.347573789, 1540d),
+			velocityLUT.new Entry(198.740909822, 1400d),
+			velocityLUT.new Entry(217.001074269, 1540d),
+			velocityLUT.new Entry(236.150492528, 1780d),
+			velocityLUT.new Entry(269.045019406, 2180d),
+			velocityLUT.new Entry(271.632410815, 2120d),
+			velocityLUT.new Entry(288.606893448, 2400d)
 		);
 
 		hoodAngleLUT.add(
@@ -111,7 +98,7 @@ public class Shooter {
 		shooterMotorLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 		shooterMotorRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
-		pidfController = new Pidf(PIDF_P, PIDF_I, PIDF_D, PIDF_F);
+		pidfController = new Pidf2(PIDF_P, PIDF_I, PIDF_D, PIDF_F, PIDF_FS);
 
 		shooterPitchServo = hardwareMap.get(Servo.class, "turretPitchServo");
 		shooterPitchServo.setDirection(Servo.Direction.FORWARD);
@@ -181,6 +168,7 @@ public class Shooter {
 			pidfController.setKi(PIDF_I);
 			pidfController.setKd(PIDF_D);
 			pidfController.setKv(PIDF_F);
+			pidfController.setKs(PIDF_FS);
 		}
 
 		double pidOutput = pidfController.calculate(desiredVelocity, getVelocity());

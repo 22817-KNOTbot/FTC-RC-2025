@@ -20,6 +20,7 @@ public class Transfer {
 
 	public Transfer(HardwareMap hardwareMap) {
 		transferMotor = hardwareMap.get(DcMotor.class, "transferMotor");
+		transferMotor.setDirection(DcMotor.Direction.REVERSE);
 		transferMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 		transferSensor = hardwareMap.get(DigitalChannel.class, "transferSensor");
@@ -61,6 +62,6 @@ public class Transfer {
 	}
 
 	public boolean isFinishedTransferring() {
-		return transferLoadedTimer.milliseconds() >= loaded_empty_ms;
+		return transferLoadedTimer != null && transferLoadedTimer.milliseconds() >= loaded_empty_ms;
 	}
 }

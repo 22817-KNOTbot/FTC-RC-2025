@@ -160,7 +160,9 @@ public class TeleOp extends LinearOpMode {
 			}
 
 			if (gamepad1.bWasPressed()) {
-				automationHandler.shootActiveArtifact(true);
+				automationHandler.setShooting(true);
+			} else if (gamepad1.bWasReleased()) {
+				automationHandler.setShooting(false);
 			}
 
 			automationHandler.updatePose(mecanumDrive.getPose());

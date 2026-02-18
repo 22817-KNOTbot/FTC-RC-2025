@@ -16,7 +16,7 @@ import com.acmerobotics.dashboard.config.Config;
 @Config
 public class Intake {
 	public static double power = 1;
-	public static double distance_threshold_mm = 30;
+	public static double distance_threshold_mm = 20;
 	public static double sensor_cache_time_ms = 20;
 	public static double loaded_full_ms = 500;
 
@@ -30,6 +30,7 @@ public class Intake {
 
 	public Intake(HardwareMap hardwareMap) {
 		intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
+		intakeMotor.setDirection(DcMotor.Direction.REVERSE);
 		intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 		intakeSensor = hardwareMap.get(ColorRangeSensor.class, "intakeSensor");
@@ -79,6 +80,10 @@ public class Intake {
 			}
 		}
 		return false;
+	}
+
+	public void intakeReset() {
+		intakeLoadedTimer = null;
 	}
 
 	public boolean getLoaded() {

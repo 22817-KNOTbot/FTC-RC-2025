@@ -107,7 +107,15 @@
 			"workspaceFolder": "${cwd}",
 			"problemMatcher": [
 				"$gradle"
-			]
+			],
+			"presentation": {
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": false,
+				"clear": false,
+				"group": "RC code send"
+			}
 		},
 		{
 			"label": "removeSlothRemote",
