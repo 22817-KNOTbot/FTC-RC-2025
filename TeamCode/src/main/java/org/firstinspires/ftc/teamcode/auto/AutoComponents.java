@@ -358,30 +358,6 @@ public class AutoComponents {
 		}
 	}
 
-	// public class PrepareIntakeLoadingZoneAction extends AutoAction {
-	// public String getNameString() {
-	// return "Prepare Intake Loading Zone";
-	// }
-
-	// public AutoActionCommand getActionCommand() {
-	// return (follower, automationHandler) -> {
-	// return !follower.isBusy();};
-	// }
-
-	// public AutoState getResultingState() {
-	// return = new PrepareIntakeState();
-	// }
-
-	// public PathChain getPathChain(Follower follower, Pose startingPose) {
-	// if (alliance instanceof RedAlliance) {
-	// return AutoPaths.Red.PATHCHAIN;
-	// } else if (alliance instanceof BlueAlliance) {
-	// return AutoPaths.Blue.PATHCHAIN;
-	// }
-	// return null;
-	// }
-	// }
-
 	public class IntakePreparedAction extends AutoAction {
 		public String getNameString() {
 			return "Intake Prepared Set";
@@ -488,29 +464,6 @@ public class AutoComponents {
 	}
 
 	public class ShootCloseAction extends AutoAction {
-		public String getNameString() {
-			return "Shoot Close";
-		}
-
-		public AutoActionCommand getActionCommand() {
-			return new PostIntakeCommand();
-		}
-
-		public AutoState getResultingState() {
-			return new ShootState();
-		}
-
-		public PathChain getPathChain(Follower follower, Pose startingPose) {
-			if (alliance instanceof RedAlliance) {
-				return AutoPaths.Red.getUpLaunch(follower, startingPose);
-			} else if (alliance instanceof BlueAlliance) {
-				return AutoPaths.Blue.getUpLaunch(follower, startingPose);
-			}
-			return null;
-		}
-	}
-
-	public class GateIntakeShootCloseAction extends AutoAction {
 		public String getNameString() {
 			return "Shoot Close";
 		}
