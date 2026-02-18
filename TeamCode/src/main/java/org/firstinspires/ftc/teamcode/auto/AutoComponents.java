@@ -79,7 +79,7 @@ public class AutoComponents {
 			return new AutoAction[] {
 					new ShootCloseAction(),
 					new PrepareIntakeMiddleAction(),
-					new PrepareCycleAction(),
+					new PrepareGateIntakeAction(),
 					new PrepareIntakeTopAction(),
 					new PrepareIntakeBottomAction(),
 					new LeaveUpAction(),
@@ -105,14 +105,14 @@ public class AutoComponents {
 		}
 	}
 
-	public class PrepareCycleIntakeState extends AutoState {
+	public class PrepareGateIntakeState extends AutoState {
 		public String getNameString() {
 			return "Prepare Intake";
 		}
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-					new PreparedCycleIntakeAction(),
+					new PreparedGateIntakeAction(),
 					new EndAction()
 			};
 		}
@@ -133,7 +133,7 @@ public class AutoComponents {
 		}
 	}
 
-	public class CycleIntakeState extends AutoState {
+	public class GateIntakeIntakeState extends AutoState {
 		public String getNameString() {
 			return "Intake";
 		}
@@ -182,11 +182,10 @@ public class AutoComponents {
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-					new PrepareIntakeBottomAction(),
 					new PrepareIntakeMiddleAction(),
+					new PrepareGateIntakeAction(),
 					new PrepareIntakeTopAction(),
-					// new PrepareIntakeLoadingZoneAction(),
-					new LeaveLowAction(),
+					new PrepareIntakeBottomAction(),
 					new LeaveUpAction(),
 					new EndAction()
 			};
@@ -313,9 +312,9 @@ public class AutoComponents {
 		}
 	}
 
-	public class PrepareCycleAction extends AutoAction {
+	public class PrepareGateIntakeAction extends AutoAction {
 		public String getNameString() {
-			return "Prepare Cycle Action";
+			return "Prepare GateIntake Action";
 		}
 
 		public AutoActionCommand getActionCommand() {
@@ -323,14 +322,14 @@ public class AutoComponents {
 		}
 
 		public AutoState getResultingState() {
-			return new PrepareCycleIntakeState();
+			return new PrepareGateIntakeState();
 		}
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
-				return AutoPaths.Red.getCyclePushGate(follower, startingPose);
+				return AutoPaths.Red.getGateIntake(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
-				return AutoPaths.Blue.getCyclePushGate(follower, startingPose);
+				return AutoPaths.Blue.getGateIntake(follower, startingPose);
 			}
 			return null;
 		}
@@ -424,9 +423,9 @@ public class AutoComponents {
 		}
 	}
 
-	public class PreparedCycleIntakeAction extends AutoAction {
+	public class PreparedGateIntakeAction extends AutoAction {
 		public String getNameString() {
-			return "Intake Prepared Set";
+			return "Prepared Gate Intake";
 		}
 
 		public AutoActionCommand getActionCommand() {
@@ -452,7 +451,7 @@ public class AutoComponents {
 		}
 
 		public AutoState getResultingState() {
-			return new CycleIntakeState();
+			return new GateIntakeIntakeState();
 		}
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
@@ -511,7 +510,7 @@ public class AutoComponents {
 		}
 	}
 
-	public class CycleShootCloseAction extends AutoAction {
+	public class GateIntakeShootCloseAction extends AutoAction {
 		public String getNameString() {
 			return "Shoot Close";
 		}
