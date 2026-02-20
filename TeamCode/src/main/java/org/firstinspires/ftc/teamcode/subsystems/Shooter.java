@@ -36,7 +36,7 @@ public class Shooter {
 
 	public static double goal_height = 46.25;
 	public static double robot_height = 9.175;
-	public static double goal_angle = -37;
+	public static double goal_angle = -27.4;
 
 	private final double GRAVITY = DistanceUnit.INCH.fromMeters(9.80665);
 
@@ -52,6 +52,7 @@ public class Shooter {
 	private Servo shooterPitchServo;
 
 	private static double pitch = min_pitch;
+	private static double pitchDegrees = 0;
 
 	// Projectile velocity (v0) to shooter velocity
 	private static final InterpolatedLUT<Double> velocityLUT = new InterpolatedLUT<Double>();
@@ -72,9 +73,10 @@ public class Shooter {
 			velocityLUT.new Entry(198.740909822, 1400d),
 			velocityLUT.new Entry(217.001074269, 1540d),
 			velocityLUT.new Entry(236.150492528, 1780d),
-			velocityLUT.new Entry(269.045019406, 2180d),
-			velocityLUT.new Entry(271.632410815, 2120d),
-			velocityLUT.new Entry(288.606893448, 2400d)
+			velocityLUT.new Entry(269.045019406, 2180d + 40),
+			velocityLUT.new Entry(271.632410815, 2120d - 20),
+			velocityLUT.new Entry(288.606893448, 2400d - 40),
+			velocityLUT.new Entry(279.087449323, 2240d)
 		);
 
 		hoodAngleLUT.add(
@@ -192,6 +194,10 @@ public class Shooter {
 		return Shooter.pitch;
 	}
 
+	public static double getPitchDegrees() {
+		return pitchDegrees;
+	}
+
 	public void pitchTurret(double vector) {
 		vector = Range.clip(vector, -1, 1);
 		setPitch(pitch + (vector * pitch_increment));
@@ -203,6 +209,7 @@ public class Shooter {
 			return;
 		}
 		setPitch(hoodPosition);
+		pitchDegrees = angle;
 	}
 
 	public void setPitch(double pitchTarget) {

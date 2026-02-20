@@ -160,9 +160,12 @@ public class TeleOp extends LinearOpMode {
 			}
 
 			if (gamepad1.bWasPressed()) {
-				automationHandler.setShooting(true);
-			} else if (gamepad1.bWasReleased()) {
-				automationHandler.setShooting(false);
+				Automations.State state = automationHandler.getState();
+				if (state != Automations.State.WAITING_TO_SHOOT && state != Automations.State.SHOOTING) {
+					automationHandler.startShooting();
+				} else {
+					automationHandler.setShooting(false);
+				}
 			}
 
 			automationHandler.updatePose(mecanumDrive.getPose());
@@ -219,7 +222,7 @@ public class TeleOp extends LinearOpMode {
 				telemetryManager.addLine(HtmlUtil.colourText("##### MANUAL TURRET MODE #####", "yellow"));
 			}
 			if (manualShooterMode) {
-				telemetryManager.addLine(HtmlUtil.colourText("##### MANUAL SHOOTER MODE #####", "orange"));
+				telemetryManager.addLine(HtmlUtil.colourText("##### MANUAL SHOOTER MODE #####", "blue"));
 			}
 			telemetryManager.addLine(String.format("Loop time: %.2fms - %.0fhz", loopTime.time(), 1000 / loopTime.time()));
 			loopTime.reset();

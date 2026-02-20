@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.subsystems.vision;
 
+import java.util.Arrays;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
@@ -18,10 +22,12 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 @Configurable
 public class Limelight {
 	public static int PIPELINE = 1;
-	public static int maxFps = 30;
-
+	public static int maxFps = 60;
+	public static double flip_tolerance = 5;
+	
 	private Limelight3A limelight;
 	private Integer targetAprilTagId;
+	private Queue<Double> directionQueue;
 
 	private Pattern pattern = null;
 
@@ -40,6 +46,8 @@ public class Limelight {
 		limelight.start();
 
 		this.targetAprilTagId = targetAprilTagId;
+		directionQueue = new ConcurrentLinkedQueue<Double>();
+		directionQueue.addAll(Arrays.asList(0d, 0d, 0d, 0d, 0d));
 
 		if (debug) {
 			FtcDashboard.getInstance().startCameraStream(limelight, maxFps);
@@ -69,8 +77,26 @@ public class Limelight {
 		if (result != null && result.isValid()) {
 			for (FiducialResult fiducialResult : result.getFiducialResults()) {
 				if (fiducialResult.getFiducialId() == targetAprilTagId || targetAprilTagId == null) {
-					return new AlignmentDirection(true, fiducialResult.getTargetXDegrees(),
-							fiducialResult.getTargetYDegrees());
+					double degrees = fiducialResult.getTargetXDegrees();
+					double sum = 0;
+					double count = 0;
+					for (Double element : directionQueue) {
+						if (element != null) {
+							count++;
+							sum += element;
+						}
+					}
+					if (count > 0 && Math.abs(degrees - sum / count) >= flip_tolerance) {
+						directionQueue.offer(degrees);
+						directionQueue.poll();
+						return new AlignmentDirection(true, sum / count,
+								fiducialResult.getTargetYDegrees());
+					} else {
+						directionQueue.offer(degrees);
+						directionQueue.poll();
+						return new AlignmentDirection(true, fiducialResult.getTargetXDegrees(),
+								fiducialResult.getTargetYDegrees());
+					}
 				}
 			}
 		}

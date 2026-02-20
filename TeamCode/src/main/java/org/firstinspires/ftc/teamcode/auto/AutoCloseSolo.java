@@ -13,13 +13,12 @@ import org.firstinspires.ftc.teamcode.util.BlueAlliance;
 import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.GateIntakeAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakePreparedAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.LeaveUpAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareGateIntakeAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeBottomAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeMiddleAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeTopAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.PreparedGateIntakeAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootCloseAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootUnsortedAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.StartAutoState;
@@ -41,8 +40,8 @@ public class AutoCloseSolo extends LinearOpMode {
 		ShootCloseAction.class,
 		ShootUnsortedAction.class,
 
-		PrepareGateIntakeAction.class,
-		PreparedGateIntakeAction.class,
+		// PrepareGateIntakeAction.class,
+		GateIntakeAction.class,
 		ShootCloseAction.class,
 		ShootUnsortedAction.class,
 
@@ -76,8 +75,6 @@ public class AutoCloseSolo extends LinearOpMode {
 		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 
-		startingState = autoManager.getStartingStates()[1];
-
 		boolean configuring = true;
 		int selectedIndex = 0;
 		while (configuring) {
@@ -95,6 +92,7 @@ public class AutoCloseSolo extends LinearOpMode {
 			} else if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
 				alliance = ALLIANCES[selectedIndex];
 				autoManager = new AutoManager(alliance);
+				startingState = autoManager.getStartingStates()[1];
 				selectedIndex = 0;
 				configuring = false;
 				break;

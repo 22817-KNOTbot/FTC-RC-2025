@@ -12,13 +12,22 @@ import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.vision.Limelight;
 import org.firstinspires.ftc.teamcode.subsystems.vision.Limelight.AlignmentDirection;
 import org.firstinspires.ftc.teamcode.util.Alliance;
+import org.firstinspires.ftc.teamcode.util.BlueAlliance;
+import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.util.ControlTheory.Pid;
 
 import com.pedropathing.math.Vector;
 import com.pedropathing.geometry.Pose;
+import com.acmerobotics.dashboard.config.Config;
+import com.bylazar.configurables.annotations.Configurable;
+import com.knotbot.practiceapp.RobotEvent;
 
+@Config
+@Configurable
 public class Automations {
+	public static boolean useVision = true;
+
 	private Alliance alliance;
 	private boolean DEBUG;
 
@@ -39,10 +48,10 @@ public class Automations {
 	private Pid turretPid;
 
 	private State state = State.IDLE;
+	private boolean shootInit;
 	private boolean ignoreVelocity;
 	private boolean intakeEjecting;
 	private boolean intakeLastLoaded;
-	private boolean useVision = true;
 
 	public enum State {
 		IDLE,
@@ -97,6 +106,7 @@ public class Automations {
 		telemetry.addData("Distance", pose.distanceFrom(alliance.getGoalPose()));
 		telemetry.addData("Turret target", Turret.getTargetRotation());
 		telemetry.addData("Turret calculated angle", Turret.getTargetRotation() / Turret.rotation_per_deg);
+		telemetry.addData("Shooter pitch deg", Shooter.getPitchDegrees());
 		telemetry.addData("Using vision", useVision);
 		telemetry.addData("Vision Alignment Direction", limelight.getAlignmentDirection());
 		telemetry.addData("Intake loaded", intake.getLoaded());
@@ -105,6 +115,7 @@ public class Automations {
 
 	public void abort() {
 		intake.enable(false);
+		intakeEjecting = false;
 		transfer.enable(false);
 		state = State.IDLE;
 	}
@@ -124,7 +135,10 @@ public class Automations {
 			case IDLE:
 				break;
 			case INTAKING:
-				if (intake.intakeUpdate()) {
+				if (transfer.getLoaded()) {
+					transfer.enable(false);
+				}
+				if (intake.intakeUpdate() && transfer.getLoaded()) {
 					vibrateControllers();
 					intakeEnable(false);
 					intake.intakeReset();
@@ -136,29 +150,38 @@ public class Automations {
 				break;
 			case WAITING_TO_SHOOT:
 				if (shooter.atDesiredVelocity() || ignoreVelocity) {
-					intake.enable(true);
-					transfer.enable(true);
+					if (getShootingArea() == ShootingZone.LOWER) {
+						intake.enableSlow(true);
+						transfer.enableSlowFar(true);
+					} else {
+						intake.enable(true);
+						transfer.enable(true);
+					}
 					shooter.enable(true);
+					shootInit = false;
 					state = State.SHOOTING;
 				}
 				break;
 			case SHOOTING:
-				transfer.transferUpdate();
-				if (transfer.isFinishedTransferring()) {
-					vibrateControllers();
-					intakeLastLoaded = false;
+				if (!shootInit) {
+					RobotEvent.addScore(3, "Artifact");
+					RobotEvent.addScore(3, "Artifact");
+					RobotEvent.addScore(3, "Artifact");
+					shootInit = true;
 				}
+				transfer.transferUpdate();
+				intakeLastLoaded = false;
+				// if (transfer.isFinishedTransferring()) {
+				// 	vibrateControllers();
+				// 	setShooting(false);
+				// }
 				break;
 		}
 
 		if (brakes.isBrakesEngaged()) {
 			light.setRed();
-		} else if (transfer.getLoaded()) {
-			if (intakeLastLoaded) {
-				light.setBlue();
-			} else {
-				light.setGreen();
-			}
+		} else if (transfer.getLoaded() && intakeLastLoaded) {
+			light.setBlue();
 		} else {
 			light.setGreen();
 		}
@@ -192,8 +215,15 @@ public class Automations {
 			double targetRotation = Turret.BASE_ROTATION + Math.toDegrees(normalizedAngle) * Turret.rotation_per_deg;
 			turret.setRotation(targetRotation);
 		} else {
-			double bearing = direction.bearing + Turret.vision_offset;
-
+			double bearing = direction.bearing;
+			
+			if (getShootingArea() == ShootingZone.LOWER) {
+				if (alliance instanceof RedAlliance) {
+					bearing += Turret.vision_far_offset_deg;
+				} else if (alliance instanceof BlueAlliance) {
+					bearing -= Turret.vision_far_offset_deg;
+				}
+			}
 			if (DEBUG) {
 				turretPid.setKp(Turret.Kp);
 				turretPid.setKi(Turret.Ki);
@@ -209,9 +239,7 @@ public class Automations {
 	public void updateShooter() {
 		if (inShootingArea()) {
 			setShooterEnabled(true);
-			shooter.updateShooterTarget(pose, alliance.getGoalShooterPose(), velocity);
-			shooter.desiredVelocity = Shooter.defaultVelocity;
-			shooter.setPitchAngle(Shooter.defaultAngle);
+			shooter.updateShooterTarget(pose, alliance.getGoalShooterPose());
 		} else {
 			setShooterEnabled(false);
 		}
@@ -235,6 +263,7 @@ public class Automations {
 	 */
 	public void intakeEnable(boolean enable) {
 		intake.enable(enable);
+		transfer.enableSlow(enable);
 		if (enable) {
 			state = State.INTAKING;
 		} else {
@@ -248,15 +277,23 @@ public class Automations {
 
 	public void intakeEject() {
 		intake.enableReversed(true);
+		transfer.enableReversed(true);
 		intakeEjecting = true;
 	}
 
 	public void intakeEjectStop() {
 		intake.enable(false);
+		transfer.enable(false);
+		intakeEjecting = false;
+	}
+
+	public void startShooting() {
+		setShooting(true);
 	}
 
 	public void setShooting(boolean shooting) {
 		if (shooting) {
+			transfer.transferReset();
 			state = State.WAITING_TO_SHOOT;
 		} else {
 			intake.enable(false);
@@ -265,6 +302,7 @@ public class Automations {
 			state = State.IDLE;
 		}
 	}
+
 	public void setTurretRotationDegrees(double positionDegrees) {
 		turret.setRotation(Turret.BASE_ROTATION + Turret.rotation_per_deg * positionDegrees);
 	}

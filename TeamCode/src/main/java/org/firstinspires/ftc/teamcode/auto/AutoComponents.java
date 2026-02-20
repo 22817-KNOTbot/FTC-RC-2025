@@ -35,6 +35,10 @@ public class AutoComponents {
 		public abstract AutoState getResultingState();
 
 		public abstract PathChain getPathChain(Follower follower, Pose startingPose);
+
+		public boolean holdEndPose() {
+			return true;
+		}
 	}
 
 	public static interface AutoActionCommand {
@@ -182,6 +186,7 @@ public class AutoComponents {
 					new PrepareIntakeTopAction(),
 					new PrepareIntakeMiddleAction(),
 					new PrepareGateIntakeAction(),
+					new GateIntakeAction(),
 					new PrepareIntakeBottomAction(),
 					new PrepareIntakeLoadingZoneAction(),
 					new LeaveLowAction(),
@@ -326,9 +331,9 @@ public class AutoComponents {
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
-				return AutoPaths.Red.getGateIntake(follower, startingPose);
+				return AutoPaths.Red.getGateIntakeApproach(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
-				return AutoPaths.Blue.getGateIntake(follower, startingPose);
+				return AutoPaths.Blue.getGateIntakeApproach(follower, startingPose);
 			}
 			return null;
 		}
@@ -394,13 +399,13 @@ public class AutoComponents {
 
 				public boolean run(Follower follower, Automations automationHandler) {
 					if (!initialized) {
-						follower.setMaxPower(0.25);
+						// follower.setMaxPower(0.25);
 						automationHandler.intakeEnable(true);
 						timer.reset();
 					}
 
 					if (!follower.isBusy() || (timer.time() > 1.5 && follower.getVelocity().getMagnitude() < 0.2)) {
-						follower.setMaxPower(1);
+						// follower.setMaxPower(1);
 						return true;
 					}
 
@@ -423,25 +428,35 @@ public class AutoComponents {
 		}
 	}
 
-	public class PreparedGateIntakeAction extends AutoAction {
+	public class GateIntakeAction extends AutoAction {
 		public String getNameString() {
-			return "Prepared Gate Intake";
+			return "Gate Intake";
 		}
 
 		public AutoActionCommand getActionCommand() {
 			return new AutoActionCommand() {
 				private boolean initialized = false;
+				private boolean intakingInit = false;
 				private ElapsedTime timer = new ElapsedTime();
+				private ElapsedTime intakingTimer = new ElapsedTime();
 
 				public boolean run(Follower follower, Automations automationHandler) {
 					if (!initialized) {
-						follower.setMaxPower(0.25);
+						// follower.setMaxPower(0.25);
 						automationHandler.intakeEnable(true);
 						timer.reset();
 					}
 
-					if (!follower.isBusy() || (timer.time() > 2.5 && follower.getVelocity().getMagnitude() < 0.2)) {
-						follower.setMaxPower(1);
+					if (!follower.isBusy() || (timer.time() > 2.5 && follower.getVelocity().getMagnitude() < 0.5)) {
+						if (!intakingInit) {
+							intakingTimer.reset();
+							intakingInit = true;
+						}
+						if (intakingTimer.time() > 1.5 || automationHandler.getState() == Automations.State.IDLE) {
+							// follower.setMaxPower(1);
+							return true;
+						}
+						// follower.setMaxPower(1);
 						return true;
 					}
 
@@ -456,9 +471,50 @@ public class AutoComponents {
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
-				return AutoPaths.Red.getIntakePreparedSet(follower, startingPose);
+				return AutoPaths.Red.getGateIntakePrepared(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
-				return AutoPaths.Blue.getIntakePreparedSet(follower, startingPose);
+				return AutoPaths.Blue.getGateIntakePrepared(follower, startingPose);
+			}
+			return null;
+		}
+	}
+
+	public class PreparedGateIntakeAction extends AutoAction {
+		public String getNameString() {
+			return "Prepared Gate Intake";
+		}
+
+		public AutoActionCommand getActionCommand() {
+			return new AutoActionCommand() {
+				private boolean initialized = false;
+				private ElapsedTime timer = new ElapsedTime();
+
+				public boolean run(Follower follower, Automations automationHandler) {
+					if (!initialized) {
+						// follower.setMaxPower(0.25);
+						automationHandler.intakeEnable(true);
+						timer.reset();
+					}
+
+					if (!follower.isBusy() || (timer.time() > 2.5 && follower.getVelocity().getMagnitude() < 0.5)) {
+						// follower.setMaxPower(1);
+						return true;
+					}
+
+					return false;
+				}
+			};
+		}
+
+		public AutoState getResultingState() {
+			return new GateIntakeState();
+		}
+
+		public PathChain getPathChain(Follower follower, Pose startingPose) {
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getGateIntakePrepared(follower, startingPose);
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getGateIntakePrepared(follower, startingPose);
 			}
 			return null;
 		}
@@ -507,6 +563,11 @@ public class AutoComponents {
 				return AutoPaths.Blue.getUpLaunch(follower, startingPose);
 			}
 			return null;
+		}
+
+		@Override
+		public boolean holdEndPose() {
+			return true;
 		}
 	}
 
@@ -559,12 +620,12 @@ public class AutoComponents {
 							shootingTimer.reset();
 							shootingTimerSet = true;
 						}
-					} else if (automationHandler.isFinishedShooting()) {
+					} else if (automationHandler.isFinishedShooting() || shootingTimer.time() > 5) {
 						automationHandler.setShooting(false);
 						return true;
 					}
 
-					if (shootingTimerSet && shootingTimer.time() > 5) {
+					if (shootingTimerSet && shootingTimer.time() > 2) {
 						automationHandler.setIgnoreVelocity(true);
 					}
 

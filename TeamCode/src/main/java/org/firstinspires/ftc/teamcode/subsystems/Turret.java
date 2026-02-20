@@ -21,7 +21,7 @@ public class Turret {
 	public static double max_rotation = 1.0;
 	public static double rotation_increment = 0.02;
 	public static double rotation_per_deg = 0.25/90;
-	public static double vision_offset = 0;
+	public static double vision_far_offset_deg = 2;
 	public static double servo_threshold = 0.001;
 
 	public static double Kp = 0.00023;

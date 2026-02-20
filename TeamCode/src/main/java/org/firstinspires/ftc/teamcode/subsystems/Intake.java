@@ -6,8 +6,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import android.R.bool;
-
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -16,9 +14,10 @@ import com.acmerobotics.dashboard.config.Config;
 @Config
 public class Intake {
 	public static double power = 1;
+	public static double power_slow = 1;
 	public static double distance_threshold_mm = 20;
 	public static double sensor_cache_time_ms = 20;
-	public static double loaded_full_ms = 500;
+	public static double loaded_full_ms = 1500;
 
 	private DcMotor intakeMotor;
 	private ColorRangeSensor intakeSensor;
@@ -30,8 +29,8 @@ public class Intake {
 
 	public Intake(HardwareMap hardwareMap) {
 		intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
-		intakeMotor.setDirection(DcMotor.Direction.REVERSE);
 		intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+		intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
 		intakeSensor = hardwareMap.get(ColorRangeSensor.class, "intakeSensor");
 	}
@@ -39,6 +38,15 @@ public class Intake {
 	public void enable(boolean enable) {
 		if (enable) {
 			intakeMotor.setPower(power);
+		} else {
+			intakeMotor.setPower(0);
+		}
+		this.enabled = enable;
+	}
+
+	public void enableSlow(boolean enable) {
+		if (enable) {
+			intakeMotor.setPower(power_slow);
 		} else {
 			intakeMotor.setPower(0);
 		}

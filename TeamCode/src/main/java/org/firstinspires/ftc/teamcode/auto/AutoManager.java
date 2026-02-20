@@ -33,6 +33,7 @@ public class AutoManager {
 	private AutoActionCommand currentActionCommand;
 	private boolean stateFinished;
 	private List<PathChain> pathList;
+	private List<Boolean> holdEndPoseList;
 	private int currentState = 0;
 
 	public AutoManager(Alliance alliance) {
@@ -54,10 +55,12 @@ public class AutoManager {
 		this.stateFinished = false;
 
 		this.pathList = new ArrayList<>();
+		this.holdEndPoseList = new ArrayList<>();
 		Pose previousPose = startPose;
 		for (AutoAction autoAction : autoActions) {
 			PathChain newPathChain = autoAction.getPathChain(follower, previousPose);
 			this.pathList.add(newPathChain);
+			this.holdEndPoseList.add(autoAction.holdEndPose());
 			if (newPathChain != null) {
 				previousPose = newPathChain.endPose();
 			}
@@ -75,15 +78,19 @@ public class AutoManager {
 		List<AutoAction> autoActions = new ArrayList<>();
 		AutoState currentState = startingState;
 		for (Class<? extends AutoAction> clazz : classes) {
+			boolean found = false;
 			for (AutoAction autoAction : currentState.getAutoActions()) {
 				if (clazz.isInstance(autoAction)) {
 					autoActions.add(autoAction);
 					currentState = autoAction.getResultingState();
+					found = true;
 					break;
 				}
 			}
-			throw new IllegalArgumentException(
-					"No auto action of class " + clazz.getSimpleName() + " found in state " + currentState.getNameString());
+			if (!found) {
+				throw new IllegalArgumentException(
+						"No auto action of class " + clazz.getSimpleName() + " found in state " + currentState.getClass().getSimpleName());
+			}
 		}
 		return autoActions;
 	}
@@ -131,7 +138,7 @@ public class AutoManager {
 			if (currentState < pathList.size()) {
 				PathChain currentPath = pathList.get(currentState);
 				if (currentPath != null) {
-					follower.followPath(currentPath, true);
+					follower.followPath(currentPath, holdEndPoseList.get(currentState));
 				}
 			}
 			startedFollowingPath = true;
