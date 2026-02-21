@@ -367,6 +367,10 @@ public class Automations {
 		return limelight.getAlignmentDirection().directionKnown;
 	}
 
+	public boolean getVisionAlignmentCorrect() {
+		return limelight.getAlignmentDirection().directionKnown && limelight.getAlignmentDirection().bearing <= Turret.vision_tolerance_deg;
+	}
+
 	/*
 	 * Misc. util methods
 	 */

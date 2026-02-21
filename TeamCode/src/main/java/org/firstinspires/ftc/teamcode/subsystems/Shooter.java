@@ -76,7 +76,8 @@ public class Shooter {
 			velocityLUT.new Entry(269.045019406, 2180d + 40),
 			velocityLUT.new Entry(271.632410815, 2120d - 20),
 			velocityLUT.new Entry(288.606893448, 2400d - 40),
-			velocityLUT.new Entry(279.087449323, 2240d)
+			velocityLUT.new Entry(279.087449323, 2240d),
+			velocityLUT.new Entry(224.461099803, 1510d)
 		);
 
 		hoodAngleLUT.add(

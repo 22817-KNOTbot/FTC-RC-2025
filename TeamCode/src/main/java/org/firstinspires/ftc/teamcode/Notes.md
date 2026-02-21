@@ -61,6 +61,7 @@ Shooter velo	Position (pedro)
 2180			(72, 24)
 2120			(96, 9)
 2400			(48, 9)
+1429			(84, 84) (Close auto)
 
 ## Old
 Shooter velo	Position (pedro)	Hood angle

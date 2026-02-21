@@ -185,7 +185,7 @@ public class AutoComponents {
 			return new AutoAction[] {
 					new PrepareIntakeTopAction(),
 					new PrepareIntakeMiddleAction(),
-					new PrepareGateIntakeAction(),
+					// new PrepareGateIntakeAction(),
 					new GateIntakeAction(),
 					new PrepareIntakeBottomAction(),
 					new PrepareIntakeLoadingZoneAction(),
@@ -452,12 +452,10 @@ public class AutoComponents {
 							intakingTimer.reset();
 							intakingInit = true;
 						}
-						if (intakingTimer.time() > 1.5 || automationHandler.getState() == Automations.State.IDLE) {
+						if (intakingInit && (intakingTimer.time() > 1.5 || automationHandler.getState() == Automations.State.IDLE)) {
 							// follower.setMaxPower(1);
 							return true;
 						}
-						// follower.setMaxPower(1);
-						return true;
 					}
 
 					return false;
@@ -471,9 +469,9 @@ public class AutoComponents {
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
-				return AutoPaths.Red.getGateIntakePrepared(follower, startingPose);
+				return AutoPaths.Red.getGateIntake(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
-				return AutoPaths.Blue.getGateIntakePrepared(follower, startingPose);
+				return AutoPaths.Blue.getGateIntake(follower, startingPose);
 			}
 			return null;
 		}
@@ -567,7 +565,7 @@ public class AutoComponents {
 
 		@Override
 		public boolean holdEndPose() {
-			return true;
+			return false;
 		}
 	}
 
@@ -606,9 +604,9 @@ public class AutoComponents {
 				private boolean shootingTimerSet = false;
 
 				public boolean run(Follower follower, Automations automationHandler) {
-					if (follower.isBusy())
+					if (follower.isBusy() || follower.getVelocity().getMagnitude() > 1)
 						return false;
-					if (!initialized) {
+					if (!initialized && automationHandler.getVisionAlignmentCorrect()) {
 						automationHandler.setIgnoreVelocity(false);
 						automationHandler.setShooting(true);
 

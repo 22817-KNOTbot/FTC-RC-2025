@@ -8,10 +8,12 @@ import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
+import com.pedropathing.math.Vector;
 import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
+import com.pedropathing.paths.PathPoint;
 
 public class AutoPaths {
 	public static class Red {
@@ -21,7 +23,7 @@ public class AutoPaths {
 					.addPath(
 							new BezierCurve(startingPose,
             						new Pose(90.000, 35.000),
-            						new Pose(95.000, 35.000)))
+            						new Pose(94.000, 35.000)))
 					.setConstantHeadingInterpolation(Math.toRadians(0))
         			.build();
 		}
@@ -29,15 +31,16 @@ public class AutoPaths {
 		public static PathChain getMiddleApproach(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
-							new BezierLine(startingPose, new Pose(95.000, 54.000)))
+							new BezierLine(startingPose, new Pose(94.500, 54.000)))
 					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
+					.setVelocityConstraint(0.5)
 					.build();
 		}
 
 		public static PathChain getTopApproach(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
-							new BezierLine(startingPose, new Pose(90.000, 84.000)))
+							new BezierLine(startingPose, new Pose(90.000, 83.500)))
 					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
 					.build();
 		}
@@ -47,6 +50,7 @@ public class AutoPaths {
 					.addPath(
 							new BezierLine(startingPose, startingPose.withX(startingPose.getX() + 35)))
 					.setConstantHeadingInterpolation(Math.toRadians(0))
+					.setGlobalDeceleration(1.5)
 					.build();
 		}
 
@@ -86,28 +90,45 @@ public class AutoPaths {
 					.addPath(
 						new BezierCurve(
 							startingPose, 
-							new Pose(87.000, 58.000),
+							new Pose(87.000, 53.000),
 							new Pose(120.000, 55.000),
-							new Pose(127.000, 55.000)
+							new Pose(128.000, 55.000)
 						)
 					)
 					.setBrakingStrength(0.5)
 					.setGlobalDeceleration()
-					.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(50))
+					.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(20))
 					.build();
 		}
 
 		public static PathChain getUpLaunch(Follower follower, Pose startingPose) {
-			return follower.pathBuilder()
-					.addPath(
-							new BezierLine(startingPose, new Pose(84.000, 84.000)))
-					.setHeadingInterpolation(
-							HeadingInterpolator.piecewise(
-									new HeadingInterpolator.PiecewiseNode(0, 0.2,
-											HeadingInterpolator.constant(startingPose.getHeading())),
-									new HeadingInterpolator.PiecewiseNode(0.2, 1, HeadingInterpolator.tangent)))
-					.setReversed()
-					.build();
+			if (startingPose.getY() >= 60) {
+				return follower.pathBuilder()
+						.addPath(
+								new BezierLine(startingPose, new Pose(84.000, 84.000)))
+						.setHeadingInterpolation(
+								HeadingInterpolator.piecewise(
+										new HeadingInterpolator.PiecewiseNode(0, 0.25,
+												HeadingInterpolator.constant(startingPose.getHeading() + Math.PI)),
+										new HeadingInterpolator.PiecewiseNode(0.25, 1, HeadingInterpolator.tangent)))
+						.setReversed()
+						.build();
+			} else {
+				return follower.pathBuilder()
+						.addPath(
+								new BezierCurve(
+										startingPose, 
+										new Pose(90.000, 60.000),
+										new Pose(84.000, 84.000)
+								))
+						.setHeadingInterpolation(
+								HeadingInterpolator.piecewise(
+										new HeadingInterpolator.PiecewiseNode(0, 0.25,
+												HeadingInterpolator.constant(startingPose.getHeading() + Math.PI)),
+										new HeadingInterpolator.PiecewiseNode(0.25, 1, HeadingInterpolator.tangent)))
+						.setReversed()
+						.build();
+			}
 		}
 
 		public static PathChain getUpLaunch(Follower follower, Pose startingPose, double targetHeadingDeg) {
@@ -116,9 +137,9 @@ public class AutoPaths {
 							new BezierLine(startingPose, new Pose(84.000, 84.000)))
 					.setHeadingInterpolation(
 							HeadingInterpolator.piecewise(
-									new HeadingInterpolator.PiecewiseNode(0, 0.2,
-											HeadingInterpolator.constant(startingPose.getHeading())),
-									new HeadingInterpolator.PiecewiseNode(0.2, 1,
+									new HeadingInterpolator.PiecewiseNode(0, 0.25,
+											HeadingInterpolator.constant(startingPose.getHeading() + Math.PI)),
+									new HeadingInterpolator.PiecewiseNode(0.25, 1,
 											HeadingInterpolator.linear(startingPose.getHeading(),
 													Math.toRadians(targetHeadingDeg)))))
 					.setReversed()
@@ -140,8 +161,8 @@ public class AutoPaths {
 					.addPath(
 							new BezierCurve(
 									startingPose,
-									new Pose(96.000, 56.000),
-									new Pose(129.000, 69.000)))
+									new Pose(100.000, 54.000),
+									new Pose(128.000, 58.000)))
 					.setConstantHeadingInterpolation(Math.toRadians(0))
 					.build();
 		}
@@ -229,7 +250,19 @@ public class AutoPaths {
 		}
 
 		public static PathChain getGateIntake(Follower follower, Pose startingPose) {
-			return mirrorPathChain(Red.getGateIntake(follower, startingPose.mirror()), follower);
+			// return mirrorPathChain(Red.getGateIntake(follower, startingPose.mirror()), follower);
+			return mirrorPathChain(follower.pathBuilder()
+					.addPath(
+							new BezierCurve(
+									startingPose,
+									new Pose(87.000, 53.000),
+									new Pose(120.000, 55.000),
+									new Pose(128.000, 56.000)))
+					.setBrakingStrength(0.5)
+					.setGlobalDeceleration()
+					.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(20))
+					.build(), follower
+			);
 		}
 
 		public static PathChain getLowLaunch(Follower follower, Pose startingPose) {
@@ -264,8 +297,13 @@ public class AutoPaths {
 			}
 
 			Path newPath = new Path(new BezierCurve(newControlPoints, path.getConstraints()), path.getConstraints());
-			newPath.setHeadingInterpolation(closestPoint -> MathFunctions
-					.normalizeAngle(Math.PI - path.getHeadingInterpolator().interpolate(closestPoint)));
+			newPath.setHeadingInterpolation(closestPoint -> {
+				Pose mirroredPose = closestPoint.getPose().mirror();
+				Vector mirroredVector = closestPoint.tangentVector.copy();
+				mirroredVector.setTheta(MathFunctions.normalizeAngle(Math.PI - mirroredVector.getTheta()));
+				PathPoint mirroredClosestPoint = new PathPoint(closestPoint.tValue, mirroredPose, mirroredVector);
+				return MathFunctions.normalizeAngle(Math.PI - path.getHeadingInterpolator().interpolate(mirroredClosestPoint));
+			});
 			newPathBuilder.addPath(newPath);
 		}
 
