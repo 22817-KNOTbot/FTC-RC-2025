@@ -103,6 +103,7 @@ public class Automations {
 	public void showTelemetry(TelemetryManager telemetry) {
 		telemetry.addData("In shooting zone", inShootingArea());
 		telemetry.addData("Shooter Desired Velocity", shooter.desiredVelocity);
+		telemetry.addData("Shooter Velocity", shooter.getVelocity());
 		telemetry.addData("Distance", pose.distanceFrom(alliance.getGoalPose()));
 		telemetry.addData("Turret target", Turret.getTargetRotation());
 		telemetry.addData("Turret calculated angle", Turret.getTargetRotation() / Turret.rotation_per_deg);
@@ -135,14 +136,12 @@ public class Automations {
 			case IDLE:
 				break;
 			case INTAKING:
-				if (transfer.getLoaded()) {
-					transfer.enable(false);
-				}
 				if (intake.intakeUpdate() && transfer.getLoaded()) {
 					vibrateControllers();
 					intakeEnable(false);
 					intake.intakeReset();
 					intakeLastLoaded = true;
+					transfer.enable(false);
 					state = State.IDLE;
 				} else {
 					intakeLastLoaded = false;
@@ -231,6 +230,7 @@ public class Automations {
 			}
 			double difference = turretPid.calculate(bearing, 0);
 			double targetRotation = Turret.getTargetRotation() + difference;
+			targetRotation = (targetRotation + 1) % 1;
 			turret.setRotation(targetRotation);
 		}
 	}
@@ -368,7 +368,7 @@ public class Automations {
 	}
 
 	public boolean getVisionAlignmentCorrect() {
-		return limelight.getAlignmentDirection().directionKnown && limelight.getAlignmentDirection().bearing <= Turret.vision_tolerance_deg;
+		return !useVision || limelight.getAlignmentDirection().directionKnown && limelight.getAlignmentDirection().bearing <= Turret.vision_tolerance_deg;
 	}
 
 	/*

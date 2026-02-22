@@ -14,10 +14,12 @@ import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakePreparedAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakePreparedLoadingZoneAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.LeaveLowAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeBottomAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeLoadingZoneAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootFarAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootFarFromLoadingZoneAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootUnsortedAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.StartAutoState;
 import java.util.ArrayList;
@@ -40,8 +42,8 @@ public class AutoFar extends LinearOpMode {
 	);
 	public static final List<Class<? extends AutoAction>> AUTO_CYCLED_ACTIONS = List.of(
 		PrepareIntakeLoadingZoneAction.class,
-		IntakePreparedAction.class,
-		ShootFarAction.class,
+		IntakePreparedLoadingZoneAction.class,
+		ShootFarFromLoadingZoneAction.class,
 		ShootUnsortedAction.class
 	);
 	public static final List<Class<? extends AutoAction>> AUTO_END_ACTIONS = List.of(

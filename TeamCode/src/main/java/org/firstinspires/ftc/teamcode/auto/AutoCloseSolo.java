@@ -140,5 +140,6 @@ public class AutoCloseSolo extends LinearOpMode {
 		}
 
 		autoManager.end();
+		
 	}
 }

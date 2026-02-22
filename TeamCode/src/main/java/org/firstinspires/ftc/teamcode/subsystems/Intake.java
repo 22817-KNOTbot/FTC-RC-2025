@@ -14,7 +14,7 @@ import com.acmerobotics.dashboard.config.Config;
 @Config
 public class Intake {
 	public static double power = 1;
-	public static double power_slow = 1;
+	public static double power_slow = 0.6;
 	public static double distance_threshold_mm = 20;
 	public static double sensor_cache_time_ms = 20;
 	public static double loaded_full_ms = 1500;

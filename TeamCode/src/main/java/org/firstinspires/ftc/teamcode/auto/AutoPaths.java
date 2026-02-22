@@ -6,6 +6,7 @@ import java.util.List;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
@@ -57,7 +58,7 @@ public class AutoPaths {
 		public static PathChain getLoadingZoneApproach(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 				.addPath(
-					new BezierLine(startingPose, new Pose(113.000, 11.000)))
+					new BezierLine(startingPose, new Pose(94.000, 11.000)))
 				.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
 				.build();
 		}
@@ -214,7 +215,14 @@ public class AutoPaths {
 
 	public static class Blue {
 		public static PathChain getBottomApproach(Follower follower, Pose startingPose) {
-			return mirrorPathChain(Red.getBottomApproach(follower, startingPose.mirror()), follower);
+			// return mirrorPathChain(Red.getBottomApproach(follower, startingPose.mirror()), follower);
+			return mirrorPathChain(follower.pathBuilder()
+					.addPath(
+							new BezierCurve(startingPose,
+									new Pose(90.000, 35.000),
+									new Pose(91.000, 35.000)))
+					.setConstantHeadingInterpolation(Math.toRadians(0))
+					.build(), follower);
 		}
 
 		public static PathChain getMiddleApproach(Follower follower, Pose startingPose) {
@@ -257,7 +265,7 @@ public class AutoPaths {
 									startingPose,
 									new Pose(87.000, 53.000),
 									new Pose(120.000, 55.000),
-									new Pose(128.000, 56.000)))
+									new Pose(125.000, 56.000)))
 					.setBrakingStrength(0.5)
 					.setGlobalDeceleration()
 					.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(20))
@@ -287,18 +295,25 @@ public class AutoPaths {
 	}
 
 	public static PathChain mirrorPathChain(PathChain pathChain, Follower follower) {
+		final double FIELD_LENGTH = 146;
+
 		PathBuilder newPathBuilder = follower.pathBuilder();
 		for (int i = 0; i < pathChain.size(); i++) {
 			Path path = pathChain.getPath(i);
 			List<Pose> controlPoints = path.getControlPoints();
 			List<Pose> newControlPoints = new ArrayList<>();
 			for (Pose controlPoint : controlPoints) {
-				newControlPoints.add(controlPoint.mirror());
+				newControlPoints.add(mirrorPose(controlPoint, FIELD_LENGTH));
 			}
 
-			Path newPath = new Path(new BezierCurve(newControlPoints, path.getConstraints()), path.getConstraints());
+			Path newPath;
+			if (newControlPoints.size() >= 3) {
+				newPath = new Path(new BezierCurve(newControlPoints, path.getConstraints()), path.getConstraints());
+			} else {
+				newPath = new Path(new BezierLine(newControlPoints.get(0), newControlPoints.get(1)), path.getConstraints());
+			}
 			newPath.setHeadingInterpolation(closestPoint -> {
-				Pose mirroredPose = closestPoint.getPose().mirror();
+				Pose mirroredPose = mirrorPose(closestPoint.getPose(), FIELD_LENGTH);
 				Vector mirroredVector = closestPoint.tangentVector.copy();
 				mirroredVector.setTheta(MathFunctions.normalizeAngle(Math.PI - mirroredVector.getTheta()));
 				PathPoint mirroredClosestPoint = new PathPoint(closestPoint.tValue, mirroredPose, mirroredVector);
@@ -308,5 +323,11 @@ public class AutoPaths {
 		}
 
 		return newPathBuilder.build();
+	}
+
+	public static Pose mirrorPose(Pose pose, double fieldLength) {
+		Pose k = pose.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+		return new Pose(fieldLength - k.getX(), k.getY(), MathFunctions.normalizeAngle(Math.PI - k.getHeading()),
+				PedroCoordinates.INSTANCE);
 	}
 }

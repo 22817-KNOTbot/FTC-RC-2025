@@ -107,6 +107,19 @@ public class AutoComponents {
 		}
 	}
 
+	public class PrepareLoadingZoneIntakeState extends AutoState {
+		public String getNameString() {
+			return "Prepare Intake (loading zone)";
+		}
+
+		public AutoAction[] getAutoActions() {
+			return new AutoAction[] {
+					new IntakePreparedLoadingZoneAction(),
+					new EndAction()
+			};
+		}
+	}
+
 	public class PrepareGateIntakeState extends AutoState {
 		public String getNameString() {
 			return "Prepare Intake";
@@ -129,6 +142,21 @@ public class AutoComponents {
 			return new AutoAction[] {
 					new ShootCloseAction(),
 					new ShootFarAction(),
+					new OpenGateAction(),
+					new EndAction()
+			};
+		}
+	}
+
+	public class IntakeLoadingZoneState extends AutoState {
+		public String getNameString() {
+			return "Intake";
+		}
+
+		public AutoAction[] getAutoActions() {
+			return new AutoAction[] {
+					new ShootCloseAction(),
+					new ShootFarFromLoadingZoneAction(),
 					new OpenGateAction(),
 					new EndAction()
 			};
@@ -374,7 +402,7 @@ public class AutoComponents {
 		}
 
 		public AutoState getResultingState() {
-			return new PrepareIntakeState();
+			return new PrepareLoadingZoneIntakeState();
 		}
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
@@ -428,6 +456,47 @@ public class AutoComponents {
 		}
 	}
 
+	public class IntakePreparedLoadingZoneAction extends IntakePreparedAction {
+		private ElapsedTime intakingTimer = new ElapsedTime();
+		private boolean intakingInit;
+
+		public String getNameString() {
+			return "Intake Prepared Set (loading zone)";
+		}
+
+		public AutoActionCommand getActionCommand() {
+			return new AutoActionCommand() {
+				private boolean initialized = false;
+				private ElapsedTime timer = new ElapsedTime();
+
+				public boolean run(Follower follower, Automations automationHandler) {
+					if (!initialized) {
+						// follower.setMaxPower(0.25);
+						automationHandler.intakeEnable(true);
+						timer.reset();
+					}
+
+					if (!follower.isBusy() || (timer.time() > 1.5 && follower.getVelocity().getMagnitude() < 0.2)) {
+						if (!intakingInit) {
+							intakingTimer.reset();
+							intakingInit = true;
+						}
+						if (intakingInit && (intakingTimer.time() > 1 || automationHandler.getState() == Automations.State.IDLE)) {
+							// follower.setMaxPower(1);
+							return true;
+						}
+					}
+
+					return false;
+				}
+			};
+		}
+
+		public AutoState getResultingState() {
+			return new IntakeLoadingZoneState();
+		}
+	}
+
 	public class GateIntakeAction extends AutoAction {
 		public String getNameString() {
 			return "Gate Intake";
@@ -452,7 +521,7 @@ public class AutoComponents {
 							intakingTimer.reset();
 							intakingInit = true;
 						}
-						if (intakingInit && (intakingTimer.time() > 1.5 || automationHandler.getState() == Automations.State.IDLE)) {
+						if (intakingInit && (intakingTimer.time() > 1 || automationHandler.getState() == Automations.State.IDLE)) {
 							// follower.setMaxPower(1);
 							return true;
 						}
@@ -538,6 +607,18 @@ public class AutoComponents {
 				return AutoPaths.Blue.getLowLaunch(follower, startingPose);
 			}
 			return null;
+		}
+	}
+
+	public class ShootFarFromLoadingZoneAction extends ShootFarAction {
+		@Override
+		public String getNameString() {
+			return "Shoot Far (from loading zone)";
+		}
+
+		@Override
+		public AutoActionCommand getActionCommand() {
+			return new PostIntakeCommand(0.5);
 		}
 	}
 
@@ -652,8 +733,20 @@ public class AutoComponents {
 	}
 
 	public class PostIntakeCommand implements AutoActionCommand {
+		private double intakeStop;
+
+		public PostIntakeCommand() {
+			this(0.2);
+		}
+
+		public PostIntakeCommand(double intakeStop) {
+			this.intakeStop = intakeStop;
+		}
+
 		public boolean run(Follower follower, Automations automationHandler) {
 			if (follower.getPathCompletion() >= 0.9) {
+				// automationHandler.intakeEnable(true);
+			} else if (follower.getPathCompletion() >= intakeStop) {
 				automationHandler.intakeEnable(false);
 			}
 			return !follower.isBusy();

@@ -97,6 +97,14 @@ public class AxonServo implements Servo {
 		}
 	}
 
+	public void enablePwm() {
+		servo.setPwmEnable();
+	}
+
+	public void disablePwm() {
+		servo.setPwmDisable();
+	}
+
 	@Override
 	public ServoController getController() {
 		return servo.getController();

@@ -42,6 +42,8 @@ public class Brakes {
 	}
 	
 	public void engageBrakes() {
+		brakeServoLeft.enablePwm();
+		brakeServoRight.enablePwm();
 		brakeServoLeft.setPosition(LEFT_BRAKE_ENGAGED_POSITION);
 		brakeServoRight.setPosition(RIGHT_BRAKE_ENGAGED_POSITION);
 		engaged = true;
@@ -50,6 +52,8 @@ public class Brakes {
 	public void releaseBrakes() {
 		brakeServoLeft.setPosition(LEFT_BRAKE_RELEASED_POSITION);
 		brakeServoRight.setPosition(RIGHT_BRAKE_RELEASED_POSITION);
+		brakeServoLeft.disablePwm();
+		brakeServoRight.disablePwm();
 		engaged = false;
 	}
 }

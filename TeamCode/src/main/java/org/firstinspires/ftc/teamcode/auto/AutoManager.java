@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class AutoManager {
@@ -147,6 +148,8 @@ public class AutoManager {
 
 	public void end() {
 		automationHandler.end();
+		OpMode.blackboard.put("alliance", alliance);
+		OpMode.blackboard.put("pose", follower.getPose());
 	}
 
 	private void setState(int state) {
