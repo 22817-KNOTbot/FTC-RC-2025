@@ -1,57 +1,48 @@
 package org.firstinspires.ftc.teamcode.testing;
 
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
-import com.bylazar.telemetry.JoinedTelemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.util.TelemetryManager;
+
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.configurables.annotations.Configurable;
-
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 
-// @Disabled
 @Configurable
 @Config
-// @TeleOp(name="Color testing", group="Debug")
 public class ColourTesting extends LinearOpMode {
-    public static double COLOUR_THRESHOLD_1 = 1;
-    public static double COLOUR_THRESHOLD_2 = 1.6;
-    public static double COLOUR_THRESHOLD_3 = 0.7;
-    public static double COLOUR_THRESHOLD_4 = 0.9;
-    public static double COLOUR_THRESHOLD_5 = 1.8;
-    public static double COLOUR_THRESHOLD_6 = 0.8;
+	public static String COLOUR_SENSOR = "colourSensor";
+	public static double DISTANCE = 10;
 
 	@Override
 	public void runOpMode() {
-		telemetry = new JoinedTelemetry(PanelsTelemetry.INSTANCE.getFtcTelemetry(), telemetry);
-		ColorRangeSensor colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, "colourSensor");
+		TelemetryManager telemetryManager = new TelemetryManager();
+		telemetryManager.setFtcFastTelemetry(this);
+		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
+		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
+		ColorRangeSensor colourRangeSensor = hardwareMap.get(ColorRangeSensor.class, COLOUR_SENSOR);
 		
 		waitForStart();
 
 		while (opModeIsActive()) {
-			double red = colourRangeSensor.red();
-			double green = colourRangeSensor.green();
-			double blue = colourRangeSensor.blue();
+			NormalizedRGBA colours = colourRangeSensor.getNormalizedColors();
+			double red = colours.red;
+			double green = colours.green;
+			double blue = colours.blue;
 
-			telemetry.addData("Distance", colourRangeSensor.getDistance(DistanceUnit.MM));
-			telemetry.addData("Red", red);
-			telemetry.addData("Green", green);
-			telemetry.addData("Blue", blue);
-			telemetry.addData("==================","");
-			// Still has ITD labels, will update after testing
-			telemetry.addData("Sample Yellow", (red / blue >= COLOUR_THRESHOLD_1) && (green / blue >= COLOUR_THRESHOLD_2));
-			telemetry.addData("Sample Red", (red / green >= COLOUR_THRESHOLD_3) && (red / blue >= COLOUR_THRESHOLD_4));
-			telemetry.addData("Sample Blue", (blue / red >= COLOUR_THRESHOLD_5) && (blue / green >= COLOUR_THRESHOLD_6));
-			telemetry.addData("2 - Sample Yellow", (green > 150) && (green > red) && (red > blue));
-			telemetry.addData("2 - Sample Red", (red > green) && (green > blue));
-			telemetry.addData("2 - Sample Blue", (blue > green) && (green > red));
-			telemetry.addData("Artifact Purple", red < green && green < blue && blue > red);
-			telemetry.addData("Artifact Green", red < green && green > blue && blue > red && green < 3500);
-			telemetry.update();
+			telemetryManager.addData("Distance", colourRangeSensor.getDistance(DistanceUnit.MM));
+			telemetryManager.addData("Red", red);
+			telemetryManager.addData("Green", green);
+			telemetryManager.addData("Blue", blue);
+			telemetryManager.addData("==================","");
+			telemetryManager.addData("Loaded", colourRangeSensor.getDistance(DistanceUnit.MM) < DISTANCE);
+			telemetryManager.addData("Artifact Purple", red < green && green < blue && blue > red);
+			telemetryManager.addData("Artifact Green", red < green && green > blue && blue > red && green > 0.008 && blue > 0.008);
+			telemetryManager.update();
 		}
 	}
 }

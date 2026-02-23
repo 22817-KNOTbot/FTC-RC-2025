@@ -42,7 +42,7 @@ public class GamepadManager {
 		Gamepad newGamepad2;
 
 		if (VIRTUAL_GAMEPAD_2_ENABLED) {
-			newGamepad2 = updateFunction1.apply(PHYSICAL_GAMEPAD_2_ENABLED ? physicalGamepad2 : new Gamepad());
+			newGamepad2 = updateFunction2.apply(PHYSICAL_GAMEPAD_2_ENABLED ? physicalGamepad2 : new Gamepad());
 		} else {
 			newGamepad2 = physicalGamepad2;
 		}

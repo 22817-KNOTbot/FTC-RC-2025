@@ -13,7 +13,15 @@ import org.firstinspires.ftc.teamcode.util.BlueAlliance;
 import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoState;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.GateIntakeAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakePreparedAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.LeaveUpAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.OpenGateAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeBottomAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeMiddleAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeTopAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootCloseAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootUnsortedAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.StartAutoState;
 
 import java.util.ArrayList;
@@ -23,7 +31,29 @@ import java.util.stream.Stream;
 @Config
 @Configurable
 @Autonomous
-public class Auto extends LinearOpMode {
+public class AutoClosePartner extends LinearOpMode {
+	public static final List<Class<? extends AutoAction>> AUTO_ACTIONS = List.of(
+		ShootCloseAction.class,
+		ShootUnsortedAction.class,
+
+		PrepareIntakeMiddleAction.class,
+		IntakePreparedAction.class,
+		OpenGateAction.class,
+		ShootCloseAction.class,
+		ShootUnsortedAction.class,
+
+		// PrepareGateIntakeAction.class,
+		GateIntakeAction.class,
+		ShootCloseAction.class,
+		ShootUnsortedAction.class,
+
+		PrepareIntakeTopAction.class,
+		IntakePreparedAction.class,
+		ShootCloseAction.class,
+		ShootUnsortedAction.class,
+
+		LeaveUpAction.class
+	);
 	private Alliance alliance;
 	private StartAutoState startingState;
 
@@ -38,53 +68,31 @@ public class Auto extends LinearOpMode {
 	@Override
 	public void runOpMode() {
 		telemetryManager = new TelemetryManager();
-		telemetryManager.setFtcFastTelemetry(this);
+		telemetryManager.setFtcTelemetry(telemetry);
 		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 
 		boolean configuring = true;
 		int selectedIndex = 0;
-		int configuringLevel = 0;
 		while (configuring) {
 			if (isStopRequested())
 				return;
 
 			String[] options;
-			switch (configuringLevel) {
-				case 0:
-					options = Stream.of(ALLIANCES)
-							.map(Alliance::getColourString).toArray(String[]::new);
-					break;
-				case 1:
-					options = Stream.of(autoManager.getStartingStates())
-							.map(AutoState::getNameString).toArray(String[]::new);
-					break;
-				default:
-					// This should never happen. Simply ending the OpMode is safest if it somehow does
-					return;
-			}
+			options = Stream.of(ALLIANCES)
+					.map(Alliance::getColourString).toArray(String[]::new);
 
 			if (gamepad1.dpadDownWasPressed() || gamepad2.dpadDownWasPressed()) {
 				selectedIndex = Math.min(selectedIndex + 1, ALLIANCES.length - 1);
 			} else if (gamepad1.dpadUpWasPressed() || gamepad2.dpadUpWasPressed()) {
 				selectedIndex = Math.max(selectedIndex - 1, 0);
 			} else if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
-				if (configuringLevel == 0) {
-					alliance = ALLIANCES[selectedIndex];
-					autoManager = new AutoManager(alliance);
-				} else if (configuringLevel == 1) {
-					startingState = autoManager.getStartingStates()[selectedIndex];
-					configuring = false;
-				} else {
-					// This should never happen. Simply ending the OpMode is safest if it somehow does
-					return; 
-				}
-
-				configuringLevel++;
+				alliance = ALLIANCES[selectedIndex];
+				autoManager = new AutoManager(alliance);
+				startingState = autoManager.getStartingStates()[1];
 				selectedIndex = 0;
-				continue;
-			} else if (gamepad1.bWasPressed() || gamepad2.bWasPressed()) {
-				configuringLevel = 0;
+				configuring = false;
+				break;
 			}
 
 			telemetryManager.addData("Alliance", alliance != null ? alliance.getColourString() : "None");
@@ -101,51 +109,8 @@ public class Auto extends LinearOpMode {
 
 		}
 
-		configuring = true;
-		selectedIndex = 0;
-		AutoState currentState = startingState;
-		List<AutoAction> autoActions = new ArrayList<>();
-
-		while (configuring) {
-			if (isStopRequested())
-				return;
-
-			AutoAction[] actionOptions = currentState.getAutoActions();
-
-			if (gamepad1.dpadDownWasPressed() || gamepad2.dpadDownWasPressed()) {
-				selectedIndex = Math.min(selectedIndex + 1, actionOptions.length - 1);
-			} else if (gamepad1.dpadUpWasPressed() || gamepad2.dpadUpWasPressed()) {
-				selectedIndex = Math.max(selectedIndex - 1, 0);
-			} else if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
-				autoActions.add(actionOptions[selectedIndex]);
-				currentState = actionOptions[selectedIndex].getResultingState();
-				if (currentState == null) {
-					configuring = false;
-					break;
-				}
-				actionOptions = currentState.getAutoActions();
-				selectedIndex = 0;
-			} else if (gamepad1.bWasPressed() || gamepad2.bWasPressed()) {
-				autoActions.remove(autoActions.size() - 1);
-				currentState = autoActions.get(autoActions.size() - 1).getResultingState();
-				actionOptions = currentState.getAutoActions();
-				selectedIndex = 0;
-			}
-
-			String[] breadcrumbsList = autoActions.stream()
-					.map(AutoAction::getNameString).toArray(String[]::new);
-			String breadcrumbsString = String.join(" > ", breadcrumbsList);
-			telemetryManager.addLine(breadcrumbsString);
-
-			telemetryManager.addLine();
-			telemetryManager.addLine("====================");
-			telemetryManager.addLine();
-
-			for (int i = 0; i < actionOptions.length; i++) {
-				telemetryManager.addLine((selectedIndex == i ? "> " : "") + actionOptions[i].getNameString());
-			}
-			telemetryManager.update();
-		}
+		List<Class<? extends AutoAction>> desiredAutoActions = new ArrayList<>(AUTO_ACTIONS);
+		List<AutoAction> autoActions = AutoManager.getAutoActionsByClasses(startingState, desiredAutoActions);
 
 		autoManager.initialize(hardwareMap, startingState, autoActions);
 
@@ -166,7 +131,7 @@ public class Auto extends LinearOpMode {
 			autoManager.update();
 
 			autoManager.showTelemetry(telemetryManager);
-			// autoManager.showAutomationsTelemetry(telemetryManager);
+			autoManager.showAutomationsTelemetry(telemetryManager);
 			autoManager.showFollowerTelemetry(telemetryManager);
 			telemetryManager.update();
 		}

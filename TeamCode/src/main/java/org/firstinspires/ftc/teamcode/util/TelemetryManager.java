@@ -7,6 +7,8 @@ import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import android.text.Html;
+
 /*
  * Class to manage the use of telemetry for FTC, Dashboard, and Panels
  */
@@ -17,12 +19,24 @@ public class TelemetryManager {
 
 	private TelemetryPacket dashboardPacket;
 
+	private boolean htmlMode = false;
+
 	public void setFtcTelemetry(Telemetry ftcTelemetry) {
 		this.ftcTelemetry = ftcTelemetry;
+		if (htmlMode) {
+			this.ftcTelemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
+		} else {
+			this.ftcTelemetry.setDisplayFormat(Telemetry.DisplayFormat.CLASSIC);
+		}
 	}
 
 	public void setFtcFastTelemetry(OpMode opmode) {
 		this.ftcTelemetry = new FastTelemetry(opmode);
+		if (htmlMode) {
+			this.ftcTelemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
+		} else {
+			this.ftcTelemetry.setDisplayFormat(Telemetry.DisplayFormat.CLASSIC);
+		}
 	}
 
 	public void setDashboardInstance (FtcDashboard dashboardInstance) {
@@ -34,6 +48,17 @@ public class TelemetryManager {
 		this.panelsTelemetry = panelsTelemetry;
 	}
 
+	public void setHtmlMode(boolean htmlMode) {
+		if (ftcTelemetry != null) {
+			if (htmlMode) {
+				this.ftcTelemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
+			} else {
+				this.ftcTelemetry.setDisplayFormat(Telemetry.DisplayFormat.CLASSIC);
+			}
+		}
+		this.htmlMode = htmlMode;
+	}
+
 	/*
 	 * Main methods
 	 */
@@ -43,14 +68,18 @@ public class TelemetryManager {
 	}
 
 	public void addData(String caption, Object value) {
+		String htmlString = caption;
+		// if (htmlMode) {
+		// 	caption = Html.fromHtml(caption, Html.FROM_HTML_MODE_COMPACT).toString();
+		// }
 		if (value == null) {
 			value = "null";
 		}
 		if (ftcTelemetry != null) {
-			ftcTelemetry.addData(caption, value);
+			ftcTelemetry.addData(htmlString, value);
 		}
 		if (dashboardInstance != null) {
-			dashboardPacket.put(caption, value);
+			dashboardPacket.put(htmlString, value);
 		}
 		if (panelsTelemetry != null) {
 			panelsTelemetry.addData(caption, value);
@@ -62,11 +91,15 @@ public class TelemetryManager {
 	}
 
 	public void addLine(String lineCaption) {
+		String htmlString = lineCaption;
+		// if (htmlMode) {
+		// 	lineCaption = Html.fromHtml(lineCaption, Html.FROM_HTML_MODE_COMPACT).toString();
+		// }
 		if (ftcTelemetry != null) {
-			ftcTelemetry.addLine(lineCaption);
+			ftcTelemetry.addLine(htmlString);
 		}
 		if (dashboardInstance != null) {
-			dashboardPacket.addLine(lineCaption);
+			dashboardPacket.addLine(htmlString);
 		}
 		if (panelsTelemetry != null) {
 			panelsTelemetry.addLine(lineCaption);

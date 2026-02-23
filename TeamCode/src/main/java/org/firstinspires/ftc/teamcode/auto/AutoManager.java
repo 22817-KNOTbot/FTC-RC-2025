@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoActionCommand;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoState;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.StartAutoState;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.teleop.Automations;
@@ -16,6 +17,7 @@ import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class AutoManager {
@@ -32,6 +34,7 @@ public class AutoManager {
 	private AutoActionCommand currentActionCommand;
 	private boolean stateFinished;
 	private List<PathChain> pathList;
+	private List<Boolean> holdEndPoseList;
 	private int currentState = 0;
 
 	public AutoManager(Alliance alliance) {
@@ -53,10 +56,12 @@ public class AutoManager {
 		this.stateFinished = false;
 
 		this.pathList = new ArrayList<>();
+		this.holdEndPoseList = new ArrayList<>();
 		Pose previousPose = startPose;
 		for (AutoAction autoAction : autoActions) {
 			PathChain newPathChain = autoAction.getPathChain(follower, previousPose);
 			this.pathList.add(newPathChain);
+			this.holdEndPoseList.add(autoAction.holdEndPose());
 			if (newPathChain != null) {
 				previousPose = newPathChain.endPose();
 			}
@@ -68,6 +73,27 @@ public class AutoManager {
 				components.new StartLowState(),
 				components.new StartUpState(),
 		};
+	}
+
+	public static List<AutoAction> getAutoActionsByClasses(AutoState startingState, List<Class<? extends AutoAction>> classes) {
+		List<AutoAction> autoActions = new ArrayList<>();
+		AutoState currentState = startingState;
+		for (Class<? extends AutoAction> clazz : classes) {
+			boolean found = false;
+			for (AutoAction autoAction : currentState.getAutoActions()) {
+				if (clazz.isInstance(autoAction)) {
+					autoActions.add(autoAction);
+					currentState = autoAction.getResultingState();
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				throw new IllegalArgumentException(
+						"No auto action of class " + clazz.getSimpleName() + " found in state " + currentState.getClass().getSimpleName());
+			}
+		}
+		return autoActions;
 	}
 
 	public void start() {
@@ -113,7 +139,7 @@ public class AutoManager {
 			if (currentState < pathList.size()) {
 				PathChain currentPath = pathList.get(currentState);
 				if (currentPath != null) {
-					follower.followPath(currentPath, true);
+					follower.followPath(currentPath, holdEndPoseList.get(currentState));
 				}
 			}
 			startedFollowingPath = true;
@@ -122,6 +148,8 @@ public class AutoManager {
 
 	public void end() {
 		automationHandler.end();
+		OpMode.blackboard.put("alliance", alliance);
+		OpMode.blackboard.put("pose", follower.getPose());
 	}
 
 	private void setState(int state) {
@@ -138,10 +166,7 @@ public class AutoManager {
 	public void showTelemetry(TelemetryManager telemetryManager) {
 		telemetryManager.addData("State", currentState);
 		telemetryManager.addData("Current action", autoActions.get(currentState).getNameString());
-		telemetryManager.addData("Storage", automationHandler.getArtifactsStored());
-		telemetryManager.addData("Storage State", automationHandler.getStorageState());
-		telemetryManager.addData("Storage Intake State", automationHandler.getIntakeState());
-		telemetryManager.addData("Storage Transfer State", automationHandler.getTransferState());
+		telemetryManager.addData("Automations state", automationHandler.getState());
 
 		Drawing.drawRobot(follower.getPose(), telemetryManager.getDashboardCanvas());
 		Drawing.sendPacket();

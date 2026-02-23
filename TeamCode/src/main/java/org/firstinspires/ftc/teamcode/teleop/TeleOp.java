@@ -5,14 +5,12 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.field.Style;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.knotbot.practiceapp.RobotEvent;
 import com.bylazar.gamepad.PanelsGamepad;
-import com.pedropathing.follower.Follower;
+import com.pedropathing.ftc.InvertedFTCCoordinates;
 import com.pedropathing.geometry.Pose;
 
-import org.firstinspires.ftc.teamcode.scoring.Artifact;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.util.Alliance;
@@ -20,6 +18,7 @@ import org.firstinspires.ftc.teamcode.util.BlueAlliance;
 import org.firstinspires.ftc.teamcode.util.Drawing;
 import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.GamepadManager;
+import org.firstinspires.ftc.teamcode.util.HtmlUtil;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -29,10 +28,9 @@ import java.util.List;
 
 @Configurable
 @Config
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp")
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp", group = "$TeleOp")
 public class TeleOp extends LinearOpMode {
-	public static boolean DEBUG = false;
-	public static boolean pedroLocalizer = true; // Roadrunner if false
+	public static boolean DEBUG = true;
 
 	private GamepadManager gamepadManager;
 	private ElapsedTime loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -43,7 +41,6 @@ public class TeleOp extends LinearOpMode {
 	public void runOpMode() {
 		boolean manualTurretMode = false;
 		boolean manualShooterMode = false;
-		boolean manualVisionOverrideTurret = false;
 
 		gamepadManager = new GamepadManager(gamepad1, gamepad2,
 				PanelsGamepad.INSTANCE.getFirstManager()::asCombinedFTCGamepad,
@@ -53,9 +50,11 @@ public class TeleOp extends LinearOpMode {
 		gamepad2 = gamepadManager.getGamepad2();
 
 		TelemetryManager telemetryManager = new TelemetryManager();
-		telemetryManager.setFtcTelemetry(telemetry);
+		telemetryManager.setFtcFastTelemetry(this);
+		// telemetryManager.setFtcTelemetry(telemetry);
 		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
+		telemetryManager.setHtmlMode(true);
 
 		if (gamepad1.right_bumper)
 			DEBUG = true;
@@ -82,7 +81,8 @@ public class TeleOp extends LinearOpMode {
 			hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 		}
 
-		automationHandler = new Automations(hardwareMap, alliance, false, DEBUG);
+		// TODO: Change to not reset encoder when running auto
+		automationHandler = new Automations(hardwareMap, alliance, true, DEBUG);
 		automationHandler.setGamepads(gamepad1, gamepad2);
 		mecanumDrive = new MecanumDrive(hardwareMap);
 
@@ -134,6 +134,10 @@ public class TeleOp extends LinearOpMode {
 			gamepad1.copy(gamepadManager.getGamepad1());
 			gamepad2.copy(gamepadManager.getGamepad2());
 
+			/*
+			* Driver 1
+			*/
+
 			if (gamepad1.left_trigger > 0.9) {
 				mecanumDrive.move(-gamepad1.left_stick_y / 4, gamepad1.left_stick_x / 4, gamepad1.right_stick_x / 4);
 			} else {
@@ -144,6 +148,7 @@ public class TeleOp extends LinearOpMode {
 				mecanumDrive.setAutoDrive(gamepad1.left_bumper);
 			}
 			mecanumDrive.lockingMecanum(gamepad1.right_bumper);
+			automationHandler.engageBrakes(gamepad1.right_bumper);
 
 			if (gamepad1.aWasPressed()) {
 				automationHandler.intakeToggle();
@@ -154,20 +159,12 @@ public class TeleOp extends LinearOpMode {
 				automationHandler.intakeEjectStop();
 			}
 
-			if (gamepad1.xWasPressed()) {
-				boolean newRapidFireState = !automationHandler.getRapidFire();
-				automationHandler.setRapidFire(newRapidFireState);
-				automationHandler.vibrateControllersBlips(newRapidFireState ? 2 : 1);
-			}
-			if (!automationHandler.getRapidFire()) {
-				if (gamepad1.bWasPressed()) {
-					automationHandler.prepareOrShootArtifact(Artifact.Colour.PURPLE);
-				} else if (gamepad1.yWasPressed()) {
-					automationHandler.prepareOrShootArtifact(Artifact.Colour.GREEN);
-				}
-			} else {
-				if (gamepad1.yWasPressed() || gamepad1.bWasPressed()) {
-					automationHandler.prepareOrShootAnyArtifact();
+			if (gamepad1.bWasPressed()) {
+				Automations.State state = automationHandler.getState();
+				if (state != Automations.State.WAITING_TO_SHOOT && state != Automations.State.SHOOTING) {
+					automationHandler.startShooting();
+				} else {
+					automationHandler.setShooting(false);
 				}
 			}
 
@@ -183,85 +180,49 @@ public class TeleOp extends LinearOpMode {
 			}
 
 			/*
-			 * Driver 2 overrides
+			 * Driver 2
 			 */
 
-			if (gamepad2.aWasPressed()) {
-				automationHandler.intakeToggle();
-			}
-			if (gamepad2.xWasPressed()) {
-				automationHandler.shootActiveArtifact(true);
-			}
-			if (gamepad2.rightBumperWasPressed()) {
-				automationHandler.storageTurnCW();
-			} else if (gamepad2.leftBumperWasPressed()) {
-				automationHandler.storageTurnCCW();
-			}
 			if (gamepad2.dpadUpWasPressed()) {
 				DEBUG = !DEBUG;
 			}
-			if (gamepad2.leftStickButtonWasPressed()) {
-				automationHandler.clearStorageMemory();
-			}
-
-			if (gamepad2.dpadDownWasPressed()) {
-				manualTurretMode = !manualTurretMode;
-			}
 			if (gamepad2.dpadLeftWasPressed()) {
-				automationHandler.setVisionOverrideEnabled(true);
-				manualVisionOverrideTurret = true;
-			} else if (!gamepad2.dpad_left) {
-				if (manualVisionOverrideTurret) {
-					automationHandler.setVisionOverrideEnabled(false);
-					manualVisionOverrideTurret = false;
-				}
-			}
-			if (manualTurretMode && !manualVisionOverrideTurret) {
-				automationHandler.rotateTurret(gamepad2.left_stick_x);
-				automationHandler.pitchTurret(gamepad2.right_stick_y);
-			} else {
-				if (!manualTurretMode || automationHandler.getVisionAlignmentKnown()) {
-					automationHandler.updateTurret();
-				}
-			}
-			if (gamepad2.yWasPressed()) {
 				manualShooterMode = !manualShooterMode;
 			}
 			if (manualShooterMode) {
-				if (gamepad2.bWasPressed()) {
+				if (gamepad2.xWasPressed()) {
 					automationHandler.setShooterVelocity(Shooter.defaultVelocity);
 					automationHandler.setShooterEnabled(!automationHandler.getShooterEnabled());
 				}
 			} else {
 				automationHandler.updateShooter();
 			}
+			if (gamepad2.dpadRightWasPressed()) {
+				manualTurretMode = !manualTurretMode;
+			}
+			if (manualTurretMode) {
+				automationHandler.rotateTurret(gamepad2.left_stick_x);
+				automationHandler.pitchTurret(gamepad2.right_stick_y);
+			} else {
+				automationHandler.updateTurret();
+			}
+
 			if (gamepad2.left_trigger > 0.9) {
 				automationHandler.setIgnoreVelocity(true);
 			} else {
 				automationHandler.setIgnoreVelocity(false);
 			}
-			telemetryManager.addData("Alliance", automationHandler.getAlliance().getColourString());
-			telemetryManager.addData("Pattern", automationHandler.getPattern());
-			telemetryManager.addData("Time", getRuntime());
-			telemetryManager.addData("Rapid Fire", automationHandler.getRapidFire());
-			telemetryManager.addData("Storage", automationHandler.getArtifactsStored());
-			telemetryManager.addData("Storage State", automationHandler.getStorageState());
-			telemetryManager.addData("Storage Intake State", automationHandler.getIntakeState());
-			telemetryManager.addData("Storage Transfer State", automationHandler.getTransferState());
-			telemetryManager.addData("Shooter Velocity", automationHandler.getShooterVelocity());
-			telemetryManager.addData("Shooter Desired Velocity", automationHandler.getShooterDesiredVelocity());
 
-			if (!automationHandler.colourSensorResponding()) {
-				telemetryManager.addLine("********************");
-				telemetryManager.addLine("WARNING: COLOUR SENSOR");
-				telemetryManager.addLine("IS NOT RESPONDING");
-				telemetryManager.addLine("********************");
-			}
+			String colour = automationHandler.getAlliance().getColourString();
+			telemetryManager.addData("Alliance", HtmlUtil.colourText(colour, colour));
+			telemetryManager.addData("Time", getRuntime());
+			telemetryManager.addData("State", automationHandler.getState());
+
 			if (manualTurretMode) {
-				telemetryManager.addLine("##### MANUAL TURRET MODE #####");
+				telemetryManager.addLine(HtmlUtil.colourText("##### MANUAL TURRET MODE #####", "yellow"));
 			}
 			if (manualShooterMode) {
-				telemetryManager.addLine("##### MANUAL SHOOTER MODE #####");
+				telemetryManager.addLine(HtmlUtil.colourText("##### MANUAL SHOOTER MODE #####", "blue"));
 			}
 			telemetryManager.addLine(String.format("Loop time: %.2fms - %.0fhz", loopTime.time(), 1000 / loopTime.time()));
 			loopTime.reset();
@@ -270,20 +231,27 @@ public class TeleOp extends LinearOpMode {
 				Pose currentPose = mecanumDrive.getPose();
 				// Pose holdPose = mecanumDrive.getHoldPose();
 
-				telemetryManager.addData("Position X", currentPose.getX());
-				telemetryManager.addData("Position Y", currentPose.getY());
-				telemetryManager.addData("Heading", Math.toDegrees(currentPose.getHeading()));
+				telemetryManager.addData("Pose x", currentPose.getX());
+				telemetryManager.addData("Pose y", currentPose.getY());
+				telemetryManager.addData("Pose heading", Math.toDegrees(currentPose.getHeading()));
+
+				Pose ftcPose = currentPose.getAsCoordinateSystem(InvertedFTCCoordinates.INSTANCE);
+				telemetryManager.addData("FTC Pose x", ftcPose.getX());
+				telemetryManager.addData("FTC Pose y", ftcPose.getY());
+				telemetryManager.addData("FTC Pose heading (deg)", Math.toDegrees(ftcPose.getHeading()));
 
 				// telemetryManager.addData("Hold Position X", holdPose.getX());
 				// telemetryManager.addData("Hold Position Y", holdPose.getY());
 
-				telemetryManager.addData("Auto driving", mecanumDrive.isAutoDrive());
+				// telemetryManager.addData("Auto driving", mecanumDrive.isAutoDrive());
 				// telemetryManager.addData("Auto drive target", mecanumDrive.getAutoDriveTarget());
+				telemetryManager.addData("Shooter Velocity", automationHandler.getShooterVelocity());
+				telemetryManager.addData("Shooter Desired Velocity", automationHandler.getShooterDesiredVelocity());
+	
 				automationHandler.showTelemetry(telemetryManager);
 
 				Drawing.drawRobot(currentPose, telemetryManager.getDashboardCanvas());
 				Drawing.sendPacket();
-
 			}
 			telemetryManager.update();
 		}

@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode.testing;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
-import com.pedropathing.geometry.Pose;
-import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -13,11 +11,10 @@ import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 @Configurable
 @Config
-// @TeleOp(name="Shooter testing", group="Debug")
-public class ShooterTesting extends LinearOpMode {
-	public static Pose robotPose = new Pose(72, 72, 0);
-	public static Vector robotVelocity = new Vector(0, 0);
-	public static Pose targetPose = new Pose(144, 144, 0);
+// @TeleOp(name="Shooter velocity testing", group="Debug")
+public class ShooterVelocityTesting extends LinearOpMode {
+	public static double desiredVelocity = 0;
+	public static double hoodAngle = 52.5;
 
 	private Shooter shooter;
 
@@ -36,11 +33,12 @@ public class ShooterTesting extends LinearOpMode {
 
 		while (opModeIsActive()) {
 			shooter.updateVelocityPid();
-			shooter.updateShooterTarget(robotPose, targetPose, robotVelocity);
+			shooter.desiredVelocity = desiredVelocity;
+			shooter.setPitchAngle(hoodAngle);
 
-			telemetry.addData("Desired", shooter.desiredVelocity);
-			telemetry.addData("Velocity", shooter.getVelocity());
-			telemetry.update();
+			telemetryManager.addData("Desired", shooter.desiredVelocity);
+			telemetryManager.addData("Velocity", shooter.getVelocity());
+			telemetryManager.update();
 		}
 	}
 }

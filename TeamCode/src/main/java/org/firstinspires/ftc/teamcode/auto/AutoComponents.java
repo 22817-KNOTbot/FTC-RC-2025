@@ -1,10 +1,5 @@
 package org.firstinspires.ftc.teamcode.auto;
 
-import java.util.concurrent.Callable;
-
-import org.firstinspires.ftc.teamcode.scoring.Artifact;
-import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
-import org.firstinspires.ftc.teamcode.subsystems.Storage;
 import org.firstinspires.ftc.teamcode.teleop.Automations;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.util.BlueAlliance;
@@ -40,6 +35,10 @@ public class AutoComponents {
 		public abstract AutoState getResultingState();
 
 		public abstract PathChain getPathChain(Follower follower, Pose startingPose);
+
+		public boolean holdEndPose() {
+			return true;
+		}
 	}
 
 	public static interface AutoActionCommand {
@@ -62,7 +61,7 @@ public class AutoComponents {
 					new PrepareIntakeBottomAction(),
 					new PrepareIntakeMiddleAction(),
 					new PrepareIntakeTopAction(),
-					// new PrepareIntakeLoadingZoneAction(),
+					new PrepareIntakeLoadingZoneAction(),
 					new LeaveLowAction(),
 					new EndAction()
 			};
@@ -81,10 +80,10 @@ public class AutoComponents {
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
 					new ShootCloseAction(),
-					new PrepareIntakeBottomAction(),
 					new PrepareIntakeMiddleAction(),
+					new PrepareGateIntakeAction(),
 					new PrepareIntakeTopAction(),
-					// new PrepareIntakeLoadingZoneAction(),
+					new PrepareIntakeBottomAction(),
 					new LeaveUpAction(),
 					new EndAction()
 			};
@@ -108,6 +107,32 @@ public class AutoComponents {
 		}
 	}
 
+	public class PrepareLoadingZoneIntakeState extends AutoState {
+		public String getNameString() {
+			return "Prepare Intake (loading zone)";
+		}
+
+		public AutoAction[] getAutoActions() {
+			return new AutoAction[] {
+					new IntakePreparedLoadingZoneAction(),
+					new EndAction()
+			};
+		}
+	}
+
+	public class PrepareGateIntakeState extends AutoState {
+		public String getNameString() {
+			return "Prepare Intake";
+		}
+
+		public AutoAction[] getAutoActions() {
+			return new AutoAction[] {
+					new PreparedGateIntakeAction(),
+					new EndAction()
+			};
+		}
+	}
+
 	public class IntakeState extends AutoState {
 		public String getNameString() {
 			return "Intake";
@@ -118,6 +143,35 @@ public class AutoComponents {
 					new ShootCloseAction(),
 					new ShootFarAction(),
 					new OpenGateAction(),
+					new EndAction()
+			};
+		}
+	}
+
+	public class IntakeLoadingZoneState extends AutoState {
+		public String getNameString() {
+			return "Intake";
+		}
+
+		public AutoAction[] getAutoActions() {
+			return new AutoAction[] {
+					new ShootCloseAction(),
+					new ShootFarFromLoadingZoneAction(),
+					new OpenGateAction(),
+					new EndAction()
+			};
+		}
+	}
+
+	public class GateIntakeState extends AutoState {
+		public String getNameString() {
+			return "Intake";
+		}
+
+		public AutoAction[] getAutoActions() {
+			return new AutoAction[] {
+					new ShootCloseAction(),
+					new ShootFarAction(),
 					new EndAction()
 			};
 		}
@@ -144,7 +198,6 @@ public class AutoComponents {
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-					new ShootSortedAction(),
 					new ShootUnsortedAction(),
 					new EndAction()
 			};
@@ -158,10 +211,13 @@ public class AutoComponents {
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-					new PrepareIntakeBottomAction(),
-					new PrepareIntakeMiddleAction(),
 					new PrepareIntakeTopAction(),
-					// new PrepareIntakeLoadingZoneAction(),
+					new PrepareIntakeMiddleAction(),
+					// new PrepareGateIntakeAction(),
+					new GateIntakeAction(),
+					new PrepareIntakeBottomAction(),
+					new PrepareIntakeLoadingZoneAction(),
+					new PrepareIntakeLoadingZoneCloseAction(),
 					new LeaveLowAction(),
 					new LeaveUpAction(),
 					new EndAction()
@@ -235,9 +291,9 @@ public class AutoComponents {
 
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
-				return AutoPaths.Red.getExitUpShootingZone(follower, startingPose);
+				return AutoPaths.Red.getExitUpperShootingZone(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
-				return AutoPaths.Blue.getExitUpShootingZone(follower, startingPose);
+				return AutoPaths.Blue.getExitUpperShootingZone(follower, startingPose);
 			}
 			return null;
 		}
@@ -289,6 +345,29 @@ public class AutoComponents {
 		}
 	}
 
+	public class PrepareGateIntakeAction extends AutoAction {
+		public String getNameString() {
+			return "Prepare Gate Intake Action";
+		}
+
+		public AutoActionCommand getActionCommand() {
+			return new PrepareIntakeCommand();
+		}
+
+		public AutoState getResultingState() {
+			return new PrepareGateIntakeState();
+		}
+
+		public PathChain getPathChain(Follower follower, Pose startingPose) {
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getGateIntakeApproach(follower, startingPose);
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getGateIntakeApproach(follower, startingPose);
+			}
+			return null;
+		}
+	}
+
 	public class PrepareIntakeTopAction extends AutoAction {
 		public String getNameString() {
 			return "Prepare Intake Top";
@@ -312,29 +391,47 @@ public class AutoComponents {
 		}
 	}
 
-	// public class PrepareIntakeLoadingZoneAction extends AutoAction {
-	// public String getNameString() {
-	// return "Prepare Intake Loading Zone";
-	// }
+	public class PrepareIntakeLoadingZoneAction extends AutoAction {
+		public String getNameString() {
+			return "Prepare Intake Loading Zone";
+		}
 
-	// public AutoActionCommand getActionCommand() {
-	// return (follower, automationHandler) -> {
-	// return !follower.isBusy();};
-	// }
+		public AutoActionCommand getActionCommand() {
+			return (follower, automationHandler) -> {
+				return !follower.isBusy();
+			};
+		}
 
-	// public AutoState getResultingState() {
-	// return = new PrepareIntakeState();
-	// }
+		public AutoState getResultingState() {
+			return new PrepareLoadingZoneIntakeState();
+		}
 
-	// public PathChain getPathChain(Follower follower, Pose startingPose) {
-	// if (alliance instanceof RedAlliance) {
-	// return AutoPaths.Red.PATHCHAIN;
-	// } else if (alliance instanceof BlueAlliance) {
-	// return AutoPaths.Blue.PATHCHAIN;
-	// }
-	// return null;
-	// }
-	// }
+		public PathChain getPathChain(Follower follower, Pose startingPose) {
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getLoadingZoneApproach(follower, startingPose);
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getLoadingZoneApproach(follower, startingPose);
+			}
+			return null;
+		}
+	}
+
+	public class PrepareIntakeLoadingZoneCloseAction extends PrepareIntakeLoadingZoneAction {
+		@Override
+		public String getNameString() {
+			return "Prepare Intake Loading Zone (close)";
+		}
+
+		@Override
+		public PathChain getPathChain(Follower follower, Pose startingPose) {
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getLoadingZoneApproach(follower, startingPose);
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getLoadingZoneApproach(follower, startingPose);
+			}
+			return null;
+		}
+	}
 
 	public class IntakePreparedAction extends AutoAction {
 		public String getNameString() {
@@ -348,13 +445,13 @@ public class AutoComponents {
 
 				public boolean run(Follower follower, Automations automationHandler) {
 					if (!initialized) {
-						follower.setMaxPower(0.25);
-						automationHandler.intakeEnableActions(true);
+						// follower.setMaxPower(0.25);
+						automationHandler.intakeEnable(true);
 						timer.reset();
 					}
 
 					if (!follower.isBusy() || (timer.time() > 1.5 && follower.getVelocity().getMagnitude() < 0.2)) {
-						follower.setMaxPower(1);
+						// follower.setMaxPower(1);
 						return true;
 					}
 
@@ -372,6 +469,137 @@ public class AutoComponents {
 				return AutoPaths.Red.getIntakePreparedSet(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
 				return AutoPaths.Blue.getIntakePreparedSet(follower, startingPose);
+			}
+			return null;
+		}
+	}
+
+	public class IntakePreparedLoadingZoneAction extends IntakePreparedAction {
+		private ElapsedTime intakingTimer = new ElapsedTime();
+		private boolean intakingInit;
+
+		public String getNameString() {
+			return "Intake Prepared Set (loading zone)";
+		}
+
+		public AutoActionCommand getActionCommand() {
+			return new AutoActionCommand() {
+				private boolean initialized = false;
+				private ElapsedTime timer = new ElapsedTime();
+
+				public boolean run(Follower follower, Automations automationHandler) {
+					if (!initialized) {
+						// follower.setMaxPower(0.25);
+						automationHandler.intakeEnable(true);
+						timer.reset();
+					}
+
+					if (!follower.isBusy() || (timer.time() > 1.5 && follower.getVelocity().getMagnitude() < 0.2)) {
+						if (!intakingInit) {
+							intakingTimer.reset();
+							intakingInit = true;
+						}
+						if (intakingInit && (intakingTimer.time() > 1 || automationHandler.getState() == Automations.State.IDLE)) {
+							// follower.setMaxPower(1);
+							return true;
+						}
+					}
+
+					return false;
+				}
+			};
+		}
+
+		public AutoState getResultingState() {
+			return new IntakeLoadingZoneState();
+		}
+	}
+
+	public class GateIntakeAction extends AutoAction {
+		public String getNameString() {
+			return "Gate Intake";
+		}
+
+		public AutoActionCommand getActionCommand() {
+			return new AutoActionCommand() {
+				private boolean initialized = false;
+				private boolean intakingInit = false;
+				private ElapsedTime timer = new ElapsedTime();
+				private ElapsedTime intakingTimer = new ElapsedTime();
+
+				public boolean run(Follower follower, Automations automationHandler) {
+					if (!initialized) {
+						// follower.setMaxPower(0.25);
+						automationHandler.intakeEnable(true);
+						timer.reset();
+					}
+
+					if (!follower.isBusy() || (timer.time() > 2.5 && follower.getVelocity().getMagnitude() < 0.5)) {
+						if (!intakingInit) {
+							intakingTimer.reset();
+							intakingInit = true;
+						}
+						if (intakingInit && (intakingTimer.time() > 1 || automationHandler.getState() == Automations.State.IDLE)) {
+							// follower.setMaxPower(1);
+							return true;
+						}
+					}
+
+					return false;
+				}
+			};
+		}
+
+		public AutoState getResultingState() {
+			return new GateIntakeState();
+		}
+
+		public PathChain getPathChain(Follower follower, Pose startingPose) {
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getGateIntake(follower, startingPose);
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getGateIntake(follower, startingPose);
+			}
+			return null;
+		}
+	}
+
+	public class PreparedGateIntakeAction extends AutoAction {
+		public String getNameString() {
+			return "Prepared Gate Intake";
+		}
+
+		public AutoActionCommand getActionCommand() {
+			return new AutoActionCommand() {
+				private boolean initialized = false;
+				private ElapsedTime timer = new ElapsedTime();
+
+				public boolean run(Follower follower, Automations automationHandler) {
+					if (!initialized) {
+						// follower.setMaxPower(0.25);
+						automationHandler.intakeEnable(true);
+						timer.reset();
+					}
+
+					if (!follower.isBusy() || (timer.time() > 2.5 && follower.getVelocity().getMagnitude() < 0.5)) {
+						// follower.setMaxPower(1);
+						return true;
+					}
+
+					return false;
+				}
+			};
+		}
+
+		public AutoState getResultingState() {
+			return new GateIntakeState();
+		}
+
+		public PathChain getPathChain(Follower follower, Pose startingPose) {
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getGateIntakePrepared(follower, startingPose);
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getGateIntakePrepared(follower, startingPose);
 			}
 			return null;
 		}
@@ -400,6 +628,18 @@ public class AutoComponents {
 		}
 	}
 
+	public class ShootFarFromLoadingZoneAction extends ShootFarAction {
+		@Override
+		public String getNameString() {
+			return "Shoot Far (from loading zone)";
+		}
+
+		@Override
+		public AutoActionCommand getActionCommand() {
+			return new PostIntakeCommand(0.5);
+		}
+	}
+
 	public class ShootCloseAction extends AutoAction {
 		public String getNameString() {
 			return "Shoot Close";
@@ -420,6 +660,11 @@ public class AutoComponents {
 				return AutoPaths.Blue.getUpLaunch(follower, startingPose);
 			}
 			return null;
+		}
+
+		@Override
+		public boolean holdEndPose() {
+			return false;
 		}
 	}
 
@@ -446,68 +691,49 @@ public class AutoComponents {
 		}
 	}
 
-	public class ShootSortedAction extends AutoAction {
-		public String getNameString() {
-			return "Shoot Sorted";
-		}
-
-		public AutoActionCommand getActionCommand() {
-			return new AutoActionCommand() {
-				private boolean initialized = false;
-				private ElapsedTime shootingTimer = new ElapsedTime();
-				private boolean shootingTimerSet = false;
-
-				public boolean run(Follower follower, Automations automationHandler) {
-					if (follower.isBusy())
-						return false;
-					if (!initialized) {
-						automationHandler.setTransferMode(Storage.TransferMode.FULL_SPIN);
-						automationHandler.setRapidFire(true);
-						automationHandler.setIgnoreVelocity(false);
-						Pattern pattern = automationHandler.getArtifactPattern();
-						if (pattern == null || pattern.getPattern() == null || automationHandler
-								.prepareOrShootArtifactSequence(pattern.getPattern()) == Storage.TurnDirection.NONE) {
-							automationHandler.shootActiveArtifact(true);
-						}
-
-						initialized = true;
-					}
-
-					if (automationHandler.getStorageState() == Automations.StorageState.WAITING) {
-						return true;
-					} else if (automationHandler.getTransferState() == Storage.TransferState.RAMP_OUT) {
-						if (!shootingTimerSet) {
-							shootingTimer.reset();
-							shootingTimerSet = true;
-						}
-					}
-
-					if (shootingTimerSet && shootingTimer.time() > 5) {
-						automationHandler.setIgnoreVelocity(true);
-					}
-
-					return false;
-				}
-			};
-		}
-
-		public AutoState getResultingState() {
-			return new ShootFinishState();
-		}
-
-		public PathChain getPathChain(Follower follower, Pose startingPose) {
-			return null;
-		}
-	}
-
 	public class ShootUnsortedAction extends AutoAction {
 		public String getNameString() {
 			return "Shoot Unsorted";
 		}
 
 		public AutoActionCommand getActionCommand() {
-			return (follower, automationHandler) -> {
-				return !follower.isBusy();
+			return new AutoActionCommand() {
+				private boolean initialized = false;
+				private ElapsedTime shootingAimTimer;
+				private ElapsedTime shootingTimer = new ElapsedTime();
+				private boolean shootingTimerSet = false;
+
+				public boolean run(Follower follower, Automations automationHandler) {
+					if (follower.isBusy() || follower.getVelocity().getMagnitude() > 1)
+						return false;
+					if (shootingAimTimer == null) {
+						shootingAimTimer = new ElapsedTime();
+					}
+					if (!initialized && (automationHandler.getVisionAlignmentCorrect() || shootingAimTimer.time() > 2)) {
+						automationHandler.setIgnoreVelocity(false);
+						automationHandler.setShooting(true);
+
+						initialized = true;
+
+						return false;
+					}
+
+					if (automationHandler.getState() == Automations.State.WAITING_TO_SHOOT) {
+						if (!shootingTimerSet) {
+							shootingTimer.reset();
+							shootingTimerSet = true;
+						}
+					} else if (automationHandler.isFinishedShooting() && shootingTimer.time() > 2 || shootingTimer.time() > 5) {
+						automationHandler.setShooting(false);
+						return true;
+					}
+
+					if (shootingTimerSet && shootingTimer.time() > 2) {
+						automationHandler.setIgnoreVelocity(true);
+					}
+
+					return false;
+				}
 			};
 		}
 
@@ -531,11 +757,23 @@ public class AutoComponents {
 	}
 
 	public class PostIntakeCommand implements AutoActionCommand {
+		private double intakeStop;
+
+		public PostIntakeCommand() {
+			this(0.2);
+		}
+
+		public PostIntakeCommand(double intakeStop) {
+			this.intakeStop = intakeStop;
+		}
+
 		public boolean run(Follower follower, Automations automationHandler) {
 			if (follower.getPathCompletion() >= 0.9) {
+				// automationHandler.intakeEnable(true);
+			} else if (follower.getPathCompletion() >= intakeStop) {
 				automationHandler.intakeEnable(false);
 			}
-			return !follower.isBusy() && automationHandler.getStorageState() == Automations.StorageState.WAITING;
+			return !follower.isBusy();
 		}
 	}
 }

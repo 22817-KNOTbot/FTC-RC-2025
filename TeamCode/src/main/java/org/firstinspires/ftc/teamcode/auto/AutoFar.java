@@ -13,9 +13,16 @@ import org.firstinspires.ftc.teamcode.util.BlueAlliance;
 import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoState;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakePreparedAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakePreparedLoadingZoneAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.LeaveLowAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeBottomAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeLoadingZoneAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeLoadingZoneCloseAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootFarAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootFarFromLoadingZoneAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootUnsortedAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.StartAutoState;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -23,7 +30,28 @@ import java.util.stream.Stream;
 @Config
 @Configurable
 @Autonomous
-public class Auto extends LinearOpMode {
+public class AutoFar extends LinearOpMode {
+	public static final List<Class<? extends AutoAction>> AUTO_START_ACTIONS = List.of(
+		ShootFarAction.class,
+		ShootUnsortedAction.class
+	);
+	public static final List<Class<? extends AutoAction>> AUTO_BOTTOM_SET_ACTIONS = List.of(
+		PrepareIntakeBottomAction.class,
+		IntakePreparedAction.class,
+		ShootFarAction.class,
+		ShootUnsortedAction.class
+	);
+	public static final List<Class<? extends AutoAction>> AUTO_CYCLED_ACTIONS = List.of(
+		PrepareIntakeLoadingZoneCloseAction.class,
+		IntakePreparedLoadingZoneAction.class,
+		ShootFarFromLoadingZoneAction.class,
+		ShootUnsortedAction.class
+	);
+	public static final List<Class<? extends AutoAction>> AUTO_END_ACTIONS = List.of(
+		LeaveLowAction.class
+	);
+
+	public static int cycles = 4;
 	private Alliance alliance;
 	private StartAutoState startingState;
 
@@ -45,9 +73,14 @@ public class Auto extends LinearOpMode {
 		boolean configuring = true;
 		int selectedIndex = 0;
 		int configuringLevel = 0;
+		boolean intakeBottom = true;
 		while (configuring) {
 			if (isStopRequested())
 				return;
+
+			if (isStarted() && configuringLevel == 1) {
+				configuring = false;	
+			}
 
 			String[] options;
 			switch (configuringLevel) {
@@ -56,8 +89,10 @@ public class Auto extends LinearOpMode {
 							.map(Alliance::getColourString).toArray(String[]::new);
 					break;
 				case 1:
-					options = Stream.of(autoManager.getStartingStates())
-							.map(AutoState::getNameString).toArray(String[]::new);
+					options = new String[] {
+						"Intake Bottom",
+						"Intake Loading Zone"
+					};
 					break;
 				default:
 					// This should never happen. Simply ending the OpMode is safest if it somehow does
@@ -72,8 +107,9 @@ public class Auto extends LinearOpMode {
 				if (configuringLevel == 0) {
 					alliance = ALLIANCES[selectedIndex];
 					autoManager = new AutoManager(alliance);
+					startingState = autoManager.getStartingStates()[0];
 				} else if (configuringLevel == 1) {
-					startingState = autoManager.getStartingStates()[selectedIndex];
+					intakeBottom = (selectedIndex == 0) ? true : false;
 					configuring = false;
 				} else {
 					// This should never happen. Simply ending the OpMode is safest if it somehow does
@@ -101,51 +137,23 @@ public class Auto extends LinearOpMode {
 
 		}
 
-		configuring = true;
-		selectedIndex = 0;
-		AutoState currentState = startingState;
-		List<AutoAction> autoActions = new ArrayList<>();
-
-		while (configuring) {
-			if (isStopRequested())
-				return;
-
-			AutoAction[] actionOptions = currentState.getAutoActions();
-
-			if (gamepad1.dpadDownWasPressed() || gamepad2.dpadDownWasPressed()) {
-				selectedIndex = Math.min(selectedIndex + 1, actionOptions.length - 1);
-			} else if (gamepad1.dpadUpWasPressed() || gamepad2.dpadUpWasPressed()) {
-				selectedIndex = Math.max(selectedIndex - 1, 0);
-			} else if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
-				autoActions.add(actionOptions[selectedIndex]);
-				currentState = actionOptions[selectedIndex].getResultingState();
-				if (currentState == null) {
-					configuring = false;
-					break;
-				}
-				actionOptions = currentState.getAutoActions();
-				selectedIndex = 0;
-			} else if (gamepad1.bWasPressed() || gamepad2.bWasPressed()) {
-				autoActions.remove(autoActions.size() - 1);
-				currentState = autoActions.get(autoActions.size() - 1).getResultingState();
-				actionOptions = currentState.getAutoActions();
-				selectedIndex = 0;
-			}
-
-			String[] breadcrumbsList = autoActions.stream()
-					.map(AutoAction::getNameString).toArray(String[]::new);
-			String breadcrumbsString = String.join(" > ", breadcrumbsList);
-			telemetryManager.addLine(breadcrumbsString);
-
-			telemetryManager.addLine();
-			telemetryManager.addLine("====================");
-			telemetryManager.addLine();
-
-			for (int i = 0; i < actionOptions.length; i++) {
-				telemetryManager.addLine((selectedIndex == i ? "> " : "") + actionOptions[i].getNameString());
-			}
-			telemetryManager.update();
+		List<Class<? extends AutoAction>> desiredAutoActions = new ArrayList<>();
+		desiredAutoActions.addAll(AUTO_START_ACTIONS);
+		if (intakeBottom) {
+			desiredAutoActions.addAll(AUTO_BOTTOM_SET_ACTIONS);
+		} else {
+			desiredAutoActions.addAll(AUTO_CYCLED_ACTIONS);
 		}
+		for (int i = 0; i < cycles - 1; i++) {
+			if (i % 2 == 0 || !intakeBottom) {
+				desiredAutoActions.addAll(AUTO_CYCLED_ACTIONS);
+			} else {
+				desiredAutoActions.addAll(AUTO_BOTTOM_SET_ACTIONS);
+			}
+		}
+		desiredAutoActions.addAll(AUTO_END_ACTIONS);
+
+		List<AutoAction> autoActions = AutoManager.getAutoActionsByClasses(startingState, desiredAutoActions);
 
 		autoManager.initialize(hardwareMap, startingState, autoActions);
 
