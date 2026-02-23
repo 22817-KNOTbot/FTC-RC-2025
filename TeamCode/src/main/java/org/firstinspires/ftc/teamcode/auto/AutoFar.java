@@ -18,6 +18,7 @@ import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakePreparedLoadingZ
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.LeaveLowAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeBottomAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeLoadingZoneAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeLoadingZoneCloseAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootFarAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootFarFromLoadingZoneAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootUnsortedAction;
@@ -41,7 +42,7 @@ public class AutoFar extends LinearOpMode {
 		ShootUnsortedAction.class
 	);
 	public static final List<Class<? extends AutoAction>> AUTO_CYCLED_ACTIONS = List.of(
-		PrepareIntakeLoadingZoneAction.class,
+		PrepareIntakeLoadingZoneCloseAction.class,
 		IntakePreparedLoadingZoneAction.class,
 		ShootFarFromLoadingZoneAction.class,
 		ShootUnsortedAction.class
@@ -50,7 +51,7 @@ public class AutoFar extends LinearOpMode {
 		LeaveLowAction.class
 	);
 
-	public static int cycles = 5;
+	public static int cycles = 4;
 	private Alliance alliance;
 	private StartAutoState startingState;
 
@@ -144,7 +145,11 @@ public class AutoFar extends LinearOpMode {
 			desiredAutoActions.addAll(AUTO_CYCLED_ACTIONS);
 		}
 		for (int i = 0; i < cycles - 1; i++) {
-			desiredAutoActions.addAll(AUTO_CYCLED_ACTIONS);
+			if (i % 2 == 0 || !intakeBottom) {
+				desiredAutoActions.addAll(AUTO_CYCLED_ACTIONS);
+			} else {
+				desiredAutoActions.addAll(AUTO_BOTTOM_SET_ACTIONS);
+			}
 		}
 		desiredAutoActions.addAll(AUTO_END_ACTIONS);
 

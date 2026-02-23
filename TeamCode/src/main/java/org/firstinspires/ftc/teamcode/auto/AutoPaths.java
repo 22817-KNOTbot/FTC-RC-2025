@@ -63,6 +63,14 @@ public class AutoPaths {
 				.build();
 		}
 
+		public static PathChain getLoadingZoneApproachClose(Follower follower, Pose startingPose) {
+			return follower.pathBuilder()
+				.addPath(
+					new BezierLine(startingPose, new Pose(90.000, 11.000)))
+				.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
+				.build();
+		}
+
 		public static PathChain getGateIntakeApproach(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
@@ -163,7 +171,7 @@ public class AutoPaths {
 							new BezierCurve(
 									startingPose,
 									new Pose(100.000, 54.000),
-									new Pose(128.000, 58.000)))
+									new Pose(128.000, 59.000)))
 					.setConstantHeadingInterpolation(Math.toRadians(0))
 					.build();
 		}
@@ -199,7 +207,7 @@ public class AutoPaths {
 		public static PathChain getExitLowShootingZone(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
-							new BezierLine(startingPose, new Pose(96.000, 30.000)))
+							new BezierLine(startingPose, new Pose(115.000, 11.000)))
 					.setConstantHeadingInterpolation(Math.toRadians(0))
 					.build();
 		}
@@ -265,7 +273,7 @@ public class AutoPaths {
 									startingPose,
 									new Pose(87.000, 53.000),
 									new Pose(120.000, 55.000),
-									new Pose(125.000, 56.000)))
+									new Pose(127.000, 56.000)))
 					.setBrakingStrength(0.5)
 					.setGlobalDeceleration()
 					.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(20))

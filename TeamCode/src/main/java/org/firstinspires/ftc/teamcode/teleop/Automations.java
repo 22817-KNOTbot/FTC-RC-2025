@@ -131,6 +131,7 @@ public class Automations {
 	public void automationLoop() {
 		shooter.updateVelocityPid();
 		turret.update();
+		brakes.update();
 
 		switch (state) {
 			case IDLE:
@@ -230,7 +231,7 @@ public class Automations {
 			}
 			double difference = turretPid.calculate(bearing, 0);
 			double targetRotation = Turret.getTargetRotation() + difference;
-			targetRotation = (targetRotation + 1) % 1;
+			// targetRotation = (targetRotation + 1) % 1;
 			turret.setRotation(targetRotation);
 		}
 	}

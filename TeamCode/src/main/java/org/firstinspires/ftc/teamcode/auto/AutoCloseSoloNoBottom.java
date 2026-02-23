@@ -16,8 +16,6 @@ import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.GateIntakeAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakePreparedAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.LeaveUpAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.OpenGateAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeBottomAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeMiddleAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeTopAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootCloseAction;
@@ -31,14 +29,13 @@ import java.util.stream.Stream;
 @Config
 @Configurable
 @Autonomous
-public class AutoClosePartner extends LinearOpMode {
+public class AutoCloseSoloNoBottom extends LinearOpMode {
 	public static final List<Class<? extends AutoAction>> AUTO_ACTIONS = List.of(
 		ShootCloseAction.class,
 		ShootUnsortedAction.class,
 
 		PrepareIntakeMiddleAction.class,
 		IntakePreparedAction.class,
-		OpenGateAction.class,
 		ShootCloseAction.class,
 		ShootUnsortedAction.class,
 
@@ -137,5 +134,6 @@ public class AutoClosePartner extends LinearOpMode {
 		}
 
 		autoManager.end();
+		
 	}
 }

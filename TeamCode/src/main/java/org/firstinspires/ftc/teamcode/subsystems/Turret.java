@@ -25,7 +25,7 @@ public class Turret {
 	public static double vision_tolerance_deg = 1.5;
 	public static double servo_threshold = 0.001;
 
-	public static double Kp = 0.00023;
+	public static double Kp = 0.00025;
 	public static double Ki = 0.0000013;
 	public static double Kd = 0.000012;
 

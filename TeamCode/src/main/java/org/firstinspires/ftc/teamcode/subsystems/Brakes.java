@@ -6,6 +6,9 @@ import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import android.util.Log;
 
 @Configurable
 @Config
@@ -19,6 +22,7 @@ public class Brakes {
 	private AxonServo brakeServoRight;
 
 	private boolean engaged;
+	private ElapsedTime disableTimer;
 
 	public Brakes(HardwareMap hardwareMap) {
 		brakeServoLeft = new AxonServo(hardwareMap.get(Servo.class, "brakeServoLeft"));
@@ -27,6 +31,14 @@ public class Brakes {
 
 	public void start() {
 		releaseBrakes();
+	}
+
+	public void update() {
+		if (disableTimer != null && disableTimer.time() >= 1) {
+			brakeServoLeft.disablePwm();
+			brakeServoRight.disablePwm();
+			disableTimer = null;
+		}
 	}
 
 	public boolean isBrakesEngaged() {
@@ -46,14 +58,16 @@ public class Brakes {
 		brakeServoRight.enablePwm();
 		brakeServoLeft.setPosition(LEFT_BRAKE_ENGAGED_POSITION);
 		brakeServoRight.setPosition(RIGHT_BRAKE_ENGAGED_POSITION);
+		disableTimer = null;
 		engaged = true;
 	}
 
 	public void releaseBrakes() {
 		brakeServoLeft.setPosition(LEFT_BRAKE_RELEASED_POSITION);
 		brakeServoRight.setPosition(RIGHT_BRAKE_RELEASED_POSITION);
-		brakeServoLeft.disablePwm();
-		brakeServoRight.disablePwm();
+		if (disableTimer == null) {
+			disableTimer = new ElapsedTime();
+		}
 		engaged = false;
 	}
 }

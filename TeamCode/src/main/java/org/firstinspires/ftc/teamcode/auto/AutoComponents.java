@@ -217,6 +217,7 @@ public class AutoComponents {
 					new GateIntakeAction(),
 					new PrepareIntakeBottomAction(),
 					new PrepareIntakeLoadingZoneAction(),
+					new PrepareIntakeLoadingZoneCloseAction(),
 					new LeaveLowAction(),
 					new LeaveUpAction(),
 					new EndAction()
@@ -292,7 +293,7 @@ public class AutoComponents {
 			if (alliance instanceof RedAlliance) {
 				return AutoPaths.Red.getExitUpperShootingZone(follower, startingPose);
 			} else if (alliance instanceof BlueAlliance) {
-				return AutoPaths.Blue.getExitLowShootingZone(follower, startingPose);
+				return AutoPaths.Blue.getExitUpperShootingZone(follower, startingPose);
 			}
 			return null;
 		}
@@ -405,6 +406,23 @@ public class AutoComponents {
 			return new PrepareLoadingZoneIntakeState();
 		}
 
+		public PathChain getPathChain(Follower follower, Pose startingPose) {
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getLoadingZoneApproach(follower, startingPose);
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getLoadingZoneApproach(follower, startingPose);
+			}
+			return null;
+		}
+	}
+
+	public class PrepareIntakeLoadingZoneCloseAction extends PrepareIntakeLoadingZoneAction {
+		@Override
+		public String getNameString() {
+			return "Prepare Intake Loading Zone (close)";
+		}
+
+		@Override
 		public PathChain getPathChain(Follower follower, Pose startingPose) {
 			if (alliance instanceof RedAlliance) {
 				return AutoPaths.Red.getLoadingZoneApproach(follower, startingPose);
@@ -681,17 +699,23 @@ public class AutoComponents {
 		public AutoActionCommand getActionCommand() {
 			return new AutoActionCommand() {
 				private boolean initialized = false;
+				private ElapsedTime shootingAimTimer;
 				private ElapsedTime shootingTimer = new ElapsedTime();
 				private boolean shootingTimerSet = false;
 
 				public boolean run(Follower follower, Automations automationHandler) {
 					if (follower.isBusy() || follower.getVelocity().getMagnitude() > 1)
 						return false;
-					if (!initialized && automationHandler.getVisionAlignmentCorrect()) {
+					if (shootingAimTimer == null) {
+						shootingAimTimer = new ElapsedTime();
+					}
+					if (!initialized && (automationHandler.getVisionAlignmentCorrect() || shootingAimTimer.time() > 2)) {
 						automationHandler.setIgnoreVelocity(false);
 						automationHandler.setShooting(true);
 
 						initialized = true;
+
+						return false;
 					}
 
 					if (automationHandler.getState() == Automations.State.WAITING_TO_SHOOT) {
@@ -699,7 +723,7 @@ public class AutoComponents {
 							shootingTimer.reset();
 							shootingTimerSet = true;
 						}
-					} else if (automationHandler.isFinishedShooting() || shootingTimer.time() > 5) {
+					} else if (automationHandler.isFinishedShooting() && shootingTimer.time() > 2 || shootingTimer.time() > 5) {
 						automationHandler.setShooting(false);
 						return true;
 					}
