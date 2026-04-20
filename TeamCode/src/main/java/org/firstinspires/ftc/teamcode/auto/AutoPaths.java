@@ -51,7 +51,7 @@ public class AutoPaths {
 					.addPath(
 							new BezierLine(startingPose, startingPose.withX(startingPose.getX() + 35)))
 					.setConstantHeadingInterpolation(Math.toRadians(0))
-					.setGlobalDeceleration(1.5)
+					// .setGlobalDeceleration(1.5)
 					.build();
 		}
 
@@ -79,7 +79,7 @@ public class AutoPaths {
 									new Pose(90.000, 69.000),
 									new Pose(124.000, 69.000)
 							))
-					.setBrakingStrength(0.5)
+					// .setBrakingStrength(0.5)
 					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
 					.build();
 		}
@@ -89,7 +89,7 @@ public class AutoPaths {
 					.addPath(
 						new BezierLine(startingPose, new Pose(127.000, 58.000))
 					)
-					.setBrakingStrength(0.5)
+					// .setBrakingStrength(0.5)
 					.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(50))
 					.build();
 		}
@@ -104,8 +104,8 @@ public class AutoPaths {
 							new Pose(128.000, 55.000)
 						)
 					)
-					.setBrakingStrength(0.5)
-					.setGlobalDeceleration()
+					// .setBrakingStrength(0.5)
+					// .setGlobalDeceleration()
 					.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(20))
 					.build();
 		}
@@ -146,9 +146,9 @@ public class AutoPaths {
 							new BezierLine(startingPose, new Pose(84.000, 84.000)))
 					.setHeadingInterpolation(
 							HeadingInterpolator.piecewise(
-									new HeadingInterpolator.PiecewiseNode(0, 0.25,
+									new HeadingInterpolator.PiecewiseNode(0, 0.15,
 											HeadingInterpolator.constant(startingPose.getHeading() + Math.PI)),
-									new HeadingInterpolator.PiecewiseNode(0.25, 1,
+									new HeadingInterpolator.PiecewiseNode(0.15, 1,
 											HeadingInterpolator.linear(startingPose.getHeading(),
 													Math.toRadians(targetHeadingDeg)))))
 					.setReversed()
@@ -274,8 +274,8 @@ public class AutoPaths {
 									new Pose(87.000, 53.000),
 									new Pose(120.000, 55.000),
 									new Pose(127.000, 56.000)))
-					.setBrakingStrength(0.5)
-					.setGlobalDeceleration()
+					// .setBrakingStrength(0.5)
+					// .setGlobalDeceleration()
 					.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(20))
 					.build(), follower
 			);

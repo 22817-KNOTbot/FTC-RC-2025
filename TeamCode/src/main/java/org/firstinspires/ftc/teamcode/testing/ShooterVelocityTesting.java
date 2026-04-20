@@ -6,7 +6,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
+import org.firstinspires.ftc.teamcode.subsystems.Transfer;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 @Configurable
@@ -15,8 +17,11 @@ import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 public class ShooterVelocityTesting extends LinearOpMode {
 	public static double desiredVelocity = 0;
 	public static double hoodAngle = 52.5;
+	public static boolean intakeTransferEnabled = false;
 
 	private Shooter shooter;
+	private Intake intake;
+	private Transfer transfer;
 
 	@Override
 	public void runOpMode() {
@@ -26,6 +31,8 @@ public class ShooterVelocityTesting extends LinearOpMode {
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 
 		shooter = new Shooter(hardwareMap);
+		intake = new Intake(hardwareMap);
+		transfer = new Transfer(hardwareMap);
 
 		waitForStart();
 
@@ -35,6 +42,8 @@ public class ShooterVelocityTesting extends LinearOpMode {
 			shooter.updateVelocityPid();
 			shooter.desiredVelocity = desiredVelocity;
 			shooter.setPitchAngle(hoodAngle);
+			intake.enable(intakeTransferEnabled);
+			transfer.enable(intakeTransferEnabled);
 
 			telemetryManager.addData("Desired", shooter.desiredVelocity);
 			telemetryManager.addData("Velocity", shooter.getVelocity());

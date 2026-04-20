@@ -539,7 +539,7 @@ public class AutoComponents {
 							intakingTimer.reset();
 							intakingInit = true;
 						}
-						if (intakingInit && (intakingTimer.time() > 1 || automationHandler.getState() == Automations.State.IDLE)) {
+						if (intakingInit && (intakingTimer.time() > 2 || automationHandler.getState() == Automations.State.IDLE)) {
 							// follower.setMaxPower(1);
 							return true;
 						}
@@ -723,7 +723,7 @@ public class AutoComponents {
 							shootingTimer.reset();
 							shootingTimerSet = true;
 						}
-					} else if (automationHandler.isFinishedShooting() && shootingTimer.time() > 2 || shootingTimer.time() > 5) {
+					} else if (automationHandler.isFinishedShooting() && shootingTimer.time() > 1 || shootingTimer.time() > 5) {
 						automationHandler.setShooting(false);
 						return true;
 					}

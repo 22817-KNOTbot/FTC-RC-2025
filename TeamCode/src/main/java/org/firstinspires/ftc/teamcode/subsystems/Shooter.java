@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.util.InterpolatedLUT;
 @Configurable
 @Config
 public class Shooter {
-	public static double velocityConstant = 0;
+	public static double velocityConstant = -60;
 	public static double velocityTolerance = 50;
 	public static double shootingAreaTolerance = 12.7279220614;
 	public static double defaultVelocity = 1680;
@@ -30,13 +30,13 @@ public class Shooter {
 	public static double PIDF_FS = 0.06;
 	public static boolean PIDF_update = false;
 
-	public static double min_pitch = 0.15;
-	public static double max_pitch = 0.45;
+	public static double min_pitch = 0.03;
+	public static double max_pitch = 0.42;
 	public static double pitch_increment = 0.01;
 
 	public static double goal_height = 46.25;
 	public static double robot_height = 9.175;
-	public static double goal_angle = -27.4;
+	public static double goal_angle = -17.3;
 
 	private final double GRAVITY = DistanceUnit.INCH.fromMeters(9.80665);
 
@@ -81,13 +81,22 @@ public class Shooter {
 		);
 
 		hoodAngleLUT.add(
-			hoodAngleLUT.new Entry(61, 0.15),
-			hoodAngleLUT.new Entry(59, 0.21),
-			hoodAngleLUT.new Entry(55, 0.27),
-			hoodAngleLUT.new Entry(54, 0.3),
-			hoodAngleLUT.new Entry(52, 0.35),
-			hoodAngleLUT.new Entry(51, 0.4),
-			hoodAngleLUT.new Entry(50, 0.45)
+			hoodAngleLUT.new Entry(90-29, 0.03),
+			hoodAngleLUT.new Entry(90-31, 0.1),
+			hoodAngleLUT.new Entry(90-33, 0.15),
+			hoodAngleLUT.new Entry(90-35, 0.2),
+			hoodAngleLUT.new Entry(90-38, 0.25),
+			hoodAngleLUT.new Entry(90-40, 0.3),
+			hoodAngleLUT.new Entry(90-43, 0.35),
+			hoodAngleLUT.new Entry(90-47, 0.4),
+			hoodAngleLUT.new Entry(90-50, 0.42)
+			// hoodAngleLUT.new Entry(61, 0.15),
+			// hoodAngleLUT.new Entry(59, 0.21),
+			// hoodAngleLUT.new Entry(55, 0.27),
+			// hoodAngleLUT.new Entry(54, 0.3),
+			// hoodAngleLUT.new Entry(52, 0.35),
+			// hoodAngleLUT.new Entry(51, 0.4),
+			// hoodAngleLUT.new Entry(50, 0.45)
 		);
 	}
 

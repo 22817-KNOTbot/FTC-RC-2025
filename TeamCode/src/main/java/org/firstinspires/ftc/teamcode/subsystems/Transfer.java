@@ -88,6 +88,6 @@ public class Transfer {
 	}
 
 	public boolean isFinishedTransferring() {
-		return transferLoadedTimer != null && transferLoadedTimer.milliseconds() >= loaded_empty_ms;
+		return transferLoadedTimer == null || transferLoadedTimer.milliseconds() >= loaded_empty_ms;
 	}
 }
