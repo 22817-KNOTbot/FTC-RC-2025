@@ -1,0 +1,114 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'maven-publish'
+}
+
+group = "org.psilynx.psikit"
+version = "0.2.0-beta1"
+
+android {
+    namespace 'org.psilynx.psikit.ftc'
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 24
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                groupId = "org.psilynx.psikit"
+                artifactId = "ftc"
+                version = "0.2.0-beta1"
+
+                // from components.release
+
+            }
+        }
+
+        repositories {
+            def dairyReleaseUsername = providers.gradleProperty("dairyReleaseUsername").orNull
+            def dairyReleasePassword = providers.gradleProperty("dairyReleasePassword").orNull
+            if (dairyReleaseUsername != null && dairyReleasePassword != null) {
+                maven {
+                    name = "dairyRelease"
+                    url = uri("https://repo.dairy.foundation/releases")
+
+                    credentials {
+                        username = dairyReleaseUsername
+                        password = dairyReleasePassword
+                    }
+
+                    authentication {
+                        basic(BasicAuthentication)
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+repositories {
+    google()
+    mavenCentral()
+    def dairyPrivateUsername = providers.gradleProperty("dairyPrivateUsername").orNull
+    def dairyPrivatePassword = providers.gradleProperty("dairyPrivatePassword").orNull
+    if (dairyPrivateUsername != null && dairyPrivatePassword != null) {
+        maven {
+            name = "dairyPrivate"
+            url = uri("https://repo.dairy.foundation/private")
+
+            credentials {
+                username = dairyPrivateUsername
+                password = dairyPrivatePassword
+            }
+
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+    }
+    maven { url "https://repo.dairy.foundation/releases" }
+}
+
+dependencies {
+
+    api "org.firstinspires.ftc:RobotCore:11.1.0"
+    api "org.firstinspires.ftc:Hardware:11.1.0"
+    api "org.firstinspires.ftc:FtcCommon:11.1.0"
+
+    implementation project(":PsiKit:core")
+
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation "org.jetbrains.kotlin:kotlin-reflect:2.0.0"
+
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    testImplementation "org.robolectric:robolectric:4.12.1"
+    testImplementation 'junit:junit:4.12'
+    testImplementation "io.mockk:mockk:1.14.5"
+    testImplementation "io.mockk:mockk-android:1.14.5"
+    testImplementation "io.mockk:mockk-agent:1.14.5"
+
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}

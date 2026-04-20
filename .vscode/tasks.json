@@ -31,9 +31,9 @@
 		},
 		{
 			"type": "gradle",
-			"id": "${cwd}installDebugSoftware",
-			"script": "installDebug",
-			"description": "Installs the Debug build and removes sloth remote.",
+			"id": "${cwd}installReleaseSoftware",
+			"script": "installRelease",
+			"description": "Installs the Release build and removes sloth remote.",
 			"group": "build",
 			"project": "Software",
 			"buildFile": "${cwd}\\build.gradle",

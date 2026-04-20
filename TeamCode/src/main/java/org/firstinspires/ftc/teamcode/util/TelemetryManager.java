@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.util;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.psilynx.psikit.core.Logger;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
@@ -19,6 +20,7 @@ public class TelemetryManager {
 
 	private TelemetryPacket dashboardPacket;
 
+	private boolean loggingEnabled = false;
 	private boolean htmlMode = false;
 
 	public void setFtcTelemetry(Telemetry ftcTelemetry) {
@@ -46,6 +48,10 @@ public class TelemetryManager {
 
 	public void setPanelsTelemetry (com.bylazar.telemetry.TelemetryManager panelsTelemetry) {
 		this.panelsTelemetry = panelsTelemetry;
+	}
+	
+	public void setLoggingEnabled(boolean logsEnabled) {
+		this.loggingEnabled = logsEnabled;
 	}
 
 	public void setHtmlMode(boolean htmlMode) {
@@ -83,6 +89,9 @@ public class TelemetryManager {
 		}
 		if (panelsTelemetry != null) {
 			panelsTelemetry.addData(caption, value);
+		}
+		if (loggingEnabled) {
+			Logger.recordOutput("Telemetry/" + StringUtil.toPascalCase(caption), value.toString());
 		}
 	}
 

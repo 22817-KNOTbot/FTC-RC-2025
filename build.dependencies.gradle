@@ -43,5 +43,8 @@ dependencies {
 	// }
 
 	implementation "com.bylazar.sloth:fullpanels:0.2.4+1.0.12"
+
+	implementation(project(":PsiKit:core"))
+	implementation(project(":PsiKit:ftc"))
 }
 

@@ -1,0 +1,119 @@
+package org.psilynx.psikit.ftc.wrappers
+
+import com.qualcomm.robotcore.hardware.HardwareDevice
+import com.qualcomm.robotcore.hardware.PwmControl
+import com.qualcomm.robotcore.hardware.Servo
+import com.qualcomm.robotcore.hardware.ServoController
+import com.qualcomm.robotcore.hardware.ServoControllerEx
+import com.qualcomm.robotcore.hardware.ServoImplEx
+import com.qualcomm.robotcore.hardware.configuration.typecontainers.ServoConfigurationType
+import org.psilynx.psikit.ftc.FtcLogTuning
+import org.psilynx.psikit.core.LogTable
+
+class ServoWrapper(private val device: ServoImplEx?):
+    ServoImplEx(
+        object : ServoControllerEx {
+            override fun setServoPwmRange(servo: Int, range: PwmControl.PwmRange) {}
+            override fun getServoPwmRange(servo: Int) = PwmControl.PwmRange.defaultRange
+            override fun setServoPwmEnable(servo: Int) {}
+            override fun setServoPwmDisable(servo: Int) {}
+            override fun isServoPwmEnabled(servo: Int) = true
+            override fun setServoType(servo: Int, servoType: ServoConfigurationType?) {}
+            override fun pwmEnable() {}
+            override fun pwmDisable() {}
+            override fun getPwmStatus() = ServoController.PwmStatus.ENABLED
+            override fun setServoPosition(servo: Int, position: Double) {}
+            override fun getServoPosition(servo: Int) = 0.0
+            override fun getManufacturer() = HardwareDevice.Manufacturer.Other
+            override fun getDeviceName() = "MockCrServo"
+            override fun getConnectionInfo() = ""
+            override fun getVersion() = 1
+            override fun resetDeviceConfigurationForOpMode() {}
+            override fun close() {}
+        },
+        0,
+        ServoConfigurationType()
+    ), HardwareInput<ServoImplEx> {
+    private var _direction = Servo.Direction.FORWARD
+    private var _position = 0.0
+    private var _pwmRange = PwmControl.PwmRange(500.0, 2500.0)
+    private var _pwmEnabled = false;
+
+    private var lastSampleNs: Long = Long.MIN_VALUE
+
+    private fun secondsSince(ns: Long): Double {
+        if (ns == Long.MIN_VALUE) return Double.POSITIVE_INFINITY
+        return (System.nanoTime() - ns) / 1_000_000_000.0
+    }
+
+    private fun shouldSampleNow(): Boolean {
+        val period = FtcLogTuning.nonBulkReadPeriodSec
+        if (period <= 0.0) return true
+        return secondsSince(lastSampleNs) >= period
+    }
+
+    override fun getDirection(): Servo.Direction = _direction
+    override fun setDirection(direction: Servo.Direction) {
+        _direction = direction
+        device?.direction = direction
+    }
+
+    override fun getPosition(): Double = _position
+    override fun setPosition(position: Double) {
+        _position = position
+        device?.position = position
+    }
+
+    override fun getPwmRange(): PwmControl.PwmRange = _pwmRange
+    override fun setPwmRange(range: PwmControl.PwmRange) {
+        _pwmRange = range
+        device?.pwmRange = range
+    }
+
+    override fun isPwmEnabled(): Boolean = _pwmEnabled
+    override fun setPwmEnable() {
+        _pwmEnabled = true
+        device?.setPwmEnable()
+    }
+
+    override fun setPwmDisable() {
+        _pwmEnabled = false
+        device?.setPwmDisable()
+    }
+
+    override fun toLog(table: LogTable) {
+        device!!
+
+        if (FtcLogTuning.bulkOnlyLogging) {
+            return
+        }
+
+        if (!shouldSampleNow()) {
+            // Skip reads/writes this loop; LogTable retains the last values.
+            return
+        }
+        lastSampleNs = System.nanoTime()
+
+        _direction = device.direction
+        _position = device.position
+        _pwmRange = device.pwmRange
+        _pwmEnabled = device.isPwmEnabled
+
+        table.put("Direction", _direction.ordinal)
+        table.put("Position", _position)
+        table.put("PwmLower", _pwmRange.usPulseLower)
+        table.put("PwmUpper", _pwmRange.usPulseUpper)
+        table.put("PwmEnabled", _pwmEnabled)
+    }
+
+    override fun fromLog(table: LogTable) {
+        _direction = table.get("Direction", direction)
+        _position = table.get("Position", position)
+        val lower = table.get("PwmLower", pwmRange.usPulseLower.toDouble())
+        val upper = table.get("PwmUpper", pwmRange.usPulseUpper.toDouble())
+        _pwmRange = PwmControl.PwmRange(lower, upper)
+        _pwmEnabled = table.get("PwmEnabled", isPwmEnabled)
+    }
+
+    override fun new(wrapped: ServoImplEx?) = ServoWrapper(wrapped)
+}

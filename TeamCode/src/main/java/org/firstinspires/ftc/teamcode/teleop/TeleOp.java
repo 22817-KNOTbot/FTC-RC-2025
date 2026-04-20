@@ -11,6 +11,7 @@ import com.bylazar.gamepad.PanelsGamepad;
 import com.pedropathing.ftc.InvertedFTCCoordinates;
 import com.pedropathing.geometry.Pose;
 
+import org.firstinspires.ftc.teamcode.BuildConstants;
 import org.firstinspires.ftc.teamcode.subsystems.MecanumDrive;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.util.Alliance;
@@ -24,16 +25,27 @@ import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.FtcDashboard;
 
+import org.psilynx.psikit.core.Logger;
+import org.psilynx.psikit.core.wpi.math.Pose2d;
+import org.psilynx.psikit.core.wpi.math.Rotation2d;
+import org.psilynx.psikit.ftc.FtcLogTuning;
+import org.psilynx.psikit.ftc.autolog.PsiKitAutoLog;
+import org.psilynx.psikit.ftc.autolog.PsiKitAutoLogger;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 @Configurable
 @Config
+@PsiKitAutoLog
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp", group = "$TeleOp")
 public class TeleOp extends LinearOpMode {
 	public static boolean DEBUG = true;
+	public static boolean LOGGING_ENABLED = true;
 
 	private GamepadManager gamepadManager;
-	private ElapsedTime loopTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+	private ElapsedTime loopTimer = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
 	private Automations automationHandler;
 	private MecanumDrive mecanumDrive;
 
@@ -54,6 +66,7 @@ public class TeleOp extends LinearOpMode {
 		// telemetryManager.setFtcTelemetry(telemetry);
 		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
+		telemetryManager.setLoggingEnabled(false);
 		telemetryManager.setHtmlMode(true);
 
 		if (gamepad1.right_bumper)
@@ -86,6 +99,22 @@ public class TeleOp extends LinearOpMode {
 		automationHandler.setGamepads(gamepad1, gamepad2);
 		mecanumDrive = new MecanumDrive(hardwareMap);
 
+		FtcLogTuning.processColorDistanceSensorsInBackground = false;
+		if (LOGGING_ENABLED) {
+			FtcLogTuning.logMotorCurrent = true;
+			FtcLogTuning.motorCurrentReadPeriodSec = 0.2;
+			FtcLogTuning.pinpointLoggerCallsUpdate = false;
+			FtcLogTuning.pedroFollowerPublishesNamedOdometry = true;
+			String dateString = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date());
+			Logger.recordMetadata("Date", dateString);
+			Logger.recordMetadata("OpMode", this.getClass().getSimpleName());
+			Logger.recordMetadata("Alliance", alliance.getColourString());
+			Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
+			Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
+			Logger.recordMetadata("GitDirty", String.valueOf(BuildConstants.DIRTY));
+			Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
+		}
+
 		while (opModeInInit()) {
 			gamepadManager.updateGamepads();
 			gamepad1 = gamepadManager.getGamepad1();
@@ -104,27 +133,31 @@ public class TeleOp extends LinearOpMode {
 		}
 		
 		Object poseObject = blackboard.getOrDefault("pose", null);
-		Pose pose = automationHandler.getAlliance().getResetPose();
+		Pose startPose = automationHandler.getAlliance().getResetPose();
 		if (poseObject == null) {
-			pose = automationHandler.getAlliance().getResetPose();
+			startPose = automationHandler.getAlliance().getResetPose();
 		} else {
 			try {
-				pose = (Pose) poseObject;
+				startPose = (Pose) poseObject;
 			} catch (ClassCastException err) {}
 		}
-		mecanumDrive.setStartingPose(pose);
-		mecanumDrive.setPose(pose);
+		mecanumDrive.setStartingPose(startPose);
+		mecanumDrive.setPose(startPose);
 
 		mecanumDrive.initialize();
 		mecanumDrive.setHeadingOffset(automationHandler.getAlliance().getHeadingOffset());
 		mecanumDrive.setAutoDriveTarget(automationHandler.getAlliance().getBasePose());
 		mecanumDrive.setResetPose(automationHandler.getAlliance().getResetPose());
 		automationHandler.start();
-		loopTime.reset();
+		loopTimer.reset();
 
 		RobotEvent.startTeleop();
 
 		while (opModeIsActive()) {
+			double beforePsiKitStart = Logger.getRealTimestamp();
+			PsiKitAutoLogger.linearPeriodicBeforeUser(this);
+			double beforeUserEnd = Logger.getRealTimestamp();
+
 			// IMPORTANT: Cache must be cleared every loop to prevent stale data
 			for (LynxModule hub : allHubs) {
 				hub.clearBulkCache();
@@ -168,7 +201,8 @@ public class TeleOp extends LinearOpMode {
 				}
 			}
 
-			automationHandler.updatePose(mecanumDrive.getPose());
+			Pose currentPose = mecanumDrive.getPose();
+			automationHandler.updatePose(currentPose);
 			automationHandler.updateVelocity(mecanumDrive.getVelocity());
 			automationHandler.automationLoop();
 
@@ -224,18 +258,18 @@ public class TeleOp extends LinearOpMode {
 			if (manualShooterMode) {
 				telemetryManager.addLine(HtmlUtil.colourText("##### MANUAL SHOOTER MODE #####", "blue"));
 			}
-			telemetryManager.addLine(String.format("Loop time: %.2fms - %.0fhz", loopTime.time(), 1000 / loopTime.time()));
-			loopTime.reset();
+			double loopTime = loopTimer.time();
+			telemetryManager.addLine(String.format("Loop time: %.2fms - %.0fhz", loopTime, 1000 / loopTime));
+			loopTimer.reset();
 
+			Pose ftcPose = currentPose.getAsCoordinateSystem(InvertedFTCCoordinates.INSTANCE);
 			if (DEBUG) {
-				Pose currentPose = mecanumDrive.getPose();
 				// Pose holdPose = mecanumDrive.getHoldPose();
 
 				telemetryManager.addData("Pose x", currentPose.getX());
 				telemetryManager.addData("Pose y", currentPose.getY());
 				telemetryManager.addData("Pose heading", Math.toDegrees(currentPose.getHeading()));
 
-				Pose ftcPose = currentPose.getAsCoordinateSystem(InvertedFTCCoordinates.INSTANCE);
 				telemetryManager.addData("FTC Pose x", ftcPose.getX());
 				telemetryManager.addData("FTC Pose y", ftcPose.getY());
 				telemetryManager.addData("FTC Pose heading (deg)", Math.toDegrees(ftcPose.getHeading()));
@@ -254,6 +288,14 @@ public class TeleOp extends LinearOpMode {
 				Drawing.sendPacket();
 			}
 			telemetryManager.update();
+
+			Logger.recordOutput("LoopTime", loopTime);
+			Pose2d wpiPose = new Pose2d(ftcPose.getX(), ftcPose.getY(), Rotation2d.fromDegrees(ftcPose.getHeading()));
+			Logger.recordOutput("Pose", wpiPose);
+
+			PsiKitAutoLogger.linearPeriodicAfterUser(
+					Logger.getRealTimestamp() - beforeUserEnd,
+					beforeUserEnd - beforePsiKitStart);
 		}
 
 		automationHandler.end();
