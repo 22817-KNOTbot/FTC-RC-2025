@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.subsystems.Brakes;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Pto;
 import org.firstinspires.ftc.teamcode.subsystems.Light;
 import org.firstinspires.ftc.teamcode.subsystems.Transfer;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
@@ -38,6 +39,7 @@ public class Automations {
 	private Limelight limelight;
 	private Brakes brakes;
 	private Light light;
+	private Pto pto;
 
 	private Gamepad gamepad1;
 	private Gamepad gamepad2;
@@ -88,6 +90,8 @@ public class Automations {
 		light = new Light(hardwareMap);
 
 		turretPid = new Pid(Turret.Kp, Turret.Ki, Turret.Kd);
+
+		pto = new Pto(hardwareMap);
 	}
 	
 	public void setAlliance(Alliance alliance) {
@@ -194,6 +198,9 @@ public class Automations {
 
 	// Should be called to update the turret
 	public void updateTurret() {
+		if (pto.getPtoEngaged()) {
+			return;
+		}
 		AlignmentDirection direction = limelight.getAlignmentDirection();
 		if (!direction.directionKnown || !useVision) {
 			turretPid.reset();
@@ -324,6 +331,11 @@ public class Automations {
 		brakes.engageBrakes(engage);
 	}
 
+	public void setPtoEngaged(boolean engaged) {
+		turret.setRotation(Turret.max_rotation);
+		pto.setPtoEngaged(engaged);
+	}
+
 	/*
 	 * Getter methods
 	 */
@@ -370,6 +382,10 @@ public class Automations {
 
 	public boolean getVisionAlignmentCorrect() {
 		return !useVision || limelight.getAlignmentDirection().directionKnown && limelight.getAlignmentDirection().bearing <= Turret.vision_tolerance_deg;
+	}
+
+	public boolean getPtoEngaged() {
+		return pto.getPtoEngaged();
 	}
 
 	/*
