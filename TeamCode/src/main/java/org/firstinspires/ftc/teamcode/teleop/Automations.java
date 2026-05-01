@@ -332,7 +332,7 @@ public class Automations {
 	}
 
 	public void setPtoEngaged(boolean engaged) {
-		turret.setRotation(Turret.max_rotation);
+		turret.setRotation(Turret.BASE_ROTATION);
 		pto.setPtoEngaged(engaged);
 	}
 
