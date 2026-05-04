@@ -6,7 +6,10 @@
 		{
 			"label": "Connect to control hub",
 			"type": "shell",
-			"command": "if ((get-netconnectionProfile).Name.contains('22817-RC')) { adb connect 192.168.43.1 }",
+			"command": "timeout 10s adb connect 192.168.43.1 || true",
+			"windows": {
+				"command": "if ((get-netconnectionProfile).Name.contains('22817-RC')) { adb connect 192.168.43.1 }",
+			},
 			"presentation": {
 				"reveal": "never",
 				"showReuseMessage": false,
@@ -19,7 +22,10 @@
 		{
 			"label": "Disconnect from control hub",
 			"type": "shell",
-			"command": "adb disconnect 192.168.43.1 ",
+			"command": "adb disconnect 192.168.43.1 || true",
+			"windows": {
+				"command": "adb disconnect 192.168.43.1 ",
+			},
 			"presentation": {
 				"reveal": "never",
 				"showReuseMessage": false,
@@ -76,7 +82,10 @@
 				"group": "RC code send"
 			},
 			"type": "shell",
-			"command": "if (((get-netconnectionProfile).Name.contains('22817-RC')) -And -Not (ps scrcpy -ErrorAction 'silentlycontinue')) { try { adb disconnect 192.168.43.1 } catch {} }",
+			"command": "adb disconnect 192.168.43.1 || echo 0",
+			"windows": {
+				"command": "if (((get-netconnectionProfile).Name.contains('22817-RC')) -And -Not (ps scrcpy -ErrorAction 'silentlycontinue')) { try { adb disconnect 192.168.43.1 } catch {} }",
+			},
 			"problemMatcher": []
 		},
 		{
