@@ -179,17 +179,6 @@ public class TeleOp extends LinearOpMode {
 
 			if (getRuntime() >= 100 || DEBUG || gamepad2.right_trigger > 0.9) {
 				mecanumDrive.setAutoDrive(gamepad1.left_bumper);
-				if (!automationHandler.getPtoEngaged() && gamepad1.dpadDownWasPressed()) {
-					automationHandler.setPtoEngaged(true);
-					mecanumDrive.setLifting(true);
-				} else if (automationHandler.getPtoEngaged()) {
-					if (gamepad1.dpadDownWasPressed()) {
-						automationHandler.setPtoEngaged(false);
-						mecanumDrive.setLifting(false);
-					} else {
-						mecanumDrive.liftControl(gamepad1.left_stick_y);
-					}
-				}
 			}
 			mecanumDrive.lockingMecanum(gamepad1.right_bumper);
 			automationHandler.engageBrakes(gamepad1.right_bumper);

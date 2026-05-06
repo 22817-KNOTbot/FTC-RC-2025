@@ -5,8 +5,6 @@ import com.pedropathing.math.Vector;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.Range;
-
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -21,7 +19,6 @@ public class MecanumDrive {
 	private Pose resetPose = new Pose();
 	private boolean autoDrive;
 	private Pose autoDriveTarget;
-	private boolean lifting;
 
 	public MecanumDrive(HardwareMap hardwareMap) {
 		follower = Constants.createFollower(hardwareMap);
@@ -77,8 +74,7 @@ public class MecanumDrive {
 					follower.pathBuilder()
 							.addPath(new Path(new BezierLine(follower::getPose, autoDriveTarget)))
 							.setHeadingInterpolation(
-									HeadingInterpolator.linearFromPoint(follower::getHeading,
-											autoDriveTarget.getHeading(), 1))
+									HeadingInterpolator.linearFromPoint(follower::getHeading, autoDriveTarget.getHeading(), 1))
 							.build());
 		}
 		if (!enable && autoDrive) {
@@ -92,32 +88,13 @@ public class MecanumDrive {
 		autoDriveTarget = target;
 	}
 
-	public void setLifting(boolean lifting) {
-		boolean previouslyLifting = this.lifting;
-		this.lifting = lifting;
-		if (lifting && !previouslyLifting) {
-			follower.breakFollowing();
-		} else if (!lifting && previouslyLifting) {
-			follower.drivetrain.runDrive(new double[] {0, 0, 0, 0});
-			follower.startTeleopDrive();
-		}
-	}
-
-	public void liftControl(double power) {
-		if (!lifting)
-			return;
-		power = Range.clip(power, 0, 1);
-		// Front left, back left, front right, back right
-		follower.drivetrain.runDrive(new double[] {power, -power, power, -power});
-	}
-
 	public void setStartingPose(Pose pose) {
 		follower.setStartingPose(pose);
 		// setPose(pose);
 		follower.update();
 	}
 
-	public void setPose(Pose pose) {
+	public void setPose(Pose pose){
 		follower.setPose(pose);
 		follower.update();
 	}
@@ -149,9 +126,5 @@ public class MecanumDrive {
 
 	public Pose getAutoDriveTarget() {
 		return autoDriveTarget;
-	}
-
-	public boolean isLifting() {
-		return lifting;
 	}
 }
