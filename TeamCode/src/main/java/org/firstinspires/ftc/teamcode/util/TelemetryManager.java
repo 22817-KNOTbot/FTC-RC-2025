@@ -91,7 +91,17 @@ public class TelemetryManager {
 			panelsTelemetry.addData(caption, value);
 		}
 		if (loggingEnabled) {
-			Logger.recordOutput("Telemetry/" + StringUtil.toPascalCase(caption), value.toString());
+			if (Logger.isRunning()) {
+				if (value instanceof Number) {
+					if (value.getClass().equals(Double.class)) {
+						Logger.recordOutput("Telemetry/" + StringUtil.toPascalCase(caption), ((Number) value).doubleValue());
+					} else if (value.getClass().equals(Integer.class)) {
+						Logger.recordOutput("Telemetry/" + StringUtil.toPascalCase(caption), ((Number) value).intValue());
+					}
+				} else {
+					Logger.recordOutput("Telemetry/" + StringUtil.toPascalCase(caption), value != null ? value.toString() : "null");
+				}				
+			}
 		}
 	}
 

@@ -14,8 +14,10 @@ import org.firstinspires.ftc.teamcode.subsystems.vision.Limelight.AlignmentDirec
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.util.BlueAlliance;
 import org.firstinspires.ftc.teamcode.util.RedAlliance;
+import org.firstinspires.ftc.teamcode.util.RollingTimeQueue;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.util.ControlTheory.Pid;
+import org.psilynx.psikit.core.Logger;
 
 import com.pedropathing.math.Vector;
 import com.pedropathing.geometry.Pose;
@@ -46,6 +48,8 @@ public class Automations {
 	private Vector velocity;
 
 	private Pid turretPid;
+	private RollingTimeQueue<Double> shooterVelocityQueue = new RollingTimeQueue<>(Shooter.velocityDropTimeMs);
+	private int ballsShot;
 
 	private State state = State.IDLE;
 	private boolean shootInit;
@@ -112,6 +116,7 @@ public class Automations {
 		telemetry.addData("Vision Alignment Direction", limelight.getAlignmentDirection());
 		telemetry.addData("Intake loaded", intake.getLoaded());
 		telemetry.addData("Transfer loaded", transfer.getLoaded());
+		Logger.recordOutput("Balls shot", ballsShot);
 	}
 
 	public void abort() {
@@ -133,6 +138,9 @@ public class Automations {
 		turret.update();
 		brakes.update();
 
+		double shooterVelocity = shooter.getVelocity();
+		shooterVelocityQueue.add(shooterVelocity);
+		
 		switch (state) {
 			case IDLE:
 				break;
@@ -159,18 +167,31 @@ public class Automations {
 					}
 					shooter.enable(true);
 					shootInit = false;
+					ballsShot = 0;
 					state = State.SHOOTING;
 				}
 				break;
 			case SHOOTING:
 				if (!shootInit) {
-					RobotEvent.addScore(3, "Artifact");
-					RobotEvent.addScore(3, "Artifact");
-					RobotEvent.addScore(3, "Artifact");
+					// RobotEvent.addScore(3, "Artifact");
+					// RobotEvent.addScore(3, "Artifact");
+					// RobotEvent.addScore(3, "Artifact");
 					shootInit = true;
 				}
 				transfer.transferUpdate();
 				intakeLastLoaded = false;
+
+				double oldVelocity = shooterVelocityQueue.peek();
+				if (!Double.isNaN(oldVelocity) 
+						&& oldVelocity - shooter.getVelocity() >= Shooter.velocityDrop 
+						&& oldVelocity - shooter.desiredVelocity <= 20) {
+					RobotEvent.addScore(3, "Artifact");
+					ballsShot++;
+					if (ballsShot >= 3) {
+						vibrateControllers();
+						setShooting(false);
+					}
+				}
 				// if (transfer.isFinishedTransferring()) {
 				// 	vibrateControllers();
 				// 	setShooting(false);
