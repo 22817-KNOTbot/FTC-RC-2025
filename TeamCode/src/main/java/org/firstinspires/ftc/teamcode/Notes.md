@@ -14,6 +14,8 @@ brake left: 0.6 = down; 0.5 = up
 brake right: 0.39 = down; 0.49 = up
 
 light: 0.28 = red; 0.45 = green; 0.6
+\
+pto right: 0.5 = disengaged; 0.47 = engaged
 
 # Configuration
 ## Motors
