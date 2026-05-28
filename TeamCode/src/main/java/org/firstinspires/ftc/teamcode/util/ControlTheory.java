@@ -4,9 +4,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class ControlTheory {
 	public static class Pid {
-		private double Kp;
-		private double Ki;
-		private double Kd;
+		private PidCoefficients coefficients;
 
 		private ElapsedTime timer = new ElapsedTime();
 		private double integralSum = 0;
@@ -18,12 +16,27 @@ public class ControlTheory {
 		private double difference;
 		private double derivative;
 		private double output;
+		
+		public Pid(PidCoefficients coefficients) {
+			this.coefficients = coefficients;
+			timer.reset();
+		}
 
 		public Pid(double Kp, double Ki, double Kd) {
-			this.Kp = Kp;
-			this.Ki = Ki;
-			this.Kd = Kd;
+			this.coefficients = new PidCoefficients(Kp, Ki, Kd);
 			timer.reset();
+		}
+
+		public static class PidCoefficients {
+			public double Kp;
+			public double Ki;
+			public double Kd;
+
+			public PidCoefficients(double Kp, double Ki, double Kd) {
+				this.Kp = Kp;
+				this.Ki = Ki;
+				this.Kd = Kd;
+			}
 		}
 
 		public double calculate(double reference, double current) {
@@ -36,9 +49,9 @@ public class ControlTheory {
 			derivative = difference / timer.seconds();
 			integralSum = integralSum + (error * timer.seconds());
 
-			output = (Kp * error) +
-					(Ki * integralSum) +
-					(Kd * derivative);
+			output = (coefficients.Kp * error) +
+					(coefficients.Ki * integralSum) +
+					(coefficients.Kd * derivative);
 
 			lastError = error;
 			timer.reset();
@@ -67,24 +80,25 @@ public class ControlTheory {
 			lastError = null;
 		}
 
+		public void setCoefficients(PidCoefficients coefficients) {
+			this.coefficients = coefficients;
+		}
+
 		public void setKp(double Kp) {
-			this.Kp = Kp;
+			this.coefficients.Kp = Kp;
 		}
 
 		public void setKi(double Ki) {
-			this.Ki = Ki;
+			this.coefficients.Ki = Ki;
 		}
 
 		public void setKd(double Kd) {
-			this.Kd = Kd;
+			this.coefficients.Kd = Kd;
 		}
 	}
 
 	public static class Pidf {
-		private double Kp;
-		private double Ki;
-		private double Kd;
-		private double Kv;
+		private PidfCoefficients coefficients;
 
 		private ElapsedTime timer = new ElapsedTime();
 		private double integralSum = 0;
@@ -97,12 +111,28 @@ public class ControlTheory {
 		private double derivative;
 		private double output;
 
-		public Pidf(double Kp, double Ki, double Kd, double Kv) {
-			this.Kp = Kp;
-			this.Ki = Ki;
-			this.Kd = Kd;
-			this.Kv = Kv;
+		public Pidf(PidfCoefficients coefficients) {
+			this.coefficients = coefficients;
 			timer.reset();
+		}
+
+		public Pidf(double Kp, double Ki, double Kd, double Kv) {
+			this.coefficients = new PidfCoefficients(Kp, Ki, Kd, Kv);
+			timer.reset();
+		}
+
+		public static class PidfCoefficients {
+			public double Kp;
+			public double Ki;
+			public double Kd;
+			public double Kv;
+
+			public PidfCoefficients(double Kp, double Ki, double Kd, double Kv) {
+				this.Kp = Kp;
+				this.Ki = Ki;
+				this.Kd = Kd;
+				this.Kv = Kv;
+			}
 		}
 
 		public double calculate(double reference, double current) {
@@ -115,10 +145,10 @@ public class ControlTheory {
 			derivative = difference / timer.seconds();
 			integralSum = integralSum + (error * timer.seconds());
 
-			output = (Kp * error) +
-					(Ki * integralSum) +
-					(Kd * derivative) +
-					(Kv * reference);
+			output = (coefficients.Kp * error) +
+					(coefficients.Ki * integralSum) +
+					(coefficients.Kd * derivative) +
+					(coefficients.Kv * reference);
 
 			lastError = error;
 			timer.reset();
@@ -142,29 +172,29 @@ public class ControlTheory {
 			lastError = null;
 		}
 
+		public void setCoefficients(PidfCoefficients coefficients) {
+			this.coefficients = coefficients;
+		}
+
 		public void setKp(double Kp) {
-			this.Kp = Kp;
+			this.coefficients.Kp = Kp;
 		}
 
 		public void setKi(double Ki) {
-			this.Ki = Ki;
+			this.coefficients.Ki = Ki;
 		}
 
 		public void setKd(double Kd) {
-			this.Kd = Kd;
+			this.coefficients.Kd = Kd;
 		}
 
 		public void setKv(double Kv) {
-			this.Kv = Kv;
+			this.coefficients.Kv = Kv;
 		}
 	}
 
-	public static class Pidf2 {
-		private double Kp;
-		private double Ki;
-		private double Kd;
-		private double Kv;
-		private double Ks;
+	public static class Pidfs {
+		private PidfsCoefficients coefficients;
 
 		private ElapsedTime timer = new ElapsedTime();
 		private double integralSum = 0;
@@ -177,13 +207,30 @@ public class ControlTheory {
 		private double derivative;
 		private double output;
 
-		public Pidf2(double Kp, double Ki, double Kd, double Kv, double Ks) {
-			this.Kp = Kp;
-			this.Ki = Ki;
-			this.Kd = Kd;
-			this.Kv = Kv;
-			this.Ks = Ks;
+		public Pidfs(PidfsCoefficients coefficients) {
+			this.coefficients = coefficients;
 			timer.reset();
+		}
+
+		public Pidfs(double Kp, double Ki, double Kd, double Kv, double Ks) {
+			this.coefficients = new PidfsCoefficients(Kp, Ki, Kd, Kv, Ks);
+			timer.reset();
+		}
+
+		public static class PidfsCoefficients {
+			public double Kp;
+			public double Ki;
+			public double Kd;
+			public double Kv;
+			public double Ks;
+
+			public PidfsCoefficients(double Kp, double Ki, double Kd, double Kv, double Ks) {
+				this.Kp = Kp;
+				this.Ki = Ki;
+				this.Kd = Kd;
+				this.Kv = Kv;
+				this.Ks = Ks;
+			}
 		}
 
 		public double calculate(double reference, double current) {
@@ -196,12 +243,11 @@ public class ControlTheory {
 			derivative = difference / timer.seconds();
 			integralSum = integralSum + (error * timer.seconds());
 
-			output = (Kp * error) +
-					(Ki * integralSum) +
-					(Kd * derivative) +
-					(Kv * reference)
-					+ 	Ks;
-
+			output = (coefficients.Kp * error) +
+					(coefficients.Ki * integralSum) +
+					(coefficients.Kd * derivative) +
+					(coefficients.Kv * reference)
+					+ (coefficients.Ks);
 			lastError = error;
 			timer.reset();
 
@@ -224,24 +270,28 @@ public class ControlTheory {
 			lastError = null;
 		}
 
+		public void setCoefficients(PidfsCoefficients coefficients) {
+			this.coefficients = coefficients;
+		}
+
 		public void setKp(double Kp) {
-			this.Kp = Kp;
+			this.coefficients.Kp = Kp;
 		}
 
 		public void setKi(double Ki) {
-			this.Ki = Ki;
+			this.coefficients.Ki = Ki;
 		}
 
 		public void setKd(double Kd) {
-			this.Kd = Kd;
+			this.coefficients.Kd = Kd;
 		}
 
 		public void setKv(double Kv) {
-			this.Kv = Kv;
+			this.coefficients.Kv = Kv;
 		}
 
 		public void setKs(double Ks) {
-			this.Ks = Ks;
+			this.coefficients.Ks = Ks;
 		}
 	}
 }

@@ -12,7 +12,7 @@ import com.acmerobotics.dashboard.config.Config;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
-import org.firstinspires.ftc.teamcode.util.ControlTheory.Pidf2;
+import org.firstinspires.ftc.teamcode.util.ControlTheory.Pidfs;
 import org.firstinspires.ftc.teamcode.util.InterpolatedLUT;
 
 @Configurable
@@ -33,8 +33,8 @@ public class Shooter {
 	public static double PIDF_FS = 0.06;
 	public static boolean PIDF_update = false;
 
-	public static double min_pitch = 0.01;
-	public static double max_pitch = 1.00;
+	public static double min_pitch = 0;
+	public static double max_pitch = 0.505;
 	public static double pitch_increment = 0.01;
 
 	public static double goal_height = 46.25;
@@ -45,7 +45,7 @@ public class Shooter {
 
 	public double desiredVelocity = 0;
 
-	private Pidf2 pidfController;
+	private Pidfs pidfController;
 	private boolean enabled;
 	private double power;
 
@@ -84,32 +84,11 @@ public class Shooter {
 		);
 
 		hoodAngleLUT.add(
-			hoodAngleLUT.new Entry(90-30, 1.0),
-			hoodAngleLUT.new Entry(90-31, 0.95),
-			hoodAngleLUT.new Entry(90-33, 0.9),
-			hoodAngleLUT.new Entry(90-34, 0.85),
-			hoodAngleLUT.new Entry(90-35, 0.8),
-			hoodAngleLUT.new Entry(90-36, 0.75),
-			hoodAngleLUT.new Entry(90-38, 0.7),
-			hoodAngleLUT.new Entry(90-39, 0.65),
-			hoodAngleLUT.new Entry(90-39, 0.6),
-			hoodAngleLUT.new Entry(90-41, 0.55),
-			hoodAngleLUT.new Entry(90-41, 0.5),
-			hoodAngleLUT.new Entry(90-42, 0.45),
-			hoodAngleLUT.new Entry(90-43, 0.4),
-			hoodAngleLUT.new Entry(90-44, 0.35),
-			hoodAngleLUT.new Entry(90-45, 0.3),
-			hoodAngleLUT.new Entry(90-46, 0.25),
-			hoodAngleLUT.new Entry(90-47, 0.2),
-			hoodAngleLUT.new Entry(90-48, 0.15),
-			hoodAngleLUT.new Entry(90-50, 0.1)
-			// hoodAngleLUT.new Entry(61, 0.15),
-			// hoodAngleLUT.new Entry(59, 0.21),
-			// hoodAngleLUT.new Entry(55, 0.27),
-			// hoodAngleLUT.new Entry(54, 0.3),
-			// hoodAngleLUT.new Entry(52, 0.35),
-			// hoodAngleLUT.new Entry(51, 0.4),
-			// hoodAngleLUT.new Entry(50, 0.45)
+			hoodAngleLUT.new Entry(90-39, 0.505),
+			hoodAngleLUT.new Entry(90-43, 0.37875),
+			hoodAngleLUT.new Entry(90-47, 0.2525),
+			hoodAngleLUT.new Entry(90-51.5, 0.12625),
+			hoodAngleLUT.new Entry(90-56, 0.0)
 		);
 	}
 
@@ -123,7 +102,7 @@ public class Shooter {
 		shooterMotorLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 		shooterMotorRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
-		pidfController = new Pidf2(PIDF_P, PIDF_I, PIDF_D, PIDF_F, PIDF_FS);
+		pidfController = new Pidfs(PIDF_P, PIDF_I, PIDF_D, PIDF_F, PIDF_FS);
 
 		shooterPitchServo = hardwareMap.get(Servo.class, "turretPitchServo");
 		shooterPitchServo.setDirection(Servo.Direction.FORWARD);
