@@ -114,7 +114,7 @@ public class Automations {
 		telemetry.addData("Shooter pitch deg", Shooter.getPitchDegrees());
 		telemetry.addData("Using vision", useVision);
 		telemetry.addData("Vision Alignment Direction", limelight.getAlignmentDirection());
-		telemetry.addData("Intake loaded", intake.getLoaded());
+		telemetry.addData("Intake loaded (cached)", intakeLastLoaded);
 		telemetry.addData("Transfer loaded", transfer.getLoaded());
 		Logger.recordOutput("Balls shot", ballsShot);
 	}

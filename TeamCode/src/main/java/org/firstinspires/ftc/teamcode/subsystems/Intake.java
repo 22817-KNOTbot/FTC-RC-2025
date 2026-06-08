@@ -15,15 +15,18 @@ import com.acmerobotics.dashboard.config.Config;
 public class Intake {
 	public static double power = 1;
 	public static double power_slow = 0.65;
-	public static double distance_threshold_mm = 20;
+	public static double distance_left_threshold_mm = 20;
+	public static double distance_right_threshold_mm = 20;
 	public static double sensor_cache_time_ms = 20;
-	public static double loaded_full_ms = 1500;
+	public static double loaded_full_ms = 0;
 
 	private DcMotor intakeMotor;
-	private ColorRangeSensor intakeSensor;
+	private ColorRangeSensor intakeLeftSensor;
+	private ColorRangeSensor intakeRightSensor;
 
 	private boolean enabled;
-	private double lastSensorDistance;
+	private double lastLeftSensorDistance;
+	private double lastRightSensorDistance;
 	private double lastSensorTime;
 	private ElapsedTime intakeLoadedTimer;
 
@@ -32,7 +35,8 @@ public class Intake {
 		intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 		intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-		intakeSensor = hardwareMap.get(ColorRangeSensor.class, "intakeSensor");
+		intakeLeftSensor = hardwareMap.get(ColorRangeSensor.class, "intakeLeftSensor");
+		intakeRightSensor = hardwareMap.get(ColorRangeSensor.class, "intakeRightSensor");
 	}
 
 	public void enable(boolean enable) {
@@ -79,13 +83,15 @@ public class Intake {
 	 */
 	public boolean intakeUpdate() {
 		updateCachedDistance();
-		if (lastSensorDistance <= distance_threshold_mm) {
+		if (getLoaded()) {
 			if (intakeLoadedTimer == null) {
 				intakeLoadedTimer = new ElapsedTime();
 			} else if (intakeLoadedTimer.milliseconds() >= loaded_full_ms) {
 				intakeLoadedTimer = null;
 				return true;
 			}
+		} else {
+			intakeLoadedTimer = null;
 		}
 		return false;
 	}
@@ -95,14 +101,18 @@ public class Intake {
 	}
 
 	public boolean getLoaded() {
-		return updateCachedDistance() <= distance_threshold_mm;
+		updateCachedDistance();
+		return lastLeftSensorDistance <= distance_left_threshold_mm
+				&& lastRightSensorDistance <= distance_right_threshold_mm;
 	}
 
-	public double updateCachedDistance() {
+	public void updateCachedDistance() {
 		if (System.currentTimeMillis() - lastSensorTime >= sensor_cache_time_ms) {
-			lastSensorDistance = intakeSensor.getDistance(DistanceUnit.MM);
+			lastLeftSensorDistance = intakeLeftSensor.getDistance(DistanceUnit.MM);
+			lastRightSensorDistance = intakeLeftSensor.getDistance(DistanceUnit.MM);
+			lastLeftSensorDistance = intakeRightSensor.getDistance(DistanceUnit.MM);
+			lastRightSensorDistance = intakeRightSensor.getDistance(DistanceUnit.MM);
 			lastSensorTime = System.currentTimeMillis();
 		}
-		return lastSensorDistance;
 	}
 }

@@ -7,8 +7,6 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import android.util.Log;
-
 @Config
 @Configurable
 public class Transfer {
@@ -37,7 +35,6 @@ public class Transfer {
 		} else {
 			transferMotor.setPower(0);
 		}
-		Log.d("Transfer", enable + " " + transferMotor.getPower());
 	}
 
 	public void enableReversed(boolean enable) {
@@ -62,7 +59,6 @@ public class Transfer {
 		} else {
 			transferMotor.setPower(0);
 		}
-		Log.d("Transfer", enable + " slow " + transferMotor.getPower());
 	}
 
 	public void setPower(float pow) {
