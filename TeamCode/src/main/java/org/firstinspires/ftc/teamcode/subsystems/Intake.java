@@ -35,8 +35,8 @@ public class Intake {
 		intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 		intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-		intakeLeftSensor = hardwareMap.get(ColorRangeSensor.class, "intakeLeftSensor");
-		intakeRightSensor = hardwareMap.get(ColorRangeSensor.class, "intakeRightSensor");
+		intakeLeftSensor = hardwareMap.get(ColorRangeSensor.class, "intakeSensorLeft");
+		intakeRightSensor = hardwareMap.get(ColorRangeSensor.class, "intakeSensorRight");
 	}
 
 	public void enable(boolean enable) {

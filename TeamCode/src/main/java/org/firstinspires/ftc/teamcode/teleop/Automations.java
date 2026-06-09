@@ -259,7 +259,7 @@ public class Automations {
 
 	// Should be called to update the shooter velocity
 	public void updateShooter() {
-		if (inShootingArea()) {
+		if (inShootingArea() && transfer.getLoaded()) {
 			setShooterEnabled(true);
 			shooter.updateShooterTarget(pose, alliance.getGoalShooterPose());
 		} else {

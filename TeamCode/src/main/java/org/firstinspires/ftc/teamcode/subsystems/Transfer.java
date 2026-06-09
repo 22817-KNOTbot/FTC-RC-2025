@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class Transfer {
 	public static double power = 1;
 	public static double power_slow_intake = -0.3;
-	public static double power_slow_far = 0.8;
+	public static double power_slow_far = 0.7;
 	public static double loaded_empty_ms = 500;
 
 	private DcMotor transferMotor;

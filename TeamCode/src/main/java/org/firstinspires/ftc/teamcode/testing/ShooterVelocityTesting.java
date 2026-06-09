@@ -7,6 +7,7 @@ import org.firstinspires.ftc.teamcode.BuildConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.Transfer;
+import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.psilynx.psikit.core.Logger;
 import org.psilynx.psikit.ftc.FtcLogTuning;
@@ -28,10 +29,13 @@ public class ShooterVelocityTesting extends LinearOpMode {
 	public static double desiredVelocity = 0;
 	public static double hoodAngle = 52.5;
 	public static boolean intakeTransferEnabled = false;
+	public static boolean useTurret = false;
+	public static double turretTarget = Turret.BASE_ROTATION;
 
 	private Shooter shooter;
 	private Intake intake;
 	private Transfer transfer;
+	private Turret turret;
 
 	@Override
 	public void runOpMode() {
@@ -60,6 +64,9 @@ public class ShooterVelocityTesting extends LinearOpMode {
 		shooter = new Shooter(hardwareMap);
 		intake = new Intake(hardwareMap);
 		transfer = new Transfer(hardwareMap);
+		if (useTurret) {
+			turret = new Turret(hardwareMap);
+		}
 
 		waitForStart();
 
@@ -74,11 +81,15 @@ public class ShooterVelocityTesting extends LinearOpMode {
 			shooter.setPitchAngle(hoodAngle);
 			intake.enable(intakeTransferEnabled);
 			transfer.enable(intakeTransferEnabled);
+			if (turret != null) {
+				turret.setRotation(turretTarget);
+			}
 
 			telemetryManager.addData("Desired", shooter.desiredVelocity);
 			telemetryManager.addData("Velocity", shooter.getVelocity());
 			Logger.recordOutput("Desired", shooter.desiredVelocity);
 			Logger.recordOutput("Velocity", shooter.getVelocity());
+			Logger.recordOutput("Power", shooter.getPower()	);
 			telemetryManager.update();
 
 			Logger.periodicAfterUser(0.0, 0.0);
