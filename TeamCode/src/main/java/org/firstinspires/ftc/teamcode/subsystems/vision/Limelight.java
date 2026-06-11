@@ -12,6 +12,9 @@ import org.firstinspires.ftc.teamcode.scoring.Artifact.Pattern;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.ftc.FTCCoordinates;
+import com.pedropathing.ftc.InvertedFTCCoordinates;
+import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -24,10 +27,11 @@ public class Limelight {
 	public static int PIPELINE = 1;
 	public static int maxFps = 60;
 	public static double flip_tolerance = 5;
-	
+
 	private Limelight3A limelight;
 	private Integer targetAprilTagId;
 	private Queue<Double> directionQueue;
+	private LLResult lastResult;
 
 	private Pattern pattern = null;
 
@@ -69,6 +73,21 @@ public class Limelight {
 		public String toString() {
 			return "AlignmentDirection [directionKnown=" + directionKnown + ", bearing=" + bearing + ", y="
 					+ y + "]";
+		}
+	}
+
+	public class PoseUpdate {
+		public Pose pose;
+		public long timestamp;
+
+		public PoseUpdate(Pose pose, long timestamp) {
+			this.pose = pose;
+			this.timestamp = timestamp;
+		}
+
+		@Override
+		public String toString() {
+			return "PoseUpdate [pose=" + pose + ", staleness=" + timestamp + "]";
 		}
 	}
 
@@ -136,26 +155,32 @@ public class Limelight {
 		return pattern;
 	}
 
-	public Pose getPoseMT1(double heading) {
-		limelight.updateRobotOrientation(heading);
-
+	public PoseUpdate getPoseUpdateMT1() {
 		LLResult result = limelight.getLatestResult();
-		if (result != null && result.isValid()) {
+		if (result != null && result.isValid() && result != lastResult) {
+			lastResult = result;
 			Pose3D botpose_mt1 = result.getBotpose();
 			if (botpose_mt1 == null) {
 				return null;
 			}
 			double x = botpose_mt1.getPosition().x / DistanceUnit.mPerInch;
 			double y = botpose_mt1.getPosition().y / DistanceUnit.mPerInch;
-			Pose pedroPose = new Pose(x + (72 - -100), y + (144 - 57),
-					botpose_mt1.getOrientation().getYaw(AngleUnit.RADIANS));
-			return pedroPose;
+			Pose pedroPose = new Pose(x, y,
+					botpose_mt1.getOrientation().getYaw(AngleUnit.RADIANS), FTCCoordinates.INSTANCE)
+					.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+			PoseUpdate update = new PoseUpdate(pedroPose, result.getControlHubTimeStamp());
+			return update;
 		}
 		return null;
 	}
 
-	public Pose getPoseMT2(double heading) {
-		limelight.updateRobotOrientation(heading);
+	public Pose getPoseMT1() {
+		PoseUpdate update = getPoseUpdateMT1();
+		return update != null ? update.pose : null;
+	}
+
+	public PoseUpdate getPoseUpdateMT2(double heading) {
+		limelight.updateRobotOrientation(heading + 90);
 
 		LLResult result = limelight.getLatestResult();
 		if (result != null && result.isValid()) {
@@ -165,10 +190,17 @@ public class Limelight {
 			}
 			double x = botpose_mt2.getPosition().x / DistanceUnit.mPerInch;
 			double y = botpose_mt2.getPosition().y / DistanceUnit.mPerInch;
-			Pose pedroPose = new Pose(x + (72 - -100), y + (144 - 57),
-					botpose_mt2.getOrientation().getYaw(AngleUnit.RADIANS));
-			return pedroPose;
+			Pose pedroPose = new Pose(x, y,
+					botpose_mt2.getOrientation().getYaw(AngleUnit.RADIANS), FTCCoordinates.INSTANCE)
+					.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+			PoseUpdate update = new PoseUpdate(pedroPose, result.getControlHubTimeStamp());
+			return update;
 		}
 		return null;
+	}
+
+	public Pose getPoseMT2(double heading) {
+		PoseUpdate update = getPoseUpdateMT2(heading);
+		return update != null ? update.pose : null;
 	}
 }

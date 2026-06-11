@@ -322,7 +322,7 @@ public class TeleOp extends LinearOpMode {
 				Logger.recordOutput("LoopTime", loopTime);
 				Pose ftcPose = currentPose.getAsCoordinateSystem(InvertedFTCCoordinates.INSTANCE);
 				Pose2d wpiPose = new Pose2d(DistanceUnit.INCH.toMeters(ftcPose.getX()),
-						DistanceUnit.INCH.toMeters(ftcPose.getY()), Rotation2d.fromDegrees(ftcPose.getHeading()));
+						DistanceUnit.INCH.toMeters(ftcPose.getY()), Rotation2d.fromRadians(ftcPose.getHeading()));
 				Logger.recordOutput("Pose", wpiPose);
 			}
 

@@ -28,7 +28,7 @@ import com.knotbot.practiceapp.RobotEvent;
 @Config
 @Configurable
 public class Automations {
-	public static boolean useVision = true;
+	public static boolean useVision = false;
 
 	private Alliance alliance;
 	private boolean DEBUG;
@@ -391,6 +391,11 @@ public class Automations {
 
 	public boolean getVisionAlignmentCorrect() {
 		return !useVision || limelight.getAlignmentDirection().directionKnown && limelight.getAlignmentDirection().bearing <= Turret.vision_tolerance_deg;
+	}
+
+	// Used by MecanumDrive for fusion localizer
+	public Limelight getLimelight() {
+		return limelight;
 	}
 
 	/*

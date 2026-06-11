@@ -2,17 +2,29 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.pedropathing.math.Vector;
 
+import org.firstinspires.ftc.teamcode.pedroPathing.AprilTagFusionLocalizer;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.subsystems.vision.Limelight;
+import org.firstinspires.ftc.teamcode.teleop.TeleOp;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.acmerobotics.dashboard.config.Config;
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.ftc.localization.localizers.PinpointLocalizer;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 
+@Config
+@Configurable
 public class MecanumDrive {
+	public static double aprilTagMaxVelocity = 2;
+	public static double aprilTagMaxAngularVelocity = Math.toRadians(5);
+
 	private Follower follower;
+	private AprilTagFusionLocalizer aprilTagLocalizer;
 	private double headingOffset;
 	private Pose holdPose = new Pose();
 	private boolean holdingPose;
@@ -22,6 +34,13 @@ public class MecanumDrive {
 
 	public MecanumDrive(HardwareMap hardwareMap) {
 		follower = Constants.createFollower(hardwareMap);
+		follower.setStartingPose(new Pose());
+	}
+
+	public MecanumDrive(HardwareMap hardwareMap, Limelight limelight) {
+		aprilTagLocalizer = new AprilTagFusionLocalizer(
+				new PinpointLocalizer(hardwareMap, Constants.localizerConstants), limelight);
+		follower = Constants.createFusionFollower(hardwareMap, aprilTagLocalizer);
 		follower.setStartingPose(new Pose());
 	}
 
@@ -54,6 +73,12 @@ public class MecanumDrive {
 
 	public void updateLocalizers() {
 		follower.update();
+
+		if (aprilTagLocalizer != null
+				&& follower.getVelocity().getMagnitude() <= aprilTagMaxVelocity
+				&& follower.getAngularVelocity() <= aprilTagMaxAngularVelocity) {
+			aprilTagLocalizer.update(TeleOp.LOGGING_LEVEL > 0);
+		}
 	}
 
 	public void lockingMecanum(boolean enabled) {
@@ -74,7 +99,8 @@ public class MecanumDrive {
 					follower.pathBuilder()
 							.addPath(new Path(new BezierLine(follower::getPose, autoDriveTarget)))
 							.setHeadingInterpolation(
-									HeadingInterpolator.linearFromPoint(follower::getHeading, autoDriveTarget.getHeading(), 1))
+									HeadingInterpolator.linearFromPoint(follower::getHeading,
+											autoDriveTarget.getHeading(), 1))
 							.build());
 		}
 		if (!enable && autoDrive) {
@@ -94,7 +120,7 @@ public class MecanumDrive {
 		follower.update();
 	}
 
-	public void setPose(Pose pose){
+	public void setPose(Pose pose) {
 		follower.setPose(pose);
 		follower.update();
 	}

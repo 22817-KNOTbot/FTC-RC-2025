@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.subsystems.vision.Limelight;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.control.FilteredPIDFCoefficients;
@@ -13,6 +14,7 @@ import com.pedropathing.ftc.drivetrains.MecanumConstants;
 import com.pedropathing.ftc.localization.Encoder;
 import com.pedropathing.ftc.localization.constants.PinpointConstants;
 import com.pedropathing.ftc.localization.constants.ThreeWheelConstants;
+import com.pedropathing.ftc.localization.localizers.PinpointLocalizer;
 import com.pedropathing.paths.PathConstraints;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -33,7 +35,8 @@ public class Constants {
 	public final static FollowerConstants followerConstants = new FollowerConstants()
 			.mass(14.06136347)
 			.headingPIDFCoefficients(new PIDFCoefficients(1, 0, 0.08, 0.025))
-			.predictiveBrakingCoefficients(new PredictiveBrakingCoefficients(0.05, 0.05896956845946485, 0.0022047887068822377))
+			.predictiveBrakingCoefficients(
+					new PredictiveBrakingCoefficients(0.05, 0.05896956845946485, 0.0022047887068822377))
 			.centripetalScaling(0.0);
 
 	public final static PathConstraints pathConstraints = new PathConstraints(0.97, 100, 0.98, 1);
@@ -53,10 +56,10 @@ public class Constants {
 			.yVelocity(58.68122875784327);
 
 	public final static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(-DistanceUnit.INCH.fromMm(122.5))
-            .strafePodX(DistanceUnit.INCH.fromMm(100))
-            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
-            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
+			.forwardPodY(-DistanceUnit.INCH.fromMm(122.5))
+			.strafePodX(DistanceUnit.INCH.fromMm(100))
+			.forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
+			.strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
 			.encoderResolution(GoBildaOdometryPods.goBILDA_4_BAR_POD);
 
 	public static Follower createFollower(HardwareMap hardwareMap) {
@@ -64,6 +67,16 @@ public class Constants {
 				.pathConstraints(pathConstraints)
 				.mecanumDrivetrain(driveConstants)
 				.pinpointLocalizer(localizerConstants)
+				.build();
+	}
+
+	public static Follower createFusionFollower(HardwareMap hardwareMap,
+			AprilTagFusionLocalizer aprilTagFusionLocalizer) {
+
+		return new FollowerBuilder(followerConstants, hardwareMap)
+				.pathConstraints(pathConstraints)
+				.mecanumDrivetrain(driveConstants)
+				.setLocalizer(aprilTagFusionLocalizer.getLocalizer())
 				.build();
 	}
 }
