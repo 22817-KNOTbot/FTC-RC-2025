@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import com.bylazar.configurables.annotations.Configurable;
@@ -61,8 +62,8 @@ public class TeleOp extends LinearOpMode {
 				PanelsGamepad.INSTANCE.getFirstManager()::asCombinedFTCGamepad,
 				PanelsGamepad.INSTANCE.getSecondManager()::asCombinedFTCGamepad);
 		gamepadManager.updateGamepads();
-		gamepad1 = gamepadManager.getGamepad1();
-		gamepad2 = gamepadManager.getGamepad2();
+		Gamepad customGamepad1 = gamepadManager.getGamepad1();
+		Gamepad customGamepad2 = gamepadManager.getGamepad2();
 
 		TelemetryManager telemetryManager = new TelemetryManager();
 		telemetryManager.setFtcFastTelemetry(this);
@@ -72,13 +73,13 @@ public class TeleOp extends LinearOpMode {
 		telemetryManager.setLoggingEnabled(LOGGING_LEVEL > 0);
 		telemetryManager.setHtmlMode(true);
 
-		if (gamepad1.right_bumper)
+		if (customGamepad1.right_bumper)
 			DEBUG = true;
 
 		Alliance alliance = new RedAlliance();
-		if (gamepad1.left_trigger > 0.9) {
+		if (customGamepad1.left_trigger > 0.9) {
 			alliance = new BlueAlliance();
-		} else if (gamepad1.right_trigger > 0.9) {
+		} else if (customGamepad1.right_trigger > 0.9) {
 			alliance = new RedAlliance();
 		} else {
 			Object allianceObject = blackboard.getOrDefault("alliance", null);
@@ -97,6 +98,8 @@ public class TeleOp extends LinearOpMode {
 			FtcLogTuning.processColorDistanceSensorsInBackground = false;
 			FtcLogTuning.pinpointLoggerCallsUpdate = false;
 			FtcLogTuning.pedroFollowerPublishesNamedOdometry = true;
+			FtcLogTuning.bulkOnlyLogging = true;
+			FtcLogTuning.logMotorCurrent = false;
 			if (LOGGING_LEVEL == 1) {
 				FtcLogTuning.bulkOnlyLogging = true;
 			}
@@ -132,7 +135,7 @@ public class TeleOp extends LinearOpMode {
 
 		// TODO: Change to not reset encoder when running auto
 		automationHandler = new Automations(hardwareMap, alliance, true, DEBUG);
-		automationHandler.setGamepads(gamepad1, gamepad2);
+		automationHandler.setGamepads(customGamepad1, customGamepad2);
 		mecanumDrive = new MecanumDrive(hardwareMap);
 
 		while (opModeInInit()) {
@@ -140,12 +143,10 @@ public class TeleOp extends LinearOpMode {
 			loggingSession.logOncePerLoop(this);
 
 			gamepadManager.updateGamepads();
-			gamepad1 = gamepadManager.getGamepad1();
-			gamepad2 = gamepadManager.getGamepad2();
 
-			if (gamepad1.left_trigger > 0.9) {
+			if (customGamepad1.left_trigger > 0.9) {
 				automationHandler.setAlliance(new BlueAlliance());
-			} else if (gamepad1.right_trigger > 0.9) {
+			} else if (customGamepad1.right_trigger > 0.9) {
 				automationHandler.setAlliance(new RedAlliance());
 			}
 			telemetryManager.addData("Alliance", automationHandler.getAlliance().getColourString());
@@ -198,35 +199,33 @@ public class TeleOp extends LinearOpMode {
 
 
 			gamepadManager.updateGamepads();
-			gamepad1.copy(gamepadManager.getGamepad1());
-			gamepad2.copy(gamepadManager.getGamepad2());
 
 			/*
 			 * Driver 1
 			 */
 
-			if (gamepad1.left_trigger > 0.9) {
-				mecanumDrive.move(-gamepad1.left_stick_y / 4, gamepad1.left_stick_x / 4, gamepad1.right_stick_x / 4);
+			if (customGamepad1.left_trigger > 0.9) {
+				mecanumDrive.move(-customGamepad1.left_stick_y / 4, customGamepad1.left_stick_x / 4, customGamepad1.right_stick_x / 4);
 			} else {
-				mecanumDrive.move(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+				mecanumDrive.move(-customGamepad1.left_stick_y, customGamepad1.left_stick_x, customGamepad1.right_stick_x);
 			}
 
-			if (getRuntime() >= 100 || DEBUG || gamepad2.right_trigger > 0.9) {
-				mecanumDrive.setAutoDrive(gamepad1.left_bumper);
+			if (getRuntime() >= 100 || DEBUG || customGamepad2.right_trigger > 0.9) {
+				mecanumDrive.setAutoDrive(customGamepad1.left_bumper);
 			}
-			mecanumDrive.lockingMecanum(gamepad1.right_bumper);
-			automationHandler.engageBrakes(gamepad1.right_bumper);
+			mecanumDrive.lockingMecanum(customGamepad1.right_bumper);
+			automationHandler.engageBrakes(customGamepad1.right_bumper);
 
-			if (gamepad1.aWasPressed()) {
+			if (customGamepad1.aWasPressed()) {
 				automationHandler.intakeToggle();
 			}
-			if (gamepad1.right_trigger > 0.9) {
+			if (customGamepad1.right_trigger > 0.9) {
 				automationHandler.intakeEject();
 			} else if (automationHandler.getIntakeEjecting()) {
 				automationHandler.intakeEjectStop();
 			}
 
-			if (gamepad1.bWasPressed()) {
+			if (customGamepad1.bWasPressed()) {
 				Automations.State state = automationHandler.getState();
 				if (state != Automations.State.WAITING_TO_SHOOT && state != Automations.State.SHOOTING) {
 					automationHandler.startShooting();
@@ -240,10 +239,10 @@ public class TeleOp extends LinearOpMode {
 			automationHandler.updateVelocity(mecanumDrive.getVelocity());
 			automationHandler.automationLoop();
 
-			if (gamepad1.back || gamepad2.back) {
+			if (customGamepad1.back || customGamepad2.back) {
 				automationHandler.abort();
 			}
-			if (gamepad1.startWasPressed() || gamepad2.startWasPressed()) {
+			if (customGamepad1.startWasPressed() || customGamepad2.startWasPressed()) {
 				mecanumDrive.resetPose();
 			}
 
@@ -251,31 +250,31 @@ public class TeleOp extends LinearOpMode {
 			 * Driver 2
 			 */
 
-			if (gamepad2.dpadUpWasPressed()) {
+			if (customGamepad2.dpadUpWasPressed()) {
 				DEBUG = !DEBUG;
 			}
-			if (gamepad2.dpadLeftWasPressed()) {
+			if (customGamepad2.dpadLeftWasPressed()) {
 				manualShooterMode = !manualShooterMode;
 			}
 			if (manualShooterMode) {
-				if (gamepad2.xWasPressed()) {
+				if (customGamepad2.xWasPressed()) {
 					automationHandler.setShooterVelocity(Shooter.defaultVelocity);
 					automationHandler.setShooterEnabled(!automationHandler.getShooterEnabled());
 				}
 			} else {
 				automationHandler.updateShooter();
 			}
-			if (gamepad2.dpadRightWasPressed()) {
+			if (customGamepad2.dpadRightWasPressed()) {
 				manualTurretMode = !manualTurretMode;
 			}
 			if (manualTurretMode) {
-				automationHandler.rotateTurret(gamepad2.left_stick_x);
-				automationHandler.pitchTurret(gamepad2.right_stick_y);
+				automationHandler.rotateTurret(customGamepad2.left_stick_x);
+				automationHandler.pitchTurret(customGamepad2.right_stick_y);
 			} else {
 				automationHandler.updateTurret();
 			}
 
-			if (gamepad2.left_trigger > 0.9) {
+			if (customGamepad2.left_trigger > 0.9) {
 				automationHandler.setIgnoreVelocity(true);
 			} else {
 				automationHandler.setIgnoreVelocity(false);

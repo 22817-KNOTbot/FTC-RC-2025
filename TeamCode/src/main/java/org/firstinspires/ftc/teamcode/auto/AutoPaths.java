@@ -24,7 +24,7 @@ public class AutoPaths {
 					.addPath(
 							new BezierCurve(startingPose,
             						new Pose(90.000, 35.000),
-            						new Pose(94.000, 35.000)))
+            						new Pose(91.000, 35.000)))
 					.setConstantHeadingInterpolation(Math.toRadians(0))
         			.build();
 		}
@@ -32,7 +32,7 @@ public class AutoPaths {
 		public static PathChain getMiddleApproach(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
-							new BezierLine(startingPose, new Pose(94.500, 54.000)))
+							new BezierLine(startingPose, new Pose(91.500, 54.000)))
 					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
 					.setVelocityConstraint(0.5)
 					.build();
@@ -41,15 +41,26 @@ public class AutoPaths {
 		public static PathChain getTopApproach(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
-							new BezierLine(startingPose, new Pose(90.000, 83.500)))
+							new BezierLine(startingPose, new Pose(85.000, 83.500)))
 					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
+					.build();
+		}
+
+		public static PathChain getBottomSidespike(Follower follower, Pose startingPose) {
+			return follower.pathBuilder()
+					.addPath(
+							new BezierCurve(
+									startingPose,
+									new Pose(120.000, 60.000),
+									new Pose(118.000, 30.000)))
+					.setTangentHeadingInterpolation()
 					.build();
 		}
 		
 		public static PathChain getIntakePreparedSet(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
-							new BezierLine(startingPose, startingPose.withX(startingPose.getX() + 35)))
+							new BezierLine(startingPose, startingPose.withX(startingPose.getX() + 27)))
 					.setConstantHeadingInterpolation(Math.toRadians(0))
 					// .setGlobalDeceleration(1.5)
 					.build();
@@ -99,9 +110,9 @@ public class AutoPaths {
 					.addPath(
 						new BezierCurve(
 							startingPose, 
-							new Pose(87.000, 53.000),
-							new Pose(120.000, 55.000),
-							new Pose(128.000, 55.000)
+							new Pose(87.000, 56.500),
+							new Pose(120.000, 57.000),
+							new Pose(124.500, 57.000)
 						)
 					)
 					// .setBrakingStrength(0.5)
@@ -245,6 +256,10 @@ public class AutoPaths {
 			return mirrorPathChain(Red.getTopApproach(follower, startingPose.mirror()), follower);
 		}
 
+		public static PathChain getBottomSidespike(Follower follower, Pose startingPose) {
+			return mirrorPathChain(Red.getBottomSidespike(follower, startingPose.mirror()), follower);
+		}
+
 		public static PathChain getIntakePreparedSet(Follower follower, Pose startingPose) {
 			return mirrorPathChain(Red.getIntakePreparedSet(follower, startingPose.mirror()), follower);
 		}
@@ -266,19 +281,7 @@ public class AutoPaths {
 		}
 
 		public static PathChain getGateIntake(Follower follower, Pose startingPose) {
-			// return mirrorPathChain(Red.getGateIntake(follower, startingPose.mirror()), follower);
-			return mirrorPathChain(follower.pathBuilder()
-					.addPath(
-							new BezierCurve(
-									startingPose,
-									new Pose(87.000, 53.000),
-									new Pose(120.000, 55.000),
-									new Pose(127.000, 56.000)))
-					// .setBrakingStrength(0.5)
-					// .setGlobalDeceleration()
-					.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(20))
-					.build(), follower
-			);
+			return mirrorPathChain(Red.getGateIntake(follower, startingPose.mirror()), follower);
 		}
 
 		public static PathChain getLowLaunch(Follower follower, Pose startingPose) {

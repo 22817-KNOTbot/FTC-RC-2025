@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.GateIntakeAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakeBottomSidespikeAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakePreparedAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.LeaveUpAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeBottomAction;
@@ -50,8 +51,7 @@ public class AutoCloseSolo extends LinearOpMode {
 		ShootCloseAction.class,
 		ShootUnsortedAction.class,
 
-		PrepareIntakeBottomAction.class,
-		IntakePreparedAction.class,
+		IntakeBottomSidespikeAction.class,
 		ShootCloseAction.class,
 		ShootUnsortedAction.class,
 

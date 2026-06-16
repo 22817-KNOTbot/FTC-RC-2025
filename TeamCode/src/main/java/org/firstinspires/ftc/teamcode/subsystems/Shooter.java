@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.util.InterpolatedLUT;
 @Configurable
 @Config
 public class Shooter {
-	public static double velocityConstant = -60;
+	public static double velocityConstant = 0;
 	public static double velocityTolerance = 50;
 	public static double shootingAreaTolerance = 12.7279220614;
 	public static double defaultVelocity = 1680;

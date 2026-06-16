@@ -28,7 +28,7 @@ import com.knotbot.practiceapp.RobotEvent;
 @Config
 @Configurable
 public class Automations {
-	public static boolean useVision = false;
+	public static boolean useVision = true;
 
 	private Alliance alliance;
 	private boolean DEBUG;
@@ -187,15 +187,15 @@ public class Automations {
 						&& oldVelocity - shooter.desiredVelocity <= 20) {
 					RobotEvent.addScore(3, "Artifact");
 					ballsShot++;
-					if (ballsShot >= 3) {
-						vibrateControllers();
-						setShooting(false);
-					}
+					// if (ballsShot >= 3) {
+					// 	vibrateControllers();
+					// 	setShooting(false);
+					// }
 				}
-				// if (transfer.isFinishedTransferring()) {
-				// 	vibrateControllers();
-				// 	setShooting(false);
-				// }
+				if (transfer.isFinishedTransferring()) {
+					vibrateControllers();
+					setShooting(false);
+				}
 				break;
 		}
 
@@ -215,6 +215,13 @@ public class Automations {
 
 	// Should be called to update the turret
 	public void updateTurret() {
+		updateTurret(false);
+	}
+
+	public void updateTurret(boolean force) {
+		if (!force
+				&& (!inShootingArea() || (!transfer.getLoaded() && state != State.SHOOTING && !intake.getAnyLoaded())))
+			return;
 		AlignmentDirection direction = limelight.getAlignmentDirection();
 		if (!direction.directionKnown || !useVision) {
 			turretPid.reset();
@@ -259,7 +266,7 @@ public class Automations {
 
 	// Should be called to update the shooter velocity
 	public void updateShooter() {
-		if (inShootingArea() && transfer.getLoaded()) {
+		if (inShootingArea() && (transfer.getLoaded() || state == State.SHOOTING || intake.getAnyLoaded())) {
 			setShooterEnabled(true);
 			shooter.updateShooterTarget(pose, alliance.getGoalShooterPose());
 		} else {
@@ -353,10 +360,6 @@ public class Automations {
 		return state;
 	}
 
-	public boolean isFinishedShooting() {
-		return state == State.SHOOTING && transfer.isFinishedTransferring();
-	}
-
 	public Alliance getAlliance() {
 		return alliance;
 	}
@@ -375,6 +378,14 @@ public class Automations {
 	
 	public boolean getIntakeEjecting() {
 		return intakeEjecting;
+	}
+
+	public boolean getIntakeEmpty() {
+		return !intake.getAnyLoaded();
+	}
+
+	public boolean getTransferLoaded() {
+		return transfer.getLoaded();
 	}
 
 	public void setIgnoreVelocity(boolean ignoreVelocity) {

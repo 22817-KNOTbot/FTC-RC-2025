@@ -15,8 +15,8 @@ import com.acmerobotics.dashboard.config.Config;
 public class Intake {
 	public static double power = 1;
 	public static double power_slow = 0.65;
-	public static double distance_left_threshold_mm = 20;
-	public static double distance_right_threshold_mm = 20;
+	public static double distance_left_threshold_mm = 28;
+	public static double distance_right_threshold_mm = 35;
 	public static double sensor_cache_time_ms = 20;
 	public static double loaded_full_ms = 0;
 
@@ -82,7 +82,6 @@ public class Intake {
 	 * @return Whether the intake has been loaded for at least {@link #loaded_full_ms} milliseconds.
 	 */
 	public boolean intakeUpdate() {
-		updateCachedDistance();
 		if (getLoaded()) {
 			if (intakeLoadedTimer == null) {
 				intakeLoadedTimer = new ElapsedTime();
@@ -106,11 +105,15 @@ public class Intake {
 				&& lastRightSensorDistance <= distance_right_threshold_mm;
 	}
 
+	public boolean getAnyLoaded() {
+		updateCachedDistance();
+		return lastLeftSensorDistance <= distance_left_threshold_mm
+				|| lastRightSensorDistance <= distance_right_threshold_mm;
+	}
+
 	public void updateCachedDistance() {
 		if (System.currentTimeMillis() - lastSensorTime >= sensor_cache_time_ms) {
 			lastLeftSensorDistance = intakeLeftSensor.getDistance(DistanceUnit.MM);
-			lastRightSensorDistance = intakeLeftSensor.getDistance(DistanceUnit.MM);
-			lastLeftSensorDistance = intakeRightSensor.getDistance(DistanceUnit.MM);
 			lastRightSensorDistance = intakeRightSensor.getDistance(DistanceUnit.MM);
 			lastSensorTime = System.currentTimeMillis();
 		}
