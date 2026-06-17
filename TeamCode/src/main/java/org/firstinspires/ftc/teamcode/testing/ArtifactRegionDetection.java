@@ -12,10 +12,12 @@ import org.opencv.core.Scalar;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import android.util.Size;
 
+@Disabled
 public class ArtifactRegionDetection extends LinearOpMode {
 	private MultipleColorRegionAreaProcessor colorAreaProcessor;
 

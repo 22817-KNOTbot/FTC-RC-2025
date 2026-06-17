@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.testing;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -11,6 +12,7 @@ import com.acmerobotics.dashboard.config.Config;
 @Configurable
 @Config
 // @TeleOp(name="Servo two testing", group="Debug")
+@Disabled
 public class ServoTwoTesting extends LinearOpMode {
 	public static double POSITION = 0;
 	public static double POSITION_TWO = 0;

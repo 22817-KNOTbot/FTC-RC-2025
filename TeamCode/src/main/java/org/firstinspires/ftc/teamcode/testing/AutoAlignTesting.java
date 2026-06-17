@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.testing;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -23,6 +24,7 @@ import com.acmerobotics.dashboard.config.Config;
 
 @Configurable
 @Config
+@Disabled
 public class AutoAlignTesting extends LinearOpMode {
 	public static double manualRobotPoseX = 0;
 	public static double manualRobotPoseY = 0;

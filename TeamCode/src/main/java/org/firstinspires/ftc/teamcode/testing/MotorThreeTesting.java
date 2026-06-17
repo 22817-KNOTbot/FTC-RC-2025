@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.testing;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -8,6 +9,7 @@ import com.acmerobotics.dashboard.config.Config;
 
 @Configurable
 @Config
+@Disabled
 public class MotorThreeTesting extends LinearOpMode {
 	public static double POWER_1 = 0;
 	public static double POWER_2 = 0;

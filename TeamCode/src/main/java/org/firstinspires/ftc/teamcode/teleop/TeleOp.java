@@ -59,8 +59,8 @@ public class TeleOp extends LinearOpMode {
 		boolean manualShooterMode = false;
 
 		gamepadManager = new GamepadManager(gamepad1, gamepad2,
-				PanelsGamepad.INSTANCE.getFirstManager()::asCombinedFTCGamepad,
-				PanelsGamepad.INSTANCE.getSecondManager()::asCombinedFTCGamepad);
+				PanelsGamepad.INSTANCE.getFirstManager()::getAsFTCGamepad,
+				PanelsGamepad.INSTANCE.getSecondManager()::getAsFTCGamepad);
 		gamepadManager.updateGamepads();
 		Gamepad customGamepad1 = gamepadManager.getGamepad1();
 		Gamepad customGamepad2 = gamepadManager.getGamepad2();

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.testing;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,6 +12,7 @@ import com.acmerobotics.dashboard.config.Config;
 @Configurable
 @Config
 // @TeleOp(name="Motor 2 testing", group="Debug")
+@Disabled
 public class MotorTwoTesting extends LinearOpMode {
 	public static double POWER_1 = 0; // +0.7
 	public static double POWER_2 = 0; // -0.7

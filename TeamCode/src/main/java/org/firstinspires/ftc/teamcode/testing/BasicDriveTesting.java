@@ -1,8 +1,9 @@
 package org.firstinspires.ftc.teamcode.testing;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.acmerobotics.dashboard.FtcDashboard;
 
 import com.bylazar.gamepad.PanelsGamepad;
@@ -12,6 +13,7 @@ import org.firstinspires.ftc.teamcode.util.GamepadManager;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 
 // Robot Centric
+@Disabled
 public class BasicDriveTesting extends LinearOpMode {
 	private GamepadManager gamepadManager;
 
@@ -23,11 +25,11 @@ public class BasicDriveTesting extends LinearOpMode {
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 
 		gamepadManager = new GamepadManager(gamepad1, gamepad2,
-				PanelsGamepad.INSTANCE.getFirstManager()::asCombinedFTCGamepad,
-				PanelsGamepad.INSTANCE.getSecondManager()::asCombinedFTCGamepad);
+			PanelsGamepad.INSTANCE.getFirstManager()::getAsFTCGamepad,
+			PanelsGamepad.INSTANCE.getSecondManager()::getAsFTCGamepad);
 		gamepadManager.updateGamepads();
-		gamepad1.copy(gamepadManager.getGamepad1());
-		gamepad2.copy(gamepadManager.getGamepad2());
+		Gamepad customGamepad1 = gamepadManager.getGamepad1();
+		Gamepad customGamepad2 = gamepadManager.getGamepad2();
 
 		DcMotor frontLeftMotor = hardwareMap.get(DcMotor.class, "frontLeftMotor");
 		DcMotor frontRightMotor = hardwareMap.get(DcMotor.class, "frontRightMotor");
@@ -50,9 +52,9 @@ public class BasicDriveTesting extends LinearOpMode {
 		waitForStart();
 
 		while (opModeIsActive()) {
-			double xMovement = gamepad1.left_stick_x;
-			double yMovement = -gamepad1.left_stick_y;
-			double xRotation = gamepad1.right_stick_x;
+			double xMovement = customGamepad1.left_stick_x;
+			double yMovement = -customGamepad1.left_stick_y;
+			double xRotation = customGamepad1.right_stick_x;
 
 			double denominator = Math.max(Math.abs(xMovement) + Math.abs(yMovement) + Math.abs(xRotation), 1);
 			double frontLeftPower = (yMovement + xMovement + xRotation) / denominator;

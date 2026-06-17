@@ -22,6 +22,7 @@ import java.util.Queue;
 @Configurable
 @Config
 // @TeleOp(name="Color loop testing", group="Debug")
+@Disabled
 public class ColourLoopTesting extends LinearOpMode {
 	public static int AVERAGE_WINDOW_SIZE = 1000;
 	public static int colourCacheTimeMs = 10;

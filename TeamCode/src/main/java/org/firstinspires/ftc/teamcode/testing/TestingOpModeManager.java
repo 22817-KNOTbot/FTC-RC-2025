@@ -44,8 +44,6 @@ public final class TestingOpModeManager {
 			LaserDistanceTesting.class,
 			LightStrobing.class,
 			LimelightPoseTesting.class,
-			ManualIndividualControl.class,
-			MecanumDriveTesting.class,
 			MotorPositionTesting.class,
 			MotorTesting.class,
 			MotorTwoTesting.class,
@@ -55,7 +53,6 @@ public final class TestingOpModeManager {
 			ServoTwoTesting.class,
 			ShooterTesting.class,
 			ShooterVelocityTesting.class,
-			TransferTesting.class,
 			TurretTesting.class,
 			UtilityCameraFrameCapture.class
 		);

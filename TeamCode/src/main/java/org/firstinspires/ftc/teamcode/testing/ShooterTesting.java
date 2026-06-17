@@ -4,6 +4,7 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -14,6 +15,7 @@ import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 @Configurable
 @Config
 // @TeleOp(name="Shooter testing", group="Debug")
+@Disabled
 public class ShooterTesting extends LinearOpMode {
 	public static Pose robotPose = new Pose(72, 72, 0);
 	public static Vector robotVelocity = new Vector(0, 0);

@@ -12,11 +12,13 @@ import org.firstinspires.ftc.vision.opencv.ColorRange;
 import org.firstinspires.ftc.vision.opencv.ImageRegion;
 import org.opencv.core.Scalar;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import android.graphics.Color;
 import android.util.Size;
 
+@Disabled
 public class ArtifactDetection extends LinearOpMode {
 	private MultipleColorBlobLocatorProcessor colorLocator;
 	// private ColorBlobLocatorProcessor colorLocator;

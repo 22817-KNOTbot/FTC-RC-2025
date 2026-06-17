@@ -15,10 +15,12 @@ import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 @Config
 @Configurable
+@Disabled
 public class LimelightPoseTesting extends LinearOpMode {
 	public static int PIPELINE = 1;
 	public static boolean USE_MT1_HEADING = true;
