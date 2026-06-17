@@ -451,7 +451,7 @@ public class AutoComponents {
 						timer.reset();
 					}
 
-					if (!follower.isBusy() || (timer.time() > 0.5 && follower.getVelocity().getMagnitude() < 0.2)) {
+					if (follower.atParametricEnd() || (timer.time() > 0.5 && follower.getVelocity().getMagnitude() < 0.2)) {
 						// follower.setMaxPower(1);
 						return true;
 					}
@@ -527,13 +527,13 @@ public class AutoComponents {
 				private ElapsedTime timer = new ElapsedTime();
 
 				public boolean run(Follower follower, Automations automationHandler) {
-					if (follower.getPathCompletion() >= 0.6 && !initialized) {
+					if (follower.getPathCompletion() >= 0.3 && !initialized) {
 						// follower.setMaxPower(0.25);
 						automationHandler.intakeEnable(true);
 						timer.reset();
 					}
 
-					if (!follower.isBusy() || (timer.time() > 0.5 && follower.getVelocity().getMagnitude() < 0.2)) {
+					if (follower.atParametricEnd() || (timer.time() > 0.5 && follower.getVelocity().getMagnitude() < 0.2)) {
 						// follower.setMaxPower(1);
 						return true;
 					}
@@ -581,7 +581,7 @@ public class AutoComponents {
 							intakingTimer.reset();
 							intakingInit = true;
 						}
-						if (intakingInit && (intakingTimer.time() > 2 || automationHandler.getState() == Automations.State.IDLE)) {
+						if (intakingInit && (intakingTimer.time() > 1.3 || automationHandler.getState() == Automations.State.IDLE)) {
 							// follower.setMaxPower(1);
 							return true;
 						}
@@ -747,16 +747,17 @@ public class AutoComponents {
 
 				public boolean run(Follower follower, Automations automationHandler) {
 					automationHandler.updateTurret(true);
-					if (follower.isBusy() || follower.getVelocity().getMagnitude() > 1)
+					if (follower.isBusy())
 						return false;
 					if (shootingAimTimer == null) {
 						shootingAimTimer = new ElapsedTime();
 					}
-					if (!initialized && (automationHandler.getVisionAlignmentCorrect() || shootingAimTimer.time() > 2)) {
-						if (automationHandler.getIntakeEmpty() && !automationHandler.getTransferLoaded()) {
-							return true;
-						}
-						automationHandler.setIgnoreVelocity(false);
+					if (!initialized && (automationHandler.getVisionAlignmentCorrect() || shootingAimTimer.time() > 0)) {
+						// if (automationHandler.getIntakeEmpty() && !automationHandler.getTransferLoaded()) {
+						// 	return true;
+						// }
+						automationHandler.setAutoShootFinish(false);
+						automationHandler.setIgnoreVelocity(true);
 						automationHandler.setShooting(true);
 
 						initialized = true;
@@ -770,7 +771,7 @@ public class AutoComponents {
 							shootingTimer.reset();
 							shootingTimerSet = true;
 						}
-					} else if (state == Automations.State.IDLE && shootingTimer.time() > 1 || shootingTimer.time() > 5) {
+					} else if (state == Automations.State.SHOOTING && shootingTimer.time() > 1 || shootingTimer.time() > 2) {
 						automationHandler.setShooting(false);
 						return true;
 					}

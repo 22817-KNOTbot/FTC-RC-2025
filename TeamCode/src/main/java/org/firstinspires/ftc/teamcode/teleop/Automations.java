@@ -53,6 +53,7 @@ public class Automations {
 
 	private State state = State.IDLE;
 	private boolean shootInit;
+	private boolean autoShootFinish;
 	private boolean ignoreVelocity;
 	private boolean intakeEjecting;
 	private boolean intakeLastLoaded;
@@ -192,7 +193,7 @@ public class Automations {
 					// 	setShooting(false);
 					// }
 				}
-				if (transfer.isFinishedTransferring()) {
+				if (autoShootFinish && transfer.isFinishedTransferring()) {
 					vibrateControllers();
 					setShooting(false);
 				}
@@ -266,7 +267,7 @@ public class Automations {
 
 	// Should be called to update the shooter velocity
 	public void updateShooter() {
-		if (inShootingArea() && (transfer.getLoaded() || state == State.SHOOTING || intake.getAnyLoaded())) {
+		if (inShootingArea() && (!autoShootFinish || transfer.getLoaded() || state == State.SHOOTING || intake.getAnyLoaded())) {
 			setShooterEnabled(true);
 			shooter.updateShooterTarget(pose, alliance.getGoalShooterPose());
 		} else {
@@ -386,6 +387,10 @@ public class Automations {
 
 	public boolean getTransferLoaded() {
 		return transfer.getLoaded();
+	}
+
+	public void setAutoShootFinish(boolean autoShootFinish) {
+		this.autoShootFinish = autoShootFinish;
 	}
 
 	public void setIgnoreVelocity(boolean ignoreVelocity) {

@@ -46,6 +46,11 @@ public class AutoCloseSolo extends LinearOpMode {
 		ShootCloseAction.class,
 		ShootUnsortedAction.class,
 
+		// PrepareGateIntakeAction.class,
+		GateIntakeAction.class,
+		ShootCloseAction.class,
+		ShootUnsortedAction.class,
+
 		PrepareIntakeTopAction.class,
 		IntakePreparedAction.class,
 		ShootCloseAction.class,

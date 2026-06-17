@@ -41,7 +41,7 @@ public class AutoPaths {
 		public static PathChain getTopApproach(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
-							new BezierLine(startingPose, new Pose(85.000, 83.500)))
+							new BezierLine(startingPose, new Pose(89.000, 83.500)))
 					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0))
 					.build();
 		}
@@ -51,8 +51,9 @@ public class AutoPaths {
 					.addPath(
 							new BezierCurve(
 									startingPose,
-									new Pose(120.000, 60.000),
-									new Pose(118.000, 30.000)))
+									new Pose(107.000, 60.000),
+									new Pose(108.000, 55.000),
+									new Pose(105.000, 34.000)))
 					.setTangentHeadingInterpolation()
 					.build();
 		}
@@ -117,7 +118,7 @@ public class AutoPaths {
 					)
 					// .setBrakingStrength(0.5)
 					// .setGlobalDeceleration()
-					.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(20))
+					.setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(30))
 					.build();
 		}
 
