@@ -46,14 +46,26 @@ public class AutoPaths {
 					.build();
 		}
 
+		public static PathChain getDirectMiddleIntake(Follower follower, Pose startingPose) {
+			return follower.pathBuilder()
+					.addPath(
+							new BezierCurve(
+									startingPose,
+									new Pose(90.000, 73.500),
+									new Pose(85.000, 57.000),
+									new Pose(118.500, 58.000)))
+					.setLinearHeadingInterpolation(startingPose.getHeading(), Math.toRadians(0), 0.5)
+					.build();
+		}
+
 		public static PathChain getBottomSidespike(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
 					.addPath(
 							new BezierCurve(
 									startingPose,
-									new Pose(107.000, 60.000),
-									new Pose(108.000, 55.000),
-									new Pose(105.000, 34.000)))
+									// new Pose(107.000, 60.000),
+									new Pose(109.000, 70.000),
+									new Pose(109.500, 37.000)))
 					.setTangentHeadingInterpolation()
 					.build();
 		}
@@ -111,9 +123,9 @@ public class AutoPaths {
 					.addPath(
 						new BezierCurve(
 							startingPose, 
-							new Pose(87.000, 56.500),
+							new Pose(110.000, 60.000),
 							new Pose(120.000, 57.000),
-							new Pose(124.500, 57.000)
+							new Pose(128.500, 56.000)
 						)
 					)
 					// .setBrakingStrength(0.5)
@@ -122,50 +134,76 @@ public class AutoPaths {
 					.build();
 		}
 
+		public static PathChain getUpLaunchStart(Follower follower, Pose startingPose, double tangentialStart) {
+			PathBuilder builder = follower.pathBuilder()
+					.addPath(
+							new BezierLine(startingPose, new Pose(84.000, 74.000)));
+			if (tangentialStart > 0) {
+				builder.setHeadingInterpolation(
+						HeadingInterpolator.piecewise(
+								new HeadingInterpolator.PiecewiseNode(0, tangentialStart,
+										HeadingInterpolator.constant(startingPose.getHeading() + Math.PI)),
+								new HeadingInterpolator.PiecewiseNode(tangentialStart, 1, HeadingInterpolator.tangent)))
+						.setReversed();
+			} else {
+				builder.setConstantHeadingInterpolation(startingPose.getHeading());
+			}
+			return builder.build();
+		}
+
 		public static PathChain getUpLaunch(Follower follower, Pose startingPose) {
+			return getUpLaunch(follower, startingPose, 0.0001);
+		}
+
+		public static PathChain getUpLaunch(Follower follower, Pose startingPose, double tangentialStart) {
 			if (startingPose.getY() >= 60) {
-				return follower.pathBuilder()
+				PathBuilder builder = follower.pathBuilder()
 						.addPath(
-								new BezierLine(startingPose, new Pose(84.000, 84.000)))
-						.setHeadingInterpolation(
-								HeadingInterpolator.piecewise(
-										new HeadingInterpolator.PiecewiseNode(0, 0.25,
-												HeadingInterpolator.constant(startingPose.getHeading() + Math.PI)),
-										new HeadingInterpolator.PiecewiseNode(0.25, 1, HeadingInterpolator.tangent)))
-						.setReversed()
-						.build();
+								new BezierLine(startingPose, new Pose(84.000, 72.000)));
+				if (tangentialStart > 0) {
+					builder.setHeadingInterpolation(
+							HeadingInterpolator.piecewise(
+									new HeadingInterpolator.PiecewiseNode(0, tangentialStart,
+											HeadingInterpolator.constant(startingPose.getHeading() + Math.PI)),
+									new HeadingInterpolator.PiecewiseNode(tangentialStart, 1, HeadingInterpolator.tangent)))
+					.setReversed();
+				} else {
+					builder.setConstantHeadingInterpolation(startingPose.getHeading());
+				}
+				return builder.build();
 			} else {
 				return follower.pathBuilder()
 						.addPath(
 								new BezierCurve(
 										startingPose, 
 										new Pose(90.000, 60.000),
-										new Pose(84.000, 84.000)
+										new Pose(100.000, 70.000),
+										new Pose(84.000, 72.000)
 								))
 						.setHeadingInterpolation(
 								HeadingInterpolator.piecewise(
-										new HeadingInterpolator.PiecewiseNode(0, 0.25,
+										new HeadingInterpolator.PiecewiseNode(0, tangentialStart,
 												HeadingInterpolator.constant(startingPose.getHeading() + Math.PI)),
-										new HeadingInterpolator.PiecewiseNode(0.25, 1, HeadingInterpolator.tangent)))
+										new HeadingInterpolator.PiecewiseNode(tangentialStart, 1, HeadingInterpolator.tangent)))
 						.setReversed()
 						.build();
 			}
 		}
 
-		public static PathChain getUpLaunch(Follower follower, Pose startingPose, double targetHeadingDeg) {
-			return follower.pathBuilder()
-					.addPath(
-							new BezierLine(startingPose, new Pose(84.000, 84.000)))
-					.setHeadingInterpolation(
-							HeadingInterpolator.piecewise(
-									new HeadingInterpolator.PiecewiseNode(0, 0.15,
-											HeadingInterpolator.constant(startingPose.getHeading() + Math.PI)),
-									new HeadingInterpolator.PiecewiseNode(0.15, 1,
-											HeadingInterpolator.linear(startingPose.getHeading(),
-													Math.toRadians(targetHeadingDeg)))))
-					.setReversed()
-					.build();
-		}
+		// public static PathChain getUpLaunch(Follower follower, Pose startingPose, double targetHeadingDeg) {
+		// 	return follower.pathBuilder()
+		// 			.addPath(
+		// 					new BezierLine(startingPose, new Pose(84.000, 84.000)))
+		// 			.setHeadingInterpolation(
+		// 					HeadingInterpolator.piecewise(
+		// 							new HeadingInterpolator.PiecewiseNode(0, 0.15,
+		// 									HeadingInterpolator.constant(startingPose.getHeading() + Math.PI)),
+		// 							new HeadingInterpolator.PiecewiseNode(0.15, 1,
+		// 									HeadingInterpolator.linear(startingPose.getHeading(),
+		// 											Math.toRadians(targetHeadingDeg)))))
+		// 			.setReversed()
+		// 			.build();
+		// }
 
 		public static PathChain getExitUpperShootingZone(Follower follower, Pose startingPose) {
 			return follower.pathBuilder()
@@ -256,6 +294,10 @@ public class AutoPaths {
 		public static PathChain getTopApproach(Follower follower, Pose startingPose) {
 			return mirrorPathChain(Red.getTopApproach(follower, startingPose.mirror()), follower);
 		}
+		
+		public static PathChain getDirectMiddleIntake(Follower follower, Pose startingPose) {
+			return mirrorPathChain(Red.getDirectMiddleIntake(follower, startingPose.mirror()), follower);
+		}
 
 		public static PathChain getBottomSidespike(Follower follower, Pose startingPose) {
 			return mirrorPathChain(Red.getBottomSidespike(follower, startingPose.mirror()), follower);
@@ -289,12 +331,16 @@ public class AutoPaths {
 			return mirrorPathChain(Red.getLowLaunch(follower, startingPose.mirror()), follower);
 		}
 
-		public static PathChain getUpLaunch(Follower follower, Pose startingPose) {
-			return mirrorPathChain(Red.getUpLaunch(follower, startingPose.mirror()), follower);
+		public static PathChain getUpLaunchStart(Follower follower, Pose startingPose, double tangentialStart) {
+			return getUpLaunchStart(follower, startingPose, 0.25);
 		}
 
-		public static PathChain getUpLaunch(Follower follower, Pose startingPose, double targetHeadingDeg) {
-			return mirrorPathChain(Red.getUpLaunch(follower, startingPose.mirror(), targetHeadingDeg + 180), follower);
+		public static PathChain getUpLaunch(Follower follower, Pose startingPose) {
+			return getUpLaunch(follower, startingPose, 0.25);
+		}
+
+		public static PathChain getUpLaunch(Follower follower, Pose startingPose, double tangentialStart) {
+			return mirrorPathChain(Red.getUpLaunch(follower, startingPose.mirror(), tangentialStart), follower);
 		}
 
 		public static PathChain getExitLowShootingZone(Follower follower, Pose startingPose) {

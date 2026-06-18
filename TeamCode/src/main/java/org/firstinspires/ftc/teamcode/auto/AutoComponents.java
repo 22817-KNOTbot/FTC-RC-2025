@@ -79,7 +79,7 @@ public class AutoComponents {
 
 		public AutoAction[] getAutoActions() {
 			return new AutoAction[] {
-					new ShootCloseAction(),
+					new ShootCloseFromStartAction(),
 					new PrepareIntakeMiddleAction(),
 					new PrepareGateIntakeAction(),
 					new PrepareIntakeTopAction(),
@@ -90,7 +90,7 @@ public class AutoComponents {
 		}
 
 		public Pose getStartPose() {
-			return new Pose(123, 124, Math.toRadians(125));
+			return new Pose(123, 124, Math.toRadians(305));
 		}
 	}
 
@@ -213,6 +213,8 @@ public class AutoComponents {
 			return new AutoAction[] {
 					new PrepareIntakeTopAction(),
 					new PrepareIntakeMiddleAction(),
+					new DirectIntakeMiddleAction(),
+					new DirectIntakeTopAction(),
 					// new PrepareGateIntakeAction(),
 					new GateIntakeAction(),
 					new PrepareIntakeBottomAction(),
@@ -321,6 +323,11 @@ public class AutoComponents {
 			}
 			return null;
 		}
+
+		@Override
+		public boolean holdEndPose() {
+			return false;
+		}
 	}
 
 	public class PrepareIntakeMiddleAction extends AutoAction {
@@ -343,6 +350,11 @@ public class AutoComponents {
 				return AutoPaths.Blue.getMiddleApproach(follower, startingPose);
 			}
 			return null;
+		}
+
+		@Override
+		public boolean holdEndPose() {
+			return false;
 		}
 	}
 
@@ -367,6 +379,11 @@ public class AutoComponents {
 			}
 			return null;
 		}
+
+		@Override
+		public boolean holdEndPose() {
+			return false;
+		}
 	}
 
 	public class PrepareIntakeTopAction extends AutoAction {
@@ -389,6 +406,11 @@ public class AutoComponents {
 				return AutoPaths.Blue.getTopApproach(follower, startingPose);
 			}
 			return null;
+		}
+
+		@Override
+		public boolean holdEndPose() {
+			return false;
 		}
 	}
 
@@ -516,6 +538,90 @@ public class AutoComponents {
 		}
 	}
 
+	public class DirectIntakeMiddleAction extends AutoAction {
+		public String getNameString() {
+			return "Intake Middle (direct)";
+		}
+
+		public AutoActionCommand getActionCommand() {
+			return new AutoActionCommand() {
+				private boolean initialized = false;
+				private ElapsedTime timer = new ElapsedTime();
+
+				public boolean run(Follower follower, Automations automationHandler) {
+					if (follower.getPathCompletion() >= 0.3 && !initialized) {
+						// follower.setMaxPower(0.25);
+						automationHandler.intakeEnable(true);
+						timer.reset();
+					}
+
+					if (follower.atParametricEnd() || (timer.time() > 0.5 && follower.getVelocity().getMagnitude() < 0.2)) {
+						// follower.setMaxPower(1);
+						return true;
+					}
+
+					return false;
+				}
+			};
+		}
+
+		public AutoState getResultingState() {
+			return new IntakeState();
+		}
+
+		public PathChain getPathChain(Follower follower, Pose startingPose) {
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getDirectMiddleIntake(follower, startingPose);
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getDirectMiddleIntake(follower, startingPose);
+			}
+			return null;
+		}
+	}
+
+	public class DirectIntakeTopAction extends AutoAction {
+		public String getNameString() {
+			return "Intake Top (direct)";
+		}
+
+		public AutoActionCommand getActionCommand() {
+			return new AutoActionCommand() {
+				private boolean initialized = false;
+				private ElapsedTime timer = new ElapsedTime();
+
+				public boolean run(Follower follower, Automations automationHandler) {
+					if (follower.getPathCompletion() >= 0.3 && !initialized) {
+						// follower.setMaxPower(0.25);
+						automationHandler.intakeEnable(true);
+						timer.reset();
+					}
+
+					if (follower.atParametricEnd() || (timer.time() > 0.5 && follower.getVelocity().getMagnitude() < 0.2)) {
+						// follower.setMaxPower(1);
+						return true;
+					}
+
+					return false;
+				}
+			};
+		}
+
+		public AutoState getResultingState() {
+			return new IntakeState();
+		}
+
+		public PathChain getPathChain(Follower follower, Pose startingPose) {
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getIntakePreparedSet(follower,
+						AutoPaths.Red.getTopApproach(follower, startingPose).endPose());
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getIntakePreparedSet(follower,
+						AutoPaths.Blue.getTopApproach(follower, startingPose).endPose());
+			}
+			return null;
+		}
+	}
+
 	public class IntakeBottomSidespikeAction extends AutoAction {
 		public String getNameString() {
 			return "Intake Bottom Sidespike";
@@ -572,6 +678,7 @@ public class AutoComponents {
 				public boolean run(Follower follower, Automations automationHandler) {
 					if (!initialized) {
 						// follower.setMaxPower(0.25);
+						if (follower.getPathCompletion() < 0.4) return false;
 						automationHandler.intakeEnable(true);
 						timer.reset();
 					}
@@ -710,6 +817,23 @@ public class AutoComponents {
 		}
 	}
 
+	public class ShootCloseFromStartAction extends ShootCloseAction {
+		@Override
+		public String getNameString() {
+			return "Shoot Close (from start)";
+		}
+
+		@Override
+		public PathChain getPathChain(Follower follower, Pose startingPose) {
+			if (alliance instanceof RedAlliance) {
+				return AutoPaths.Red.getUpLaunchStart(follower, startingPose, -1);
+			} else if (alliance instanceof BlueAlliance) {
+				return AutoPaths.Blue.getUpLaunchStart(follower, startingPose, -1);
+			}
+			return null;
+		}
+	}
+
 	public class OpenGateAction extends AutoAction {
 		public String getNameString() {
 			return "Open Gate";
@@ -752,7 +876,7 @@ public class AutoComponents {
 					if (shootingAimTimer == null) {
 						shootingAimTimer = new ElapsedTime();
 					}
-					if (!initialized && (automationHandler.getVisionAlignmentCorrect() || shootingAimTimer.time() > 0)) {
+					if (!initialized && (automationHandler.getVisionAlignmentCorrect() || shootingAimTimer.time() > 0.5)) {
 						// if (automationHandler.getIntakeEmpty() && !automationHandler.getTransferLoaded()) {
 						// 	return true;
 						// }
@@ -771,7 +895,7 @@ public class AutoComponents {
 							shootingTimer.reset();
 							shootingTimerSet = true;
 						}
-					} else if (state == Automations.State.SHOOTING && shootingTimer.time() > 1 || shootingTimer.time() > 2) {
+					} else if (state == Automations.State.SHOOTING && shootingTimer.time() > 1.5 || shootingTimer.time() > 2) {
 						automationHandler.setShooting(false);
 						return true;
 					}
@@ -820,6 +944,7 @@ public class AutoComponents {
 				// automationHandler.intakeEnable(true);
 			} else if (follower.getPathCompletion() >= intakeStop) {
 				automationHandler.intakeEnable(false);
+				automationHandler.updateTurret(true);
 			}
 			return !follower.isBusy();
 		}

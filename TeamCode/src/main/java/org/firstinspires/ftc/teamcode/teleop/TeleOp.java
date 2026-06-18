@@ -143,6 +143,8 @@ public class TeleOp extends LinearOpMode {
 			loggingSession.logOncePerLoop(this);
 
 			gamepadManager.updateGamepads();
+			customGamepad1 = gamepadManager.getGamepad1();
+			customGamepad2 = gamepadManager.getGamepad2();
 
 			if (customGamepad1.left_trigger > 0.9) {
 				automationHandler.setAlliance(new BlueAlliance());
@@ -199,6 +201,8 @@ public class TeleOp extends LinearOpMode {
 
 
 			gamepadManager.updateGamepads();
+			customGamepad1 = gamepadManager.getGamepad1();
+			customGamepad2 = gamepadManager.getGamepad2();
 
 			/*
 			 * Driver 1

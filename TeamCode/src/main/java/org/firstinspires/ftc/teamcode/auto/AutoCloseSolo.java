@@ -5,22 +5,26 @@ import com.acmerobotics.dashboard.config.Config;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.gamepad.PanelsGamepad;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.util.BlueAlliance;
+import org.firstinspires.ftc.teamcode.util.GamepadManager;
 import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.TelemetryManager;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.AutoAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.DirectIntakeMiddleAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.DirectIntakeTopAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.GateIntakeAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakeBottomSidespikeAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakePreparedAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.LeaveUpAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeBottomAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeMiddleAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeTopAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootCloseAction;
+import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootCloseFromStartAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootUnsortedAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.StartAutoState;
 
@@ -33,26 +37,22 @@ import java.util.stream.Stream;
 @Autonomous
 public class AutoCloseSolo extends LinearOpMode {
 	public static final List<Class<? extends AutoAction>> AUTO_ACTIONS = List.of(
+		ShootCloseFromStartAction.class,
+		ShootUnsortedAction.class,
+
+		DirectIntakeMiddleAction.class,
 		ShootCloseAction.class,
 		ShootUnsortedAction.class,
 
-		PrepareIntakeMiddleAction.class,
-		IntakePreparedAction.class,
-		ShootCloseAction.class,
-		ShootUnsortedAction.class,
-
-		// PrepareGateIntakeAction.class,
 		GateIntakeAction.class,
 		ShootCloseAction.class,
 		ShootUnsortedAction.class,
 
-		// PrepareGateIntakeAction.class,
 		GateIntakeAction.class,
 		ShootCloseAction.class,
 		ShootUnsortedAction.class,
 
-		PrepareIntakeTopAction.class,
-		IntakePreparedAction.class,
+		DirectIntakeTopAction.class,
 		ShootCloseAction.class,
 		ShootUnsortedAction.class,
 
@@ -80,6 +80,13 @@ public class AutoCloseSolo extends LinearOpMode {
 		telemetryManager.setDashboardInstance(FtcDashboard.getInstance());
 		telemetryManager.setPanelsTelemetry(PanelsTelemetry.INSTANCE.getTelemetry());
 
+		GamepadManager gamepadManager = new GamepadManager(gamepad1, gamepad2,
+			PanelsGamepad.INSTANCE.getFirstManager()::getAsFTCGamepad,
+			PanelsGamepad.INSTANCE.getSecondManager()::getAsFTCGamepad);
+		gamepadManager.updateGamepads();
+		Gamepad customGamepad1 = gamepadManager.getGamepad1();
+		Gamepad customGamepad2 = gamepadManager.getGamepad2();
+
 		boolean configuring = true;
 		int selectedIndex = 0;
 		while (configuring) {
@@ -90,11 +97,11 @@ public class AutoCloseSolo extends LinearOpMode {
 			options = Stream.of(ALLIANCES)
 					.map(Alliance::getColourString).toArray(String[]::new);
 
-			if (gamepad1.dpadDownWasPressed() || gamepad2.dpadDownWasPressed()) {
+			if (customGamepad1.dpadDownWasPressed() || customGamepad2.dpadDownWasPressed()) {
 				selectedIndex = Math.min(selectedIndex + 1, ALLIANCES.length - 1);
-			} else if (gamepad1.dpadUpWasPressed() || gamepad2.dpadUpWasPressed()) {
+			} else if (customGamepad1.dpadUpWasPressed() || customGamepad2.dpadUpWasPressed()) {
 				selectedIndex = Math.max(selectedIndex - 1, 0);
-			} else if (gamepad1.aWasPressed() || gamepad2.aWasPressed()) {
+			} else if (customGamepad1.aWasPressed() || customGamepad2.aWasPressed()) {
 				alliance = ALLIANCES[selectedIndex];
 				autoManager = new AutoManager(alliance);
 				startingState = autoManager.getStartingStates()[1];
