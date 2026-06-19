@@ -81,3 +81,4 @@ lint/tmp/
 # lint/reports/
 
 TeamCode/src/main/java/org/firstinspires/ftc/teamcode/BuildConstants.java
+org.eclipse.buildship.core.prefs

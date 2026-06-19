@@ -31,8 +31,10 @@ public class AutoManager {
 	private boolean initialized = false;
 	private boolean startedFollowingPath;
 	private boolean startedActionCommand;
+	private AutoAction currentAction;
 	private AutoActionCommand currentActionCommand;
 	private boolean stateFinished;
+	private PathChain currentPath;
 	private List<PathChain> pathList;
 	private List<Boolean> holdEndPoseList;
 	private int currentState = 0;
@@ -116,7 +118,7 @@ public class AutoManager {
 	}
 
 	public void updateCommands() {
-		automationHandler.updatePose(follower.getPose());
+		automationHandler.updatePose((currentAction == null || !currentAction.useEndPose() || currentPath == null) ? follower.getPose() : currentPath.endPose());
 		automationHandler.updateVelocity(follower.getVelocity());
 		automationHandler.updateTurret();
 		automationHandler.updateShooter();
@@ -125,7 +127,8 @@ public class AutoManager {
 		if (stateFinished)
 			return;
 		if (!startedActionCommand) {
-			currentActionCommand = autoActions.get(currentState).getActionCommand();
+			currentAction = autoActions.get(currentState);
+			currentActionCommand = currentAction.getActionCommand();
 			startedActionCommand = true;
 		}
 		if (startedActionCommand && currentActionCommand != null) {
@@ -137,7 +140,7 @@ public class AutoManager {
 		follower.update();
 		if (!startedFollowingPath) {
 			if (currentState < pathList.size()) {
-				PathChain currentPath = pathList.get(currentState);
+				currentPath = pathList.get(currentState);
 				if (currentPath != null) {
 					follower.followPath(currentPath, holdEndPoseList.get(currentState));
 				}

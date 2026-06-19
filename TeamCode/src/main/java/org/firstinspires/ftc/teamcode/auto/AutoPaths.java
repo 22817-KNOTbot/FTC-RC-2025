@@ -124,8 +124,8 @@ public class AutoPaths {
 						new BezierCurve(
 							startingPose, 
 							new Pose(110.000, 60.000),
-							new Pose(120.000, 57.000),
-							new Pose(128.500, 56.000)
+							new Pose(120.000, 59.000),
+							new Pose(128.500, 59.000)
 						)
 					)
 					// .setBrakingStrength(0.5)
@@ -137,7 +137,7 @@ public class AutoPaths {
 		public static PathChain getUpLaunchStart(Follower follower, Pose startingPose, double tangentialStart) {
 			PathBuilder builder = follower.pathBuilder()
 					.addPath(
-							new BezierLine(startingPose, new Pose(84.000, 74.000)));
+							new BezierLine(startingPose, new Pose(82.000, 76.000)));
 			if (tangentialStart > 0) {
 				builder.setHeadingInterpolation(
 						HeadingInterpolator.piecewise(
@@ -159,7 +159,7 @@ public class AutoPaths {
 			if (startingPose.getY() >= 60) {
 				PathBuilder builder = follower.pathBuilder()
 						.addPath(
-								new BezierLine(startingPose, new Pose(84.000, 72.000)));
+								new BezierLine(startingPose, new Pose(84.000, 74.000)));
 				if (tangentialStart > 0) {
 					builder.setHeadingInterpolation(
 							HeadingInterpolator.piecewise(
@@ -178,7 +178,7 @@ public class AutoPaths {
 										startingPose, 
 										new Pose(90.000, 60.000),
 										new Pose(100.000, 70.000),
-										new Pose(84.000, 72.000)
+										new Pose(84.000, 74.000)
 								))
 						.setHeadingInterpolation(
 								HeadingInterpolator.piecewise(

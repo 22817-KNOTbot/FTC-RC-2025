@@ -39,6 +39,10 @@ public class AutoComponents {
 		public boolean holdEndPose() {
 			return true;
 		}
+
+		public boolean useEndPose() {
+			return false;
+		}
 	}
 
 	public static interface AutoActionCommand {
@@ -683,12 +687,12 @@ public class AutoComponents {
 						timer.reset();
 					}
 
-					if (!follower.isBusy() || (timer.time() > 2.5 && follower.getVelocity().getMagnitude() < 0.5)) {
+					if (follower.atParametricEnd() || (timer.time() > 2.5 && follower.getVelocity().getMagnitude() < 0.5)) {
 						if (!intakingInit) {
 							intakingTimer.reset();
 							intakingInit = true;
 						}
-						if (intakingInit && (intakingTimer.time() > 1.3 || automationHandler.getState() == Automations.State.IDLE)) {
+						if (intakingInit && (intakingTimer.time() > 1.1 || automationHandler.getState() == Automations.State.IDLE)) {
 							// follower.setMaxPower(1);
 							return true;
 						}
@@ -813,6 +817,11 @@ public class AutoComponents {
 
 		@Override
 		public boolean holdEndPose() {
+			return true;
+		}
+
+		@Override
+		public boolean useEndPose() {
 			return false;
 		}
 	}
@@ -876,7 +885,7 @@ public class AutoComponents {
 					if (shootingAimTimer == null) {
 						shootingAimTimer = new ElapsedTime();
 					}
-					if (!initialized && (automationHandler.getVisionAlignmentCorrect() || shootingAimTimer.time() > 0.5)) {
+					if (!initialized && (automationHandler.getVisionAlignmentCorrect() || shootingAimTimer.time() > 0)) {
 						// if (automationHandler.getIntakeEmpty() && !automationHandler.getTransferLoaded()) {
 						// 	return true;
 						// }
@@ -895,7 +904,7 @@ public class AutoComponents {
 							shootingTimer.reset();
 							shootingTimerSet = true;
 						}
-					} else if (state == Automations.State.SHOOTING && shootingTimer.time() > 1.5 || shootingTimer.time() > 2) {
+					} else if (state == Automations.State.SHOOTING && shootingTimer.time() > 1 || shootingTimer.time() > 1.5) {
 						automationHandler.setShooting(false);
 						return true;
 					}
@@ -946,7 +955,7 @@ public class AutoComponents {
 				automationHandler.intakeEnable(false);
 				automationHandler.updateTurret(true);
 			}
-			return !follower.isBusy();
+			return follower.atParametricEnd() /* && Math.abs(follower.getAngularVelocity()) <= Math.toRadians(10) */;
 		}
 	}
 }
