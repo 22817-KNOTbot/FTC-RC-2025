@@ -52,13 +52,10 @@ pto right: 0.5 = disengaged; 0.47 = engaged
 Goal angle = -8.3 deg
 Vertical distance = 37.075 in
 
-Shooter velo	Position (pedro)
-2100			(72, 24)
-2200			(72, 9)
-2120			(96, 9)
-2340			(48, 9)
-1740			(72, 72)
-1600			(72, 96)
-1480			(96, 96)
-1520			(72, 120)
-1380			(96, 120)
+Shooter velo	Distance
+980				42
+1280			68
+1400			79
+600				16
+1260			60
+1640			103

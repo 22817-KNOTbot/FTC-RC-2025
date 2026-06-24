@@ -39,9 +39,9 @@ public class Shooter {
 	public static double max_pitch = 0.65;
 	public static double pitch_increment = 0.01;
 
-	public static double goal_height = 46.25;
+	public static double goal_height = 20;
 	public static double robot_height = 9.175;
-	public static double goal_angle = -8.3;
+	public static double goal_angle = -45;
 
 	private final double GRAVITY = DistanceUnit.INCH.fromMeters(9.80665);
 
@@ -72,6 +72,12 @@ public class Shooter {
 		 * Original data can be found in Notes.md
 		 */
 		velocityLUT.add(
+			velocityLUT.new Entry(145.779222955, 980d),
+			velocityLUT.new Entry(176.089150096, 1280d),
+			velocityLUT.new Entry(187.574188827, 1400d),
+			velocityLUT.new Entry(109.742384956, 600d),
+			velocityLUT.new Entry(167.282727863, 1260d),
+			velocityLUT.new Entry(210.5801596, 1640d),
 			velocityLUT.new Entry(309.496549403, 2100d),
 			velocityLUT.new Entry(326.083917735, 2200d),
 			velocityLUT.new Entry(313.747917615, 2120d),
@@ -147,30 +153,8 @@ public class Shooter {
 	}
 
 	public void updateShooterTarget(Pose robotPose, Pose targetPose, Vector robotVelocity) {
-		double horizontalDistance = robotPose.distanceFrom(targetPose);
-		double verticalDistance = goal_height - robot_height;
-
-		double angle = Math.atan((2 * verticalDistance) / horizontalDistance - Math.tan(Math.toRadians(goal_angle)));
-		double v0 = Math.sqrt((GRAVITY * Math.pow(horizontalDistance, 2))
-				/ (2 * Math.pow(Math.cos(angle), 2) * (horizontalDistance * Math.tan(angle) - verticalDistance)));
-
-		double velocityAngleDifference = robotVelocity.getTheta()
-				- targetPose.minus(robotPose).getAsVector().getTheta();
-		double radialVelocity = Math.cos(velocityAngleDifference) * robotVelocity.getMagnitude();
-		double tangentialVelocity = Math.sin(velocityAngleDifference) * robotVelocity.getMagnitude();
-
-		double time = horizontalDistance / (v0 * Math.cos(angle));
-
-		double vxNew = Math.hypot((horizontalDistance / time) + radialVelocity, tangentialVelocity);
-		double vyNew = v0 * Math.sin(angle);
-
-		double newAngle = Math.atan(vyNew / vxNew);
-		double newHorizontalDistance = vxNew * time;
-		double newV0 = Math.sqrt((GRAVITY * Math.pow(newHorizontalDistance, 2))
-				/ (2 * Math.pow(Math.cos(newAngle), 2) * (newHorizontalDistance * Math.tan(newAngle) - verticalDistance)));
-
-		desiredVelocity = convertProjectileToShooterVelocity(newV0) + velocityConstant;
-		setPitchAngle(Math.toDegrees(newAngle));
+		desiredVelocity = defaultVelocity;
+		setPitchAngle(Math.toDegrees(defaultAngle));
 	}
 
 	public void updateVelocityPid() {

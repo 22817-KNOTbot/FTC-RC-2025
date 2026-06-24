@@ -48,6 +48,7 @@ public class Automations {
 	private Vector velocity;
 
 	private Pid turretPid;
+	private boolean turretEnabled;
 	private RollingTimeQueue<Double> shooterVelocityQueue = new RollingTimeQueue<>(Shooter.velocityDropTimeMs);
 	private int ballsShot;
 
@@ -159,13 +160,8 @@ public class Automations {
 				break;
 			case WAITING_TO_SHOOT:
 				if (shooter.atDesiredVelocity() || ignoreVelocity) {
-					if (getShootingArea() == ShootingZone.LOWER) {
-						intake.enableSlow(true);
-						transfer.enableSlowFar(true);
-					} else {
 						intake.enable(true);
 						transfer.enable(true);
-					}
 					shooter.enable(true);
 					shootInit = false;
 					ballsShot = 0;
@@ -220,8 +216,7 @@ public class Automations {
 	}
 
 	public void updateTurret(boolean force) {
-		if (!force
-				&& (!inShootingArea() || (!transfer.getLoaded() && state != State.SHOOTING && !intake.getAnyLoaded())))
+		if (!turretEnabled && !force)
 			return;
 		AlignmentDirection direction = limelight.getAlignmentDirection();
 		if (!direction.directionKnown || !useVision) {
@@ -267,7 +262,7 @@ public class Automations {
 
 	// Should be called to update the shooter velocity
 	public void updateShooter() {
-		if (inShootingArea() && (!autoShootFinish || transfer.getLoaded() || state == State.SHOOTING || intake.getAnyLoaded())) {
+		if (state == State.WAITING_TO_SHOOT || state == State.SHOOTING) {
 			setShooterEnabled(true);
 			shooter.updateShooterTarget(pose, alliance.getGoalShooterPose());
 		} else {
@@ -331,6 +326,14 @@ public class Automations {
 			shooter.enable(false);
 			state = State.IDLE;
 		}
+	}
+
+	public void setTurretEnabled(boolean enable) {
+		turretEnabled = enable;
+	}
+
+	public boolean getTurretEnabled() {
+		return turretEnabled;
 	}
 
 	public void setTurretRotationDegrees(double positionDegrees) {

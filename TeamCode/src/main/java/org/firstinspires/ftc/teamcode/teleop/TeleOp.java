@@ -19,6 +19,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.util.BlueAlliance;
 import org.firstinspires.ftc.teamcode.util.Drawing;
+import org.firstinspires.ftc.teamcode.util.EventAlliance;
 import org.firstinspires.ftc.teamcode.util.RedAlliance;
 import org.firstinspires.ftc.teamcode.util.GamepadManager;
 import org.firstinspires.ftc.teamcode.util.HtmlUtil;
@@ -76,22 +77,7 @@ public class TeleOp extends LinearOpMode {
 		if (customGamepad1.right_bumper)
 			DEBUG = true;
 
-		Alliance alliance = new RedAlliance();
-		if (customGamepad1.left_trigger > 0.9) {
-			alliance = new BlueAlliance();
-		} else if (customGamepad1.right_trigger > 0.9) {
-			alliance = new RedAlliance();
-		} else {
-			Object allianceObject = blackboard.getOrDefault("alliance", null);
-			if (allianceObject == null) {
-				alliance = new RedAlliance();
-			} else {
-				try {
-					alliance = (Alliance) allianceObject;
-				} catch (ClassCastException err) {
-				}
-			}
-		}
+		Alliance alliance = new EventAlliance();
 
 		final FtcLoggingSession loggingSession = new FtcLoggingSession();
 		if (LOGGING_LEVEL > 0) {
@@ -146,11 +132,6 @@ public class TeleOp extends LinearOpMode {
 			customGamepad1 = gamepadManager.getGamepad1();
 			customGamepad2 = gamepadManager.getGamepad2();
 
-			if (customGamepad1.left_trigger > 0.9) {
-				automationHandler.setAlliance(new BlueAlliance());
-			} else if (customGamepad1.right_trigger > 0.9) {
-				automationHandler.setAlliance(new RedAlliance());
-			}
 			telemetryManager.addData("Alliance", automationHandler.getAlliance().getColourString());
 			if (DEBUG) {
 				telemetryManager.addData("Blackboard", blackboard);
@@ -223,6 +204,9 @@ public class TeleOp extends LinearOpMode {
 			if (customGamepad1.aWasPressed()) {
 				automationHandler.intakeToggle();
 			}
+			if (customGamepad1.yWasPressed()) {
+				automationHandler.setTurretEnabled(!automationHandler.getTurretEnabled());
+			}
 			if (customGamepad1.right_trigger > 0.9) {
 				automationHandler.intakeEject();
 			} else if (automationHandler.getIntakeEjecting()) {
@@ -268,11 +252,20 @@ public class TeleOp extends LinearOpMode {
 			} else {
 				automationHandler.updateShooter();
 			}
-			if (customGamepad2.dpadRightWasPressed()) {
+			if (customGamepad1.dpadUpWasPressed()) {
 				manualTurretMode = !manualTurretMode;
+				if (manualTurretMode) {
+					automationHandler.vibrateControllersBlips(2);
+				} else {
+					automationHandler.vibrateControllersBlips(1);
+				}
 			}
 			if (manualTurretMode) {
-				automationHandler.rotateTurret(customGamepad2.left_stick_x);
+				double rotation = 0;
+				if (customGamepad1.dpad_left) rotation -= 1;
+				if (customGamepad1.dpad_right) rotation += 1;
+
+				automationHandler.rotateTurret(rotation);
 				automationHandler.pitchTurret(customGamepad2.right_stick_y);
 			} else {
 				automationHandler.updateTurret();
