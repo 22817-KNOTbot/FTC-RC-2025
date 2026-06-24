@@ -20,9 +20,7 @@ import org.firstinspires.ftc.teamcode.auto.AutoComponents.DirectIntakeMiddleActi
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.DirectIntakeTopAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.GateIntakeAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakeBottomSidespikeAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.IntakePreparedAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.LeaveUpAction;
-import org.firstinspires.ftc.teamcode.auto.AutoComponents.PrepareIntakeTopAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootCloseAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootCloseFromStartAction;
 import org.firstinspires.ftc.teamcode.auto.AutoComponents.ShootUnsortedAction;

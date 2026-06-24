@@ -64,8 +64,8 @@ public class AutoPaths {
 							new BezierCurve(
 									startingPose,
 									// new Pose(107.000, 60.000),
-									new Pose(109.000, 70.000),
-									new Pose(109.500, 37.000)))
+									new Pose(111.500, 70.000),
+									new Pose(112.000, 37.000)))
 					.setTangentHeadingInterpolation()
 					.build();
 		}

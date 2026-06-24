@@ -406,7 +406,9 @@ public class Automations {
 	}
 
 	public boolean getVisionAlignmentCorrect() {
-		return !useVision || limelight.getAlignmentDirection().directionKnown && limelight.getAlignmentDirection().bearing <= Turret.vision_tolerance_deg;
+		return !useVision 
+				|| limelight.getAlignmentDirection().directionKnown && limelight.getAlignmentDirection().bearing != null 
+				&& limelight.getAlignmentDirection().bearing <= Turret.vision_tolerance_deg;
 	}
 
 	// Used by MecanumDrive for fusion localizer

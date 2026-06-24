@@ -885,7 +885,7 @@ public class AutoComponents {
 					if (shootingAimTimer == null) {
 						shootingAimTimer = new ElapsedTime();
 					}
-					if (!initialized && (automationHandler.getVisionAlignmentCorrect() || shootingAimTimer.time() > 0)) {
+					if (!initialized && (automationHandler.getVisionAlignmentCorrect() || shootingAimTimer.time() > 0.5)) {
 						// if (automationHandler.getIntakeEmpty() && !automationHandler.getTransferLoaded()) {
 						// 	return true;
 						// }
@@ -904,7 +904,7 @@ public class AutoComponents {
 							shootingTimer.reset();
 							shootingTimerSet = true;
 						}
-					} else if (state == Automations.State.SHOOTING && shootingTimer.time() > 1 || shootingTimer.time() > 1.5) {
+					} else if (state == Automations.State.SHOOTING && shootingTimer.time() > 0.9 || shootingTimer.time() > 1.5) {
 						automationHandler.setShooting(false);
 						return true;
 					}
